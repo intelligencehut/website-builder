@@ -1,0 +1,25 @@
+{
+  "name": "@website-builder/admin",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3001 --turbopack",
+    "build": "next build",
+    "start": "next start --port 3001",
+    "lint": "echo 'No linter configured yet'",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@website-builder/content-schema": "workspace:*",
+    "@website-builder/database": "workspace:*",
+    "@website-builder/ui": "workspace:*",
+    "next": "^16",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}
