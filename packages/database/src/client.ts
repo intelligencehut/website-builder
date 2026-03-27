@@ -16,6 +16,7 @@ export function createServerClient(): SupabaseClient {
 
   return createClient(url, key, {
     auth: { persistSession: false },
+    db: { schema: 'website' },
   });
 }
 
