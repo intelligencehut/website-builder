@@ -19,7 +19,14 @@ import {
   MoreHorizontal,
   Check,
   Loader2,
+  History,
+  PanelRightClose,
+  PanelRightOpen,
 } from 'lucide-react';
+import { saveDraft } from '@/lib/actions/content';
+import { deployToStage, publishToProduction } from '@/lib/actions/deploy';
+import { PublishDialog } from '@/components/editors/publish-dialog';
+import { VersionHistory } from '@/components/editors/version-history';
 import { Field, TextInput } from '@/components/ui/field';
 import { HeroEditor } from '@/components/editors/hero-editor';
 import { ImpactEditor } from '@/components/editors/impact-editor';
@@ -196,6 +203,9 @@ export default function PageEditorPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [publishAction, setPublishAction] = useState<'stage' | 'publish' | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [currentVersionId, setCurrentVersionId] = useState<string>('demo-v1');
 
   const update = useCallback(<K extends keyof PageState>(key: K, value: PageState[K]) => {
     setState((prev) => ({ ...prev, [key]: value }));
@@ -211,12 +221,22 @@ export default function PageEditorPage() {
 
   async function handleSave() {
     setSaving(true);
-    // TODO: Save to Supabase content_versions
-    await new Promise((r) => setTimeout(r, 800));
+    const result = await saveDraft('home', state as unknown as Record<string, unknown>);
+    setCurrentVersionId(result.id);
     setSaving(false);
     setSaved(true);
     setDirty(false);
     setTimeout(() => setSaved(false), 2000);
+  }
+
+  async function handleDeployToStage() {
+    if (dirty) await handleSave();
+    await deployToStage('demo-site', currentVersionId, 'Amit Das');
+  }
+
+  async function handlePublish() {
+    if (dirty) await handleSave();
+    await publishToProduction('demo-site', currentVersionId, 'Amit Das');
   }
 
   function renderSectionEditor(sectionId: SectionId) {
@@ -306,25 +326,39 @@ export default function PageEditorPage() {
               {saved ? 'Saved' : 'Save Draft'}
             </button>
 
-            <button className="flex items-center gap-2 px-4 py-1.5 bg-amber-500 text-white rounded-button text-[13px] font-medium hover:bg-amber-600 transition-colors">
+            <button
+              onClick={() => setPublishAction('stage')}
+              className="flex items-center gap-2 px-4 py-1.5 bg-amber-500 text-white rounded-button text-[13px] font-medium hover:bg-amber-600 transition-colors"
+            >
               <Rocket className="w-3.5 h-3.5" />
               Stage
             </button>
 
-            <button className="flex items-center gap-2 px-4 py-1.5 bg-sidebar text-ink-inverse rounded-button text-[13px] font-medium hover:bg-sidebar-hover transition-colors">
+            <button
+              onClick={() => setPublishAction('publish')}
+              className="flex items-center gap-2 px-4 py-1.5 bg-sidebar text-ink-inverse rounded-button text-[13px] font-medium hover:bg-sidebar-hover transition-colors"
+            >
               <Globe className="w-3.5 h-3.5" />
               Publish
             </button>
 
-            <button className="p-1.5 text-ink-muted hover:text-ink hover:bg-surface-hover rounded-button transition-colors">
-              <MoreHorizontal className="w-4 h-4" />
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className={cn(
+                'p-1.5 rounded-button transition-colors',
+                showHistory ? 'text-accent bg-accent/10' : 'text-ink-muted hover:text-ink hover:bg-surface-hover'
+              )}
+              title="Version history"
+            >
+              <History className="w-4 h-4" />
             </button>
           </div>
         </div>
       </header>
 
+      <div className="flex">
       {/* Editor content */}
-      <div className="max-w-4xl mx-auto p-8 animate-fade-in">
+      <div className={cn('flex-1 max-w-4xl mx-auto p-8 animate-fade-in transition-all', showHistory && 'mr-[320px]')}>
         {/* Page info */}
         <div className="glass-card rounded-card p-6 mb-6">
           <div className="grid grid-cols-2 gap-4">
@@ -395,6 +429,45 @@ export default function PageEditorPage() {
           })}
         </div>
       </div>
+
+      {/* Version history sidebar */}
+      {showHistory && (
+        <aside className="fixed right-0 top-0 bottom-0 w-[320px] bg-surface-card border-l border-surface-border shadow-panel z-30 animate-slide-in-left overflow-y-auto custom-scrollbar">
+          <div className="sticky top-0 bg-surface-card border-b border-surface-border px-5 py-4 flex items-center justify-between z-10">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-ink-muted" />
+              <h3 className="text-heading text-ink">Version History</h3>
+            </div>
+            <button
+              onClick={() => setShowHistory(false)}
+              className="p-1 text-ink-muted hover:text-ink rounded transition-colors"
+            >
+              <PanelRightClose className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="p-4">
+            <VersionHistory
+              pageId="home"
+              onRestore={(versionId) => {
+                // TODO: Load version content
+                setShowHistory(false);
+              }}
+            />
+          </div>
+        </aside>
+      )}
+      </div>
+
+      {/* Publish dialog */}
+      {publishAction && (
+        <PublishDialog
+          open={!!publishAction}
+          onClose={() => setPublishAction(null)}
+          action={publishAction}
+          pageName={state.title}
+          onConfirm={publishAction === 'stage' ? handleDeployToStage : handlePublish}
+        />
+      )}
     </div>
   );
 }

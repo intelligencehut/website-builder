@@ -1,7 +1,13 @@
+'use client';
+
+import { useState } from 'react';
 import { Header } from '@/components/header';
+import { PublishDialog } from '@/components/editors/publish-dialog';
+import { deployToStage, publishToProduction } from '@/lib/actions/deploy';
 import { cn } from '@/lib/utils';
 import {
   Rocket,
+  Globe,
   CheckCircle2,
   AlertCircle,
   Clock,
@@ -71,16 +77,30 @@ const statusConfig = {
 };
 
 export default function DeploysPage() {
+  const [deployAction, setDeployAction] = useState<'stage' | 'publish' | null>(null);
+
   return (
     <>
       <Header
         title="Deploys"
         description="Deployment history and environment status"
         actions={
-          <button className="flex items-center gap-2 px-4 py-2 bg-sidebar text-ink-inverse rounded-button text-[13px] font-medium hover:bg-sidebar-hover transition-colors">
-            <Rocket className="w-3.5 h-3.5" />
-            Trigger Deploy
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setDeployAction('stage')}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-button text-[13px] font-medium hover:bg-amber-600 transition-colors"
+            >
+              <Rocket className="w-3.5 h-3.5" />
+              Deploy Stage
+            </button>
+            <button
+              onClick={() => setDeployAction('publish')}
+              className="flex items-center gap-2 px-4 py-2 bg-sidebar text-ink-inverse rounded-button text-[13px] font-medium hover:bg-sidebar-hover transition-colors"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              Publish Production
+            </button>
+          </div>
         }
       />
 
@@ -177,6 +197,22 @@ export default function DeploysPage() {
           </div>
         </div>
       </div>
+
+      {deployAction && (
+        <PublishDialog
+          open={!!deployAction}
+          onClose={() => setDeployAction(null)}
+          action={deployAction}
+          pageName="All Pages"
+          onConfirm={async () => {
+            if (deployAction === 'stage') {
+              await deployToStage('demo-site', 'latest');
+            } else {
+              await publishToProduction('demo-site', 'latest');
+            }
+          }}
+        />
+      )}
     </>
   );
 }
