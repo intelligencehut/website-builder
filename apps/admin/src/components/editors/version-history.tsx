@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { History, RotateCcw, Check } from 'lucide-react';
-import { getVersionHistory } from '@/lib/actions/content';
+import { getPageVersionHistory } from '@/lib/actions/pages';
 import type { ContentStatus } from '@website-builder/content-schema';
 
 interface VersionRecord {
@@ -31,8 +31,8 @@ export function VersionHistory({ pageId, onRestore }: VersionHistoryProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getVersionHistory(pageId).then((data) => {
-      setVersions(data);
+    getPageVersionHistory(pageId).then((data) => {
+      setVersions(data.map(v => ({ ...v, created_by: v.created_by || 'Unknown' })));
       setLoading(false);
     });
   }, [pageId]);

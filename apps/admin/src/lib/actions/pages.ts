@@ -147,3 +147,42 @@ export async function updateVersionStatus(
   if (error) throw error;
   return data;
 }
+
+/**
+ * Get version history for a page.
+ */
+export async function getPageVersionHistory(pageId: string) {
+  const supabase = createAdminClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('content_versions')
+    .select('id, version_number, status, created_by, created_at, published_at')
+    .eq('page_id', pageId)
+    .order('version_number', { ascending: false })
+    .limit(20);
+
+  if (error) return [];
+  return data ?? [];
+}
+
+/**
+ * Update page metadata (title, slug, meta fields).
+ */
+export async function updatePageMeta(
+  pageId: string,
+  meta: { title?: string; slug?: string; meta_title?: string; meta_description?: string }
+) {
+  const supabase = createAdminClient();
+  if (!supabase) throw new Error('Supabase not configured');
+
+  const { data, error } = await supabase
+    .from('pages')
+    .update({ ...meta, updated_at: new Date().toISOString() })
+    .eq('id', pageId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
