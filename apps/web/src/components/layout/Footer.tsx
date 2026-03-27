@@ -31,7 +31,21 @@ const quickLinks = [
   { label: 'Transparency', href: '/transparency' },
 ];
 
-export function Footer() {
+interface FooterProps {
+  quickLinks?: { label: string; href: string }[];
+  socialLinks?: { icon: string; href: string; label: string }[];
+  siteName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+}
+
+export function Footer(props: FooterProps = {}) {
+  // Use props from database if provided, fall back to hardcoded constants
+  const footerEmail = props.email ?? CONTACT_INFO.email;
+  const footerPhone = props.phone ?? CONTACT_INFO.phone;
+  const footerAddress = props.address ?? CONTACT_INFO.address;
+  const footerSiteName = props.siteName ?? 'SEVAA';
   const handleNavClick = (href: string) => {
     if (href.startsWith('#')) {
       // Check if we're on the home page

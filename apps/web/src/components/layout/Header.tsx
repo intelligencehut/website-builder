@@ -9,7 +9,24 @@ import { UserMenu } from '@/components/auth/UserMenu';
 import { useSmoothScroll } from '@/hooks/useSmootScroll';
 import Image from 'next/image';
 
-export function Header() {
+interface NavItem {
+  id: string;
+  label: string;
+  href: string;
+  dropdown?: { id: string; label: string; href: string }[];
+}
+
+interface HeaderProps {
+  navItems?: NavItem[];
+  logo?: string;
+  siteName?: string;
+}
+
+export function Header({ navItems, logo, siteName }: HeaderProps = {}) {
+  // Use props if provided, fall back to hardcoded constants
+  const items = navItems ?? NAVIGATION_ITEMS;
+  const logoSrc = logo ?? '/sevaa_logo.png';
+  const siteTitle = siteName ?? 'SEVAA';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileActiveDropdown, setMobileActiveDropdown] = useState<
@@ -50,8 +67,8 @@ export function Header() {
               className='flex items-center space-x-3 hover:opacity-90 transition-opacity'
             >
               <Image
-                src='/sevaa_logo.png'
-                alt='SEVAA Logo'
+                src={logoSrc}
+                alt={`${siteTitle} Logo`}
                 width={60}
                 height={60}
                 className='object-contain'
@@ -61,7 +78,7 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className='hidden md:flex items-center space-x-8'>
-            {NAVIGATION_ITEMS.map(item => (
+            {items.map(item => (
               <div key={item.id} className='relative'>
                 {'dropdown' in item && item.dropdown ? (
                   <div
@@ -225,7 +242,7 @@ export function Header() {
               <div className='flex flex-col h-full bg-white'>
                 {/* Navigation Items */}
                 <nav className='flex-1 px-6 py-8 space-y-2 bg-white overflow-y-auto'>
-                  {NAVIGATION_ITEMS.map((item, index) => (
+                  {items.map((item, index) => (
                     <motion.div
                       key={item.id}
                       initial={{ opacity: 0, x: 20 }}

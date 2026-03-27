@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { Layout } from '@/components/layout';
 import { SectionRenderer } from '@/sections';
 import type { PageSection } from '@/sections/types';
-import { getAllPages, getPageBySlug } from '@/lib/site';
+import { getAllPages, getPageBySlug, getSiteConfig } from '@/lib/site';
 import type { Metadata } from 'next';
 
 interface Props {
@@ -56,6 +56,13 @@ export default async function DynamicPage({ params }: Props) {
   if (!page) {
     notFound();
   }
+
+  // Fetch site-level config (navigation, theme) for header/footer
+  const siteConfigRaw = await getSiteConfig();
+  const siteConfig = siteConfigRaw ? {
+    navigation: siteConfigRaw.navigation as { main?: unknown[]; footer?: unknown } | undefined,
+    theme: siteConfigRaw.theme as Record<string, unknown> | undefined,
+  } : null;
 
   // Parse sections from content
   const content = page.content ?? {};
@@ -120,7 +127,7 @@ export default async function DynamicPage({ params }: Props) {
   }
 
   return (
-    <Layout>
+    <Layout siteConfig={siteConfig as Parameters<typeof Layout>[0]['siteConfig']}>
       <SectionRenderer sections={sections} />
     </Layout>
   );
