@@ -32,10 +32,14 @@ interface SidebarProps {
 
 export function Sidebar({ user, siteName = 'SEVAA' }: SidebarProps) {
   const pathname = usePathname();
-  const supabase = createClient();
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch {
+      // Supabase not configured — just redirect
+    }
     window.location.href = '/login';
   }
 
