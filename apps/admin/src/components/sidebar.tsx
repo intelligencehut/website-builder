@@ -36,7 +36,7 @@ export function Sidebar({ user, siteName = 'SEVAA' }: SidebarProps) {
   async function handleSignOut() {
     try {
       const supabase = createClient();
-      await supabase.auth.signOut();
+      await supabase?.auth.signOut();
     } catch {
       // Supabase not configured — just redirect
     }

@@ -1,3 +1,4 @@
+import { getPages } from '@/lib/actions/pages';
 import { Header } from '@/components/header';
 import {
   FileText,
@@ -11,71 +12,18 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-const stats = [
-  {
-    label: 'Total Pages',
-    value: '52',
-    change: '+3 this week',
-    icon: FileText,
-    color: 'text-blue-600',
-    bg: 'bg-blue-50',
-  },
-  {
-    label: 'Media Files',
-    value: '128',
-    change: '2.4 GB used',
-    icon: Image,
-    color: 'text-violet-600',
-    bg: 'bg-violet-50',
-  },
-  {
-    label: 'Deploys',
-    value: '24',
-    change: 'Last: 2h ago',
-    icon: Rocket,
-    color: 'text-accent',
-    bg: 'bg-amber-50',
-  },
-  {
-    label: 'Uptime',
-    value: '99.9%',
-    change: 'All systems go',
-    icon: Zap,
-    color: 'text-emerald-600',
-    bg: 'bg-emerald-50',
-  },
-];
+const SITE_ID = 'a0000000-0000-0000-0000-000000000001';
 
-const recentEdits = [
-  {
-    page: 'Home',
-    section: 'Hero Carousel',
-    time: '2 hours ago',
-    user: 'Amit Das',
-    status: 'published' as const,
-  },
-  {
-    page: 'News: Tilka Murmu School',
-    section: 'Content',
-    time: '5 hours ago',
-    user: 'Amit Das',
-    status: 'staged' as const,
-  },
-  {
-    page: 'Programs',
-    section: 'Programs List',
-    time: '1 day ago',
-    user: 'Amit Das',
-    status: 'draft' as const,
-  },
-  {
-    page: 'About / Genesis',
-    section: 'Full page',
-    time: '2 days ago',
-    user: 'Amit Das',
-    status: 'published' as const,
-  },
-];
+function makeStats(pageCount: number) {
+  return [
+    { label: 'Total Pages', value: String(pageCount), change: 'From database', icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Media Files', value: '12', change: 'In /public', icon: Image, color: 'text-violet-600', bg: 'bg-violet-50' },
+    { label: 'Deploys', value: '0', change: 'No deploys yet', icon: Rocket, color: 'text-accent', bg: 'bg-amber-50' },
+    { label: 'Uptime', value: '99.9%', change: 'All systems go', icon: Zap, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  ];
+}
+
+// Recent edits derived from pages data
 
 const environments = [
   {
@@ -95,12 +43,15 @@ const environments = [
 ];
 
 const quickActions = [
-  { label: 'Edit Home Page', href: '/pages/home/edit', icon: FileText },
+  { label: 'Edit Home Page', href: '/pages/b0000000-0000-0000-0000-000000000001/edit', icon: FileText },
   { label: 'Upload Media', href: '/media', icon: Image },
   { label: 'View Deploys', href: '/deploys', icon: Rocket },
 ];
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const pages = await getPages(SITE_ID);
+  const stats = makeStats(pages.length);
+
   return (
     <>
       <Header
@@ -149,25 +100,28 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="divide-y divide-surface-border">
-              {recentEdits.map((edit, i) => (
-                <div
-                  key={i}
-                  className="px-6 py-3.5 flex items-center gap-4 hover:bg-surface-hover transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-ink truncate">
-                      {edit.page}
-                    </p>
-                    <p className="text-[12px] text-ink-muted">
-                      {edit.section} · {edit.user}
-                    </p>
+              {pages.slice(0, 5).map((page) => {
+                const status = (page.latest_status || 'draft') as 'draft' | 'staged' | 'published';
+                return (
+                  <div
+                    key={page.id}
+                    className="px-6 py-3.5 flex items-center gap-4 hover:bg-surface-hover transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-medium text-ink truncate">
+                        {page.title}
+                      </p>
+                      <p className="text-[12px] text-ink-muted">
+                        {page.slug} · {page.page_type}
+                      </p>
+                    </div>
+                    <StatusBadge status={status} />
+                    <span className="text-[12px] text-ink-muted whitespace-nowrap">
+                      {new Date(page.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
                   </div>
-                  <StatusBadge status={edit.status} />
-                  <span className="text-[12px] text-ink-muted whitespace-nowrap">
-                    {edit.time}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

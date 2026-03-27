@@ -15,6 +15,7 @@ export async function createClient() {
     url,
     key,
     {
+      db: { schema: 'website' },
       cookies: {
         getAll() {
           return cookieStore.getAll();
