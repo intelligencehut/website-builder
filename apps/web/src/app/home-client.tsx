@@ -6,6 +6,7 @@ import { Layout } from '@/components/layout';
 import { AnimatedButton } from '@/components/common/AnimatedButton';
 import { SectionLoader } from '@/components/common/SectionLoader';
 import { HeroCarousel } from '@/components/sections';
+import { EditableSection, EditModeBar } from '@/components/edit-mode';
 import Image from 'next/image';
 
 // Lazy load sections
@@ -69,7 +70,10 @@ export function HomeClient({ content }: HomeClientProps) {
 
   return (
     <Layout>
+      <EditModeBar />
+
       {/* Hero Section */}
+      <EditableSection sectionId="heroText" label="Hero Text">
       <section
         id='home'
         className='flex items-center justify-center bg-gradient-to-br from-orange-50 to-white relative overflow-hidden py-20'
@@ -126,7 +130,10 @@ export function HomeClient({ content }: HomeClientProps) {
         </div>
       </section>
 
+      </EditableSection>
+
       {/* Our Mission Section */}
+      <EditableSection sectionId="mission" label="Mission">
       <section id='mission' className='py-20 bg-white'>
         <div className='container mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-16 items-center'>
@@ -168,16 +175,18 @@ export function HomeClient({ content }: HomeClientProps) {
         </div>
       </section>
 
-      <ImpactSection />
-      <ProgramsSection />
-      <TestimonialsSection />
-      <TeamSection />
-      <BlessingLettersSection />
-      <GallerySection />
-      <NewsSection />
-      <UpcomingEventsSection />
-      <JoinUs />
-      <ResourcesSection />
+      </EditableSection>
+
+      <EditableSection sectionId="impact" label="Impact"><ImpactSection /></EditableSection>
+      <EditableSection sectionId="programs" label="Programs"><ProgramsSection /></EditableSection>
+      <EditableSection sectionId="testimonials" label="Testimonials"><TestimonialsSection /></EditableSection>
+      <EditableSection sectionId="team" label="Team"><TeamSection /></EditableSection>
+      <EditableSection sectionId="blessingLetters" label="Blessings"><BlessingLettersSection /></EditableSection>
+      <EditableSection sectionId="gallery" label="Gallery"><GallerySection /></EditableSection>
+      <EditableSection sectionId="news" label="News"><NewsSection /></EditableSection>
+      <EditableSection sectionId="events" label="Events"><UpcomingEventsSection /></EditableSection>
+      <EditableSection sectionId="joinUs" label="Join Us"><JoinUs /></EditableSection>
+      <EditableSection sectionId="resources" label="Resources"><ResourcesSection /></EditableSection>
     </Layout>
   );
 }

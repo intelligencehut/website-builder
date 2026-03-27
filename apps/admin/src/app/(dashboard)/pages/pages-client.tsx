@@ -148,12 +148,22 @@ export function PagesClient({ pages }: PagesClientProps) {
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
-                      <Link
-                        href={`/pages/${page.id}/edit`}
-                        className="p-1.5 rounded-[6px] text-ink-muted hover:text-accent hover:bg-accent/10 transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <ArrowUpRight className="w-4 h-4" />
-                      </Link>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <Link
+                          href={`/pages/${page.id}/visual`}
+                          className="px-2 py-1 rounded-[4px] text-[11px] font-medium text-accent bg-accent/10 hover:bg-accent/20 transition-all"
+                          title="Visual Editor"
+                        >
+                          Visual
+                        </Link>
+                        <Link
+                          href={`/pages/${page.id}/edit`}
+                          className="p-1.5 rounded-[6px] text-ink-muted hover:text-accent hover:bg-accent/10 transition-all"
+                          title="Form Editor"
+                        >
+                          <ArrowUpRight className="w-4 h-4" />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 );
