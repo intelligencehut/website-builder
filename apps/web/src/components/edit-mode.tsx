@@ -37,7 +37,7 @@ export function EditableSection({
 
   return (
     <div
-      className="relative cursor-pointer"
+      className="relative"
       style={{
         outline: isHovered ? '2px solid #e8a951' : '2px solid transparent',
         outlineOffset: '-2px',
@@ -45,13 +45,18 @@ export function EditableSection({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        window.parent.postMessage({ type: 'section-click', sectionId }, '*');
-      }}
     >
       {children}
+
+      {/* Invisible click overlay that captures all clicks in edit mode */}
+      <div
+        className="absolute inset-0 z-40 cursor-pointer"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.parent.postMessage({ type: 'section-click', sectionId }, '*');
+        }}
+      />
 
       {isHovered && (
         <div

@@ -17,6 +17,7 @@ import {
   MousePointerClick,
   Columns,
 } from 'lucide-react';
+import { Field, TextInput, TextArea } from '@/components/ui/field';
 import { savePageContent, updateVersionStatus, updatePageMeta } from '@/lib/actions/pages';
 import { deployToStage, publishToProduction } from '@/lib/actions/deploy';
 import { PublishDialog } from '@/components/editors/publish-dialog';
@@ -43,6 +44,10 @@ import type {
 // ── Section definitions ────────────────────────────────────
 
 const SECTION_MAP: Record<string, { label: string; color: string }> = {
+  // Static page sections
+  header: { label: 'Page Header', color: '#1e40af' },
+  content: { label: 'Page Content', color: '#7c3aed' },
+  // Home page sections
   heroText: { label: 'Hero Text & CTAs', color: '#3b82f6' },
   hero: { label: 'Hero Carousel', color: '#8b5cf6' },
   mission: { label: 'Mission Section', color: '#06b6d4' },
@@ -147,6 +152,7 @@ export function VisualEditorClient({
   pageId, pageTitle, pageSlug, initialContent, initialVersionId, initialStatus,
 }: VisualEditorClientProps) {
   const [content, setContent] = useState<ContentState>(parseContent(initialContent));
+  const [rawContent, setRawContent] = useState<Record<string, unknown>>(initialContent ?? {});
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [viewport, setViewport] = useState<Viewport>('desktop');
   const [saving, setSaving] = useState(false);
@@ -177,7 +183,9 @@ export function VisualEditorClient({
     setSaving(true);
     try {
       await updatePageMeta(pageId, { title: pageTitle, slug: pageSlug });
-      const result = await savePageContent(pageId, serializeContent(content));
+      // Merge home-page structured content with raw content (for static pages)
+      const contentToSave = { ...rawContent, ...serializeContent(content) };
+      const result = await savePageContent(pageId, contentToSave);
       setCurrentVersionId(result.id);
       setSaved(true);
       setDirty(false);
@@ -210,6 +218,29 @@ export function VisualEditorClient({
     if (!section) return null;
 
     switch (activeSection) {
+      case 'header': {
+        const header = (rawContent.header as { title?: string; subtitle?: string }) ?? {};
+        return (
+          <div className="space-y-4">
+            <Field label="Page Title">
+              <TextInput value={header.title ?? pageTitle} onChange={(e) => { setRawContent(prev => ({ ...prev, header: { ...header, title: e.currentTarget.value } })); setDirty(true); }} />
+            </Field>
+            <Field label="Subtitle">
+              <TextInput value={header.subtitle ?? ''} onChange={(e) => { setRawContent(prev => ({ ...prev, header: { ...header, subtitle: e.currentTarget.value } })); setDirty(true); }} />
+            </Field>
+          </div>
+        );
+      }
+      case 'content': {
+        const body = (rawContent.body as string) ?? '';
+        return (
+          <div className="space-y-4">
+            <Field label="Page Content" description="HTML content — use headings, paragraphs, lists">
+              <TextArea value={body} rows={20} onChange={(e) => { setRawContent(prev => ({ ...prev, body: e.currentTarget.value })); setDirty(true); }} />
+            </Field>
+          </div>
+        );
+      }
       case 'heroText': return <HeroTextEditor data={content.heroText} onChange={(v) => updateContent('heroText', v)} />;
       case 'hero': return <HeroEditor slides={content.heroSlides} onChange={(v) => updateContent('heroSlides', v)} />;
       case 'mission': return <MissionEditor data={content.mission} onChange={(v) => updateContent('mission', v)} />;
