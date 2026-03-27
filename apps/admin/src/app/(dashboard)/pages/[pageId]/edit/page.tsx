@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import {
@@ -14,100 +13,195 @@ import {
   ImageIcon,
   Type,
   List,
-  Plus,
-  Trash2,
+  BarChart3,
+  Heart,
   Eye,
   MoreHorizontal,
   Check,
   Loader2,
 } from 'lucide-react';
+import { Field, TextInput } from '@/components/ui/field';
+import { HeroEditor } from '@/components/editors/hero-editor';
+import { ImpactEditor } from '@/components/editors/impact-editor';
+import { ProgramsEditor } from '@/components/editors/programs-editor';
+import { TeamEditor } from '@/components/editors/team-editor';
+import { TestimonialsEditor } from '@/components/editors/testimonials-editor';
+import { BlessingLettersEditor } from '@/components/editors/blessing-letters-editor';
+import { GalleryEditor } from '@/components/editors/gallery-editor';
+import { NewsEditor } from '@/components/editors/news-editor';
+import { EventsEditor } from '@/components/editors/events-editor';
+import { JoinUsEditor } from '@/components/editors/join-us-editor';
+import { ResourcesEditor } from '@/components/editors/resources-editor';
+import { StatsEditor } from '@/components/editors/stats-editor';
+import type {
+  CarouselSlide,
+  ImpactArea,
+  Program,
+  TeamMember,
+  Testimonial,
+  BlessingLetter,
+  GalleryImage,
+  NewsItem,
+  UpcomingEvent,
+  DonationOption,
+  Resource,
+  StatItem,
+} from '@website-builder/content-schema';
 
-// Demo: sections for the home page editor
-const homeSections = [
-  {
-    id: 'hero',
-    title: 'Hero Carousel',
-    description: '5 slides with images and captions',
-    icon: ImageIcon,
-    fieldCount: 5,
-  },
-  {
-    id: 'mission',
-    title: 'Mission Section',
-    description: 'Heading, description, commitment list, image',
-    icon: Type,
-    fieldCount: 4,
-  },
-  {
-    id: 'impact',
-    title: 'Impact Areas',
-    description: '4 impact cards with icons and descriptions',
-    icon: List,
-    fieldCount: 4,
-  },
-  {
-    id: 'programs',
-    title: 'Programs',
-    description: '6 program cards with filtering',
-    icon: List,
-    fieldCount: 6,
-  },
-  {
-    id: 'testimonials',
-    title: 'Testimonials',
-    description: '2 testimonial quotes',
-    icon: Type,
-    fieldCount: 2,
-  },
-  {
-    id: 'team',
-    title: 'Team / Governance',
-    description: '25 team members (executive + general)',
-    icon: List,
-    fieldCount: 25,
-  },
-  {
-    id: 'gallery',
-    title: 'Gallery',
-    description: '6 gallery images',
-    icon: ImageIcon,
-    fieldCount: 6,
-  },
-  {
-    id: 'news',
-    title: 'News',
-    description: '4 featured news articles',
-    icon: List,
-    fieldCount: 4,
-  },
-  {
-    id: 'events',
-    title: 'Upcoming Events',
-    description: '4 events with activities list',
-    icon: List,
-    fieldCount: 4,
-  },
-  {
-    id: 'joinUs',
-    title: 'Join Us / Donate',
-    description: '9 donation options',
-    icon: List,
-    fieldCount: 9,
-  },
-  {
-    id: 'resources',
-    title: 'Resources',
-    description: '4 downloadable resources',
-    icon: List,
-    fieldCount: 4,
-  },
+// ── Default data (from SEVAA website) ──────────────────────────────────────
+
+const DEFAULT_HERO_SLIDES: CarouselSlide[] = [
+  { src: '/images/about/about-2.jpg', alt: 'SEVAA Mission and Values', title: 'Inspired by Thakur-Maa-Swamiji', description: 'Working among the underprivileged section of society' },
+  { src: '/images/gallery/gallery-1.jpg', alt: 'SEVAA Gallery Image 1', title: 'Education & Awareness', description: 'Quality education to the underprivileged' },
+  { src: '/images/gallery/gallery-2.jpg', alt: 'SEVAA Gallery Image 2', title: 'Community Service', description: 'Serving humanity with compassion and care' },
 ];
 
+const DEFAULT_IMPACT: ImpactArea[] = [
+  { icon: 'Users', label: 'Community Development', description: 'Empowering communities through sustainable development initiatives', color: 'bg-blue-500' },
+  { icon: 'Heart', label: 'Healthcare', description: 'Regular health camps and medical support for underserved communities', color: 'bg-rose-500' },
+  { icon: 'GraduationCap', label: 'Education', description: 'Quality education through innovative learning programs', color: 'bg-emerald-500' },
+  { icon: 'Leaf', label: 'Environment', description: 'Promoting sustainable practices and environmental conservation', color: 'bg-green-500' },
+];
+
+const DEFAULT_PROGRAMS: Program[] = [
+  { id: 'adur-pathshala', title: 'Adur Pathshala', description: 'Neighborhood learning centers providing quality education.', image: '/images/programs/seva-activities-1.jpg', location: 'West Bengal', status: 'Active', category: 'Education' },
+  { id: 'vano-vidyalay', title: 'Tilka Murmu SEVAA Vano Vidyalay', description: 'Forest school initiative connecting children with nature.', image: '/images/programs/saparambera-1.jpg', location: 'Saparambera, Ajodhya Hills', status: 'Planned', year: '2025', category: 'Education', beneficiaries: 52 },
+];
+
+const DEFAULT_TESTIMONIALS: Testimonial[] = [
+  { id: 1, name: 'Himadri Saha', title: 'Engineer', content: 'SEVAA friends are genuinely performing activities in the society, particularly for tribals and downtrodden people.' },
+  { id: 2, name: 'Dr M M Ghatak', title: 'MD, Physician', content: 'Wherever SEVAA works, a magical result is seen due to the blessings of Thakur-Maa-Swamiji.' },
+];
+
+const DEFAULT_TEAM: TeamMember[] = [
+  { name: 'Dibes BERA', position: 'President', category: 'executive' },
+  { name: 'Narayan Tatachari', position: 'Secretary', category: 'executive' },
+  { name: 'Pradip Mukherjee', position: 'Treasurer', category: 'executive' },
+];
+
+const DEFAULT_GALLERY: GalleryImage[] = [
+  { id: 1, src: '/images/gallery/11.jpg', alt: 'Community Work', title: 'Community Engagement' },
+  { id: 2, src: '/images/gallery/33.jpg', alt: 'Educational Program', title: 'Educational Initiative' },
+  { id: 3, src: '/images/gallery/44.jpg', alt: 'Healthcare Initiative', title: 'Healthcare Program' },
+];
+
+const DEFAULT_NEWS: NewsItem[] = [
+  { id: 'tilka-murmu-school', title: 'Inauguration of Tilka Murmu SEVAA Vano Vidyalay', excerpt: 'A historic moment as we inaugurate our forest school.', image: '/images/userfiles/image/Sevaa Booklet 2024_001.jpg', date: 'March 9-10, 2025', category: 'Education' },
+  { id: 'lac-training', title: 'LAC Training Program Conducted', excerpt: 'Successful completion of LAC training program.', image: '/images/news_image/org/lac training program-1721231943.jpg', date: 'July 2024', category: 'Training' },
+];
+
+const DEFAULT_EVENTS: UpcomingEvent[] = [
+  { id: 'lac-cultivation', title: 'Lac Cultivation Training', description: 'Cluster-based lac cultivation training for sustainable livelihood.', image: '/images/events/1.jpg', date: 'Ongoing', location: 'Purulia District', category: 'Livelihood' },
+  { id: 'adur-pathshala', title: 'Adur Pathshala - Learning Centers', description: 'Neighbourhood learning centres providing quality education.', image: '/images/events/2.jpg', date: 'Continuous', location: 'Purulia & Paschim Burdwan', category: 'Education' },
+];
+
+const DEFAULT_ACTIVITIES: string[] = ['School building under Construction', 'Health and Well-being Camps', 'Cluster based Lac cultivation', 'Organic food production'];
+
+const DEFAULT_DONATION_OPTIONS: DonationOption[] = [
+  { id: 'scholarships', icon: 'GraduationCap', title: '"We Support" Group Scholarships', description: 'Provide scholarships to deserving students.' },
+  { id: 'school-support', icon: 'Building2', title: 'Support the School', description: 'Rs 1000 per student per month to support school operations.' },
+  { id: 'in-kind', icon: 'Heart', title: 'In-Kind Donations', description: 'Donate stationery, books, school infrastructure needs.' },
+];
+
+const DEFAULT_RESOURCES: Resource[] = [
+  { id: 'tilka-murmu-forest-school', title: 'Tilka Murmu SEVAA Vano Vidyalay', description: 'Inauguration details and facilities information.', type: 'pdf', url: '/documents/Tilka Murmu Forest School.pdf', size: '2.1 MB', date: 'March 2025' },
+  { id: 'annual-report-2024', title: 'Annual Report 2024', description: 'Comprehensive overview of our activities.', type: 'report', url: '#', size: 'Coming Soon', date: '2024' },
+];
+
+const DEFAULT_STATS: StatItem[] = [
+  { value: 1000, label: 'Beneficiaries', suffix: '+' },
+  { value: 50, label: 'Volunteers', suffix: '+' },
+  { value: 6, label: 'Programs' },
+  { value: 3, label: 'Districts' },
+];
+
+const DEFAULT_BLESSINGS: BlessingLetter[] = [
+  { title: 'Blessing from Swami Shivapradananda', imageSrc: '/images/blessing-letter-shivapradananda.jpg', imageAlt: 'Blessing letter from Swami Shivapradananda' },
+  { title: 'Blessing from Swami Suparnanadiji', imageSrc: '/images/blessing-letter-suparnanadiji.jpg', imageAlt: 'Blessing letter from Swami Suparnanadiji' },
+];
+
+// ── Section config ─────────────────────────────────────────────────────────
+
+type SectionId = 'hero' | 'impact' | 'stats' | 'programs' | 'testimonials' | 'team' | 'blessingLetters' | 'gallery' | 'news' | 'events' | 'joinUs' | 'resources';
+
+interface SectionConfig {
+  id: SectionId;
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  getItemCount: (state: PageState) => number;
+}
+
+const SECTIONS: SectionConfig[] = [
+  { id: 'hero', title: 'Hero Carousel', icon: ImageIcon, getItemCount: (s) => s.heroSlides.length },
+  { id: 'impact', title: 'Impact Areas', icon: Heart, getItemCount: (s) => s.impact.length },
+  { id: 'stats', title: 'Statistics', icon: BarChart3, getItemCount: (s) => s.stats.length },
+  { id: 'programs', title: 'Programs', icon: List, getItemCount: (s) => s.programs.length },
+  { id: 'testimonials', title: 'Testimonials', icon: Type, getItemCount: (s) => s.testimonials.length },
+  { id: 'team', title: 'Team / Governance', icon: List, getItemCount: (s) => s.team.length },
+  { id: 'blessingLetters', title: 'Blessing Letters', icon: ImageIcon, getItemCount: (s) => s.blessingLetters.length },
+  { id: 'gallery', title: 'Gallery', icon: ImageIcon, getItemCount: (s) => s.gallery.length },
+  { id: 'news', title: 'News', icon: List, getItemCount: (s) => s.news.length },
+  { id: 'events', title: 'Upcoming Events', icon: List, getItemCount: (s) => s.events.length },
+  { id: 'joinUs', title: 'Join Us / Donate', icon: Heart, getItemCount: (s) => s.donationOptions.length },
+  { id: 'resources', title: 'Resources', icon: List, getItemCount: (s) => s.resources.length },
+];
+
+// ── Page state ─────────────────────────────────────────────────────────────
+
+interface PageState {
+  title: string;
+  slug: string;
+  metaTitle: string;
+  metaDescription: string;
+  heroSlides: CarouselSlide[];
+  impact: ImpactArea[];
+  stats: StatItem[];
+  programs: Program[];
+  testimonials: Testimonial[];
+  team: TeamMember[];
+  blessingLetters: BlessingLetter[];
+  gallery: GalleryImage[];
+  news: NewsItem[];
+  events: UpcomingEvent[];
+  activities: string[];
+  donationOptions: DonationOption[];
+  resources: Resource[];
+}
+
+const INITIAL_STATE: PageState = {
+  title: 'Home',
+  slug: '/',
+  metaTitle: 'SEVAA — Society for Envisioning Vivekananda in Awareness and Action',
+  metaDescription: 'Non-government philanthropic organisation inspired by Swami Vivekananda',
+  heroSlides: DEFAULT_HERO_SLIDES,
+  impact: DEFAULT_IMPACT,
+  stats: DEFAULT_STATS,
+  programs: DEFAULT_PROGRAMS,
+  testimonials: DEFAULT_TESTIMONIALS,
+  team: DEFAULT_TEAM,
+  blessingLetters: DEFAULT_BLESSINGS,
+  gallery: DEFAULT_GALLERY,
+  news: DEFAULT_NEWS,
+  events: DEFAULT_EVENTS,
+  activities: DEFAULT_ACTIVITIES,
+  donationOptions: DEFAULT_DONATION_OPTIONS,
+  resources: DEFAULT_RESOURCES,
+};
+
+// ── Page editor ────────────────────────────────────────────────────────────
+
 export default function PageEditorPage() {
-  const params = useParams();
+  const [state, setState] = useState<PageState>(INITIAL_STATE);
   const [openSections, setOpenSections] = useState<string[]>(['hero']);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [dirty, setDirty] = useState(false);
+
+  const update = useCallback(<K extends keyof PageState>(key: K, value: PageState[K]) => {
+    setState((prev) => ({ ...prev, [key]: value }));
+    setDirty(true);
+    setSaved(false);
+  }, []);
 
   function toggleSection(id: string) {
     setOpenSections((prev) =>
@@ -117,11 +211,48 @@ export default function PageEditorPage() {
 
   async function handleSave() {
     setSaving(true);
-    // Simulate save
-    await new Promise((r) => setTimeout(r, 1000));
+    // TODO: Save to Supabase content_versions
+    await new Promise((r) => setTimeout(r, 800));
     setSaving(false);
     setSaved(true);
+    setDirty(false);
     setTimeout(() => setSaved(false), 2000);
+  }
+
+  function renderSectionEditor(sectionId: SectionId) {
+    switch (sectionId) {
+      case 'hero':
+        return <HeroEditor slides={state.heroSlides} onChange={(v) => update('heroSlides', v)} />;
+      case 'impact':
+        return <ImpactEditor items={state.impact} onChange={(v) => update('impact', v)} />;
+      case 'stats':
+        return <StatsEditor items={state.stats} onChange={(v) => update('stats', v)} />;
+      case 'programs':
+        return <ProgramsEditor items={state.programs} onChange={(v) => update('programs', v)} />;
+      case 'testimonials':
+        return <TestimonialsEditor items={state.testimonials} onChange={(v) => update('testimonials', v)} />;
+      case 'team':
+        return <TeamEditor members={state.team} onChange={(v) => update('team', v)} />;
+      case 'blessingLetters':
+        return <BlessingLettersEditor items={state.blessingLetters} onChange={(v) => update('blessingLetters', v)} />;
+      case 'gallery':
+        return <GalleryEditor images={state.gallery} onChange={(v) => update('gallery', v)} />;
+      case 'news':
+        return <NewsEditor items={state.news} onChange={(v) => update('news', v)} />;
+      case 'events':
+        return (
+          <EventsEditor
+            upcoming={state.events}
+            activities={state.activities}
+            onChangeUpcoming={(v) => update('events', v)}
+            onChangeActivities={(v) => update('activities', v)}
+          />
+        );
+      case 'joinUs':
+        return <JoinUsEditor options={state.donationOptions} onChange={(v) => update('donationOptions', v)} />;
+      case 'resources':
+        return <ResourcesEditor items={state.resources} onChange={(v) => update('resources', v)} />;
+    }
   }
 
   return (
@@ -139,13 +270,18 @@ export default function PageEditorPage() {
             <div className="h-5 w-px bg-surface-border" />
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-heading text-ink">Home</h1>
+                <h1 className="text-heading text-ink">{state.title}</h1>
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-badge text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   Published
                 </span>
+                {dirty && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-badge text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                    Unsaved changes
+                  </span>
+                )}
               </div>
-              <p className="text-[12px] text-ink-muted font-mono mt-0.5">/</p>
+              <p className="text-[12px] text-ink-muted font-mono mt-0.5">{state.slug}</p>
             </div>
           </div>
 
@@ -157,7 +293,7 @@ export default function PageEditorPage() {
 
             <button
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || !dirty}
               className="flex items-center gap-2 px-4 py-1.5 bg-surface-card border border-surface-border text-ink rounded-button text-[13px] font-medium hover:bg-surface-hover transition-all disabled:opacity-50"
             >
               {saving ? (
@@ -172,7 +308,7 @@ export default function PageEditorPage() {
 
             <button className="flex items-center gap-2 px-4 py-1.5 bg-amber-500 text-white rounded-button text-[13px] font-medium hover:bg-amber-600 transition-colors">
               <Rocket className="w-3.5 h-3.5" />
-              Deploy to Stage
+              Stage
             </button>
 
             <button className="flex items-center gap-2 px-4 py-1.5 bg-sidebar text-ink-inverse rounded-button text-[13px] font-medium hover:bg-sidebar-hover transition-colors">
@@ -191,56 +327,29 @@ export default function PageEditorPage() {
       <div className="max-w-4xl mx-auto p-8 animate-fade-in">
         {/* Page info */}
         <div className="glass-card rounded-card p-6 mb-6">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-1.5">
-              <label className="text-caption text-ink-secondary block">Page Title</label>
-              <input
-                type="text"
-                defaultValue="Home"
-                className="w-full px-3 py-2 bg-surface-raised border border-surface-border rounded-button text-body text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-caption text-ink-secondary block">Slug</label>
-              <input
-                type="text"
-                defaultValue="/"
-                className="w-full px-3 py-2 bg-surface-raised border border-surface-border rounded-button text-body text-ink font-mono focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-caption text-ink-secondary block">Meta Title (SEO)</label>
-              <input
-                type="text"
-                defaultValue="SEVAA — Society for Envisioning Vivekananda in Awareness and Action"
-                className="w-full px-3 py-2 bg-surface-raised border border-surface-border rounded-button text-body text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-caption text-ink-secondary block">
-                Meta Description (SEO)
-              </label>
-              <input
-                type="text"
-                defaultValue="Non-government philanthropic organisation inspired by Swami Vivekananda"
-                className="w-full px-3 py-2 bg-surface-raised border border-surface-border rounded-button text-body text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
-              />
-            </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Page Title" required>
+              <TextInput value={state.title} onChange={(e) => update('title', e.currentTarget.value)} />
+            </Field>
+            <Field label="Slug">
+              <TextInput value={state.slug} onChange={(e) => update('slug', e.currentTarget.value)} mono />
+            </Field>
+            <Field label="Meta Title (SEO)">
+              <TextInput value={state.metaTitle} onChange={(e) => update('metaTitle', e.currentTarget.value)} />
+            </Field>
+            <Field label="Meta Description (SEO)">
+              <TextInput value={state.metaDescription} onChange={(e) => update('metaDescription', e.currentTarget.value)} />
+            </Field>
           </div>
         </div>
 
         {/* Section accordion */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-heading text-ink">Page Sections</h2>
-            <button className="flex items-center gap-1.5 text-caption text-accent hover:text-accent-hover transition-colors">
-              <Plus className="w-3.5 h-3.5" />
-              Add Section
-            </button>
-          </div>
+          <h2 className="text-heading text-ink mb-4">Page Sections</h2>
 
-          {homeSections.map((section, index) => {
+          {SECTIONS.map((section) => {
             const isOpen = openSections.includes(section.id);
+            const itemCount = section.getItemCount(state);
 
             return (
               <div
@@ -250,7 +359,6 @@ export default function PageEditorPage() {
                   isOpen && 'ring-1 ring-accent/20'
                 )}
               >
-                {/* Section header */}
                 <button
                   onClick={() => toggleSection(section.id)}
                   className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-surface-hover transition-colors text-left"
@@ -263,11 +371,10 @@ export default function PageEditorPage() {
 
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-medium text-ink">{section.title}</p>
-                    <p className="text-[12px] text-ink-muted">{section.description}</p>
                   </div>
 
                   <span className="text-[11px] font-mono text-ink-muted bg-surface-raised px-2 py-0.5 rounded border border-surface-border mr-2">
-                    {section.fieldCount} {section.fieldCount === 1 ? 'item' : 'items'}
+                    {itemCount} {itemCount === 1 ? 'item' : 'items'}
                   </span>
 
                   <ChevronDown
@@ -278,101 +385,15 @@ export default function PageEditorPage() {
                   />
                 </button>
 
-                {/* Section content */}
                 {isOpen && (
                   <div className="border-t border-surface-border px-5 py-5 bg-surface-raised/50 animate-scale-in">
-                    {section.id === 'hero' ? (
-                      <HeroEditorDemo />
-                    ) : (
-                      <div className="text-center py-8">
-                        <section.icon className="w-8 h-8 text-ink-muted mx-auto mb-3" />
-                        <p className="text-[13px] text-ink-secondary">
-                          Section editor for <span className="font-medium">{section.title}</span> will be built in Phase 4
-                        </p>
-                        <p className="text-[12px] text-ink-muted mt-1">
-                          {section.fieldCount} editable {section.fieldCount === 1 ? 'field' : 'fields'} available
-                        </p>
-                      </div>
-                    )}
+                    {renderSectionEditor(section.id)}
                   </div>
                 )}
               </div>
             );
           })}
         </div>
-      </div>
-    </div>
-  );
-}
-
-/** Demo hero section editor — shows the pattern for all section editors */
-function HeroEditorDemo() {
-  const slides = [
-    { src: '/images/about/about-2.jpg', alt: 'SEVAA Mission', title: 'Inspired by Thakur-Maa-Swamiji', description: 'Working among the underprivileged section of society' },
-    { src: '/images/gallery/gallery-1.jpg', alt: 'Education', title: 'Education & Awareness', description: 'Quality education to the underprivileged' },
-    { src: '/images/gallery/gallery-2.jpg', alt: 'Service', title: 'Community Service', description: 'Serving humanity with compassion and care' },
-  ];
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-overline text-ink-muted uppercase">Carousel Slides</p>
-        <button className="flex items-center gap-1.5 text-caption text-accent hover:text-accent-hover transition-colors">
-          <Plus className="w-3 h-3" />
-          Add Slide
-        </button>
-      </div>
-
-      <div className="space-y-3">
-        {slides.map((slide, i) => (
-          <div
-            key={i}
-            className="bg-surface-card border border-surface-border rounded-button p-4 space-y-3"
-          >
-            <div className="flex items-start gap-3">
-              <GripVertical className="w-4 h-4 text-ink-muted mt-0.5 cursor-grab flex-shrink-0" />
-
-              {/* Image preview */}
-              <div className="w-24 h-16 bg-surface-raised rounded-[6px] border border-surface-border flex items-center justify-center flex-shrink-0 overflow-hidden">
-                <ImageIcon className="w-5 h-5 text-ink-muted" />
-              </div>
-
-              {/* Fields */}
-              <div className="flex-1 space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[11px] text-ink-muted mb-1 block">Title</label>
-                    <input
-                      type="text"
-                      defaultValue={slide.title}
-                      className="w-full px-2.5 py-1.5 bg-surface-raised border border-surface-border rounded-[4px] text-[13px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] text-ink-muted mb-1 block">Alt Text</label>
-                    <input
-                      type="text"
-                      defaultValue={slide.alt}
-                      className="w-full px-2.5 py-1.5 bg-surface-raised border border-surface-border rounded-[4px] text-[13px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-[11px] text-ink-muted mb-1 block">Description</label>
-                  <input
-                    type="text"
-                    defaultValue={slide.description}
-                    className="w-full px-2.5 py-1.5 bg-surface-raised border border-surface-border rounded-[4px] text-[13px] text-ink focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
-                  />
-                </div>
-              </div>
-
-              <button className="p-1.5 text-ink-muted hover:text-red-500 hover:bg-red-50 rounded-[4px] transition-colors flex-shrink-0">
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
