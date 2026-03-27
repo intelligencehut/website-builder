@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Layers, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 
@@ -11,14 +11,13 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const supabase = useMemo(() => {
-    if (typeof window === 'undefined') return null;
-    return createClient();
-  }, []);
-
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (!supabase) return;
+    const supabase = createClient();
+    if (!supabase) {
+      setError('Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local');
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -36,7 +35,11 @@ export default function LoginPage() {
   }
 
   async function handleGoogleLogin() {
-    if (!supabase) return;
+    const supabase = createClient();
+    if (!supabase) {
+      setError('Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local');
+      return;
+    }
     setGoogleLoading(true);
     setError(null);
 
