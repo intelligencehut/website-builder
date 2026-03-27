@@ -4,7 +4,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  * Create a Supabase client for server-side operations (build time, API routes, server actions).
  * Uses the service role key — never expose this to the browser.
  */
-export function createServerClient(): SupabaseClient {
+export function createServerClient() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
