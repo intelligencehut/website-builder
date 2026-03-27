@@ -38,6 +38,8 @@ import { EventsEditor } from '@/components/editors/events-editor';
 import { JoinUsEditor } from '@/components/editors/join-us-editor';
 import { ResourcesEditor } from '@/components/editors/resources-editor';
 import { StatsEditor } from '@/components/editors/stats-editor';
+import { HeroTextEditor, type HeroTextData } from '@/components/editors/hero-text-editor';
+import { MissionEditor, type MissionData } from '@/components/editors/mission-editor';
 import type {
   CarouselSlide, ImpactArea, Program, TeamMember, Testimonial,
   BlessingLetter, GalleryImage, NewsItem, UpcomingEvent,
@@ -46,7 +48,7 @@ import type {
 
 // ── Section config ─────────────────────────────────────────
 
-type SectionId = 'hero' | 'impact' | 'stats' | 'programs' | 'testimonials' | 'team' | 'blessingLetters' | 'gallery' | 'news' | 'events' | 'joinUs' | 'resources';
+type SectionId = 'heroText' | 'hero' | 'mission' | 'impact' | 'stats' | 'programs' | 'testimonials' | 'team' | 'blessingLetters' | 'gallery' | 'news' | 'events' | 'joinUs' | 'resources';
 
 interface SectionConfig {
   id: SectionId;
@@ -56,7 +58,9 @@ interface SectionConfig {
 }
 
 const SECTIONS: SectionConfig[] = [
+  { id: 'heroText', title: 'Hero Text & CTAs', icon: Type, getItemCount: () => 1 },
   { id: 'hero', title: 'Hero Carousel', icon: ImageIcon, getItemCount: (c) => c.heroSlides.length },
+  { id: 'mission', title: 'Mission Section', icon: Type, getItemCount: () => 1 },
   { id: 'impact', title: 'Impact Areas', icon: Heart, getItemCount: (c) => c.impact.length },
   { id: 'stats', title: 'Statistics', icon: BarChart3, getItemCount: (c) => c.stats.length },
   { id: 'programs', title: 'Programs', icon: List, getItemCount: (c) => c.programs.length },
@@ -73,6 +77,8 @@ const SECTIONS: SectionConfig[] = [
 // ── Content state ──────────────────────────────────────────
 
 interface ContentState {
+  heroText: HeroTextData;
+  mission: MissionData;
   heroSlides: CarouselSlide[];
   impact: ImpactArea[];
   stats: StatItem[];
@@ -88,9 +94,38 @@ interface ContentState {
   resources: Resource[];
 }
 
+const DEFAULT_HERO_TEXT: HeroTextData = {
+  heading: 'Society for Envisioning Vivekananda',
+  headingHighlight: 'in Awareness and Action',
+  subtitle: "We're a non government philanthropic organisation.",
+  description: 'Inspired by the ideals of Thakur-Maa-Swamiji. Our organisation SEVAA dedicates itself to work among the underprivileged section of our society in the areas of Education, Health, Livelihood, Relief, Culture and Environment in the true spirit of "Shiv Gyane Jeev Seva" as espoused by Swamiji.',
+  primaryCtaLabel: 'Explore Our Impact',
+  primaryCtaTarget: 'impact',
+  secondaryCtaLabel: 'Our Programs',
+  secondaryCtaTarget: 'programs',
+};
+
+const DEFAULT_MISSION: MissionData = {
+  heading: 'Our Mission',
+  subtitle: 'Empowering communities through service and compassion',
+  description: 'We believe that we can save the deprived mankind and error in our environment along with you by enabling people to ensure quality of living through innovative socio-economic community collaboration, education, cultural activities and philanthropic services.',
+  commitments: [
+    'Equity, Diversity, and Inclusion',
+    'Collaboration & Community Engagement',
+    'Building self confidence within the community',
+    'Shared Commitment',
+    'Responsibility & Accountability',
+    'Respect, Mutual Trust and Compassion',
+    'Integrity in everything we do',
+  ],
+  image: '/images/events/1.jpg',
+};
+
 function parseContent(raw: Record<string, unknown> | null): ContentState {
   if (!raw) return EMPTY_CONTENT;
   return {
+    heroText: (raw.heroText as HeroTextData) ?? DEFAULT_HERO_TEXT,
+    mission: (raw.mission as MissionData) ?? DEFAULT_MISSION,
     heroSlides: (raw.hero as { slides?: CarouselSlide[] })?.slides ?? [],
     impact: (raw.impact as { items?: ImpactArea[] })?.items ?? [],
     stats: (raw.stats as { items?: StatItem[] })?.items ?? [],
@@ -109,6 +144,8 @@ function parseContent(raw: Record<string, unknown> | null): ContentState {
 
 function serializeContent(state: ContentState): Record<string, unknown> {
   return {
+    heroText: state.heroText,
+    mission: state.mission,
     hero: { slides: state.heroSlides },
     impact: { items: state.impact },
     stats: { items: state.stats },
@@ -125,6 +162,7 @@ function serializeContent(state: ContentState): Record<string, unknown> {
 }
 
 const EMPTY_CONTENT: ContentState = {
+  heroText: DEFAULT_HERO_TEXT, mission: DEFAULT_MISSION,
   heroSlides: [], impact: [], stats: [], programs: [], testimonials: [],
   team: [], blessingLetters: [], gallery: [], news: [], events: [],
   activities: [], donationOptions: [], resources: [],
@@ -225,7 +263,9 @@ export function PageEditorClient({
 
   function renderSectionEditor(sectionId: SectionId) {
     switch (sectionId) {
+      case 'heroText': return <HeroTextEditor data={content.heroText} onChange={(v) => updateContent('heroText', v)} />;
       case 'hero': return <HeroEditor slides={content.heroSlides} onChange={(v) => updateContent('heroSlides', v)} />;
+      case 'mission': return <MissionEditor data={content.mission} onChange={(v) => updateContent('mission', v)} />;
       case 'impact': return <ImpactEditor items={content.impact} onChange={(v) => updateContent('impact', v)} />;
       case 'stats': return <StatsEditor items={content.stats} onChange={(v) => updateContent('stats', v)} />;
       case 'programs': return <ProgramsEditor items={content.programs} onChange={(v) => updateContent('programs', v)} />;
