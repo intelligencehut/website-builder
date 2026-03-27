@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface FieldProps {
@@ -152,6 +153,8 @@ interface ImagePickerProps {
 }
 
 export function ImagePicker({ value, onChange, label }: ImagePickerProps) {
+  const [showPicker, setShowPicker] = useState(false);
+
   return (
     <div className="space-y-1.5">
       {label && <label className="text-[11px] font-medium text-ink-secondary block">{label}</label>}
@@ -174,11 +177,28 @@ export function ImagePicker({ value, onChange, label }: ImagePickerProps) {
             placeholder="/images/..."
             mono
           />
-          <button className="mt-1.5 text-[11px] text-accent hover:text-accent-hover transition-colors">
+          <button
+            type="button"
+            onClick={() => setShowPicker(true)}
+            className="mt-1.5 text-[11px] text-accent hover:text-accent-hover transition-colors"
+          >
             Browse Media Library
           </button>
         </div>
       </div>
+      {showPicker && (
+        <MediaPickerLazy
+          open={showPicker}
+          onClose={() => setShowPicker(false)}
+          onSelect={(url) => { onChange(url); setShowPicker(false); }}
+        />
+      )}
     </div>
   );
+}
+
+/** Lazy-loaded media picker to avoid circular deps and bundle size */
+function MediaPickerLazy(props: { open: boolean; onClose: () => void; onSelect: (url: string) => void }) {
+  const { MediaPickerModal } = require('@/components/media/media-picker-modal');
+  return <MediaPickerModal {...props} />;
 }
