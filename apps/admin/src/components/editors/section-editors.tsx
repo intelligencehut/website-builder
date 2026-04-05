@@ -85,7 +85,7 @@ export function TextWithImageEditor({ data, onChange }: EditorProps<TextWithImag
     <div className="space-y-3">
       <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => u({ heading: e.currentTarget.value })} /></Field>
       <Field label="Subtitle"><TextInput value={data.subtitle ?? ''} onChange={e => u({ subtitle: e.currentTarget.value })} /></Field>
-      <Field label="Body Text"><TextArea value={data.body ?? ''} onChange={e => u({ body: e.currentTarget.value })} rows={4} /></Field>
+      <Field label="Description"><TextArea value={data.body ?? ''} onChange={e => u({ body: e.currentTarget.value })} rows={8} /></Field>
       <Field label="Image"><ImagePicker value={data.image ?? ''} onChange={v => u({ image: v })} /></Field>
       <Field label="List Heading"><TextInput value={data.itemsHeading ?? ''} onChange={e => u({ itemsHeading: e.currentTarget.value })} placeholder="e.g. We are committed to:" /></Field>
       <div>
