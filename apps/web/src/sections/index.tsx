@@ -27,6 +27,7 @@ function renderSection(section: PageSection) {
     case 'cta': return <CtaSection data={section.data} />;
     case 'contact': return <ContactSection data={section.data} />;
     case 'html': return <HtmlSection data={section.data} />;
+    case 'dynamic-slot': return null; // Rendered by the target site, not the website-builder
     default: return null;
   }
 }

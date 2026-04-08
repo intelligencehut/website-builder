@@ -25,6 +25,7 @@ const SECTION_LABELS: Record<string, string> = {
   'text-with-image': 'Text with Image', 'card-grid': 'Card Grid',
   gallery: 'Image Gallery', testimonials: 'Testimonials', stats: 'Statistics',
   cta: 'Call to Action', contact: 'Contact Info', html: 'Custom HTML',
+  'dynamic-slot': 'Dynamic Slot',
 };
 
 const SECTION_COLORS: Record<string, string> = {
@@ -32,6 +33,7 @@ const SECTION_COLORS: Record<string, string> = {
   'text-with-image': '#06b6d4', 'card-grid': '#10b981',
   gallery: '#f97316', testimonials: '#8b5cf6', stats: '#f59e0b',
   cta: '#84cc16', contact: '#ec4899', html: '#64748b',
+  'dynamic-slot': '#0ea5e9',
 };
 
 // ── Parse content into sections (same as form editor) ──────
@@ -80,12 +82,14 @@ interface VisualEditorClientProps {
   initialContent: Record<string, unknown> | null;
   initialVersionId: string | null;
   initialStatus: string;
+  previewBaseUrl?: string;
 }
 
 // ── Component ──────────────────────────────────────────────
 
 export function VisualEditorClient({
   pageId, pageTitle, pageSlug, initialContent, initialVersionId, initialStatus,
+  previewBaseUrl,
 }: VisualEditorClientProps) {
   const [sections, setSections] = useState<PageSection[]>(parseToSections(initialContent));
   const [activeSection, setActiveSection] = useState<string | null>(null);
@@ -143,7 +147,8 @@ export function VisualEditorClient({
   const activeItem = sections.find(s => s.id === activeSection);
   const activeLabel = activeItem ? (SECTION_LABELS[activeItem.type] || activeItem.type) : null;
   const activeColor = activeItem ? (SECTION_COLORS[activeItem.type] || '#6b7280') : null;
-  const webAppUrl = `http://localhost:3000${pageSlug === '/' ? '' : pageSlug}?_edit=1`;
+  const baseUrl = previewBaseUrl || 'http://localhost:3000';
+  const webAppUrl = `${baseUrl}${pageSlug === '/' ? '' : pageSlug}?_edit=1`;
 
   return (
     <div className="h-screen flex flex-col bg-sidebar overflow-hidden">

@@ -20,4 +20,5 @@ export type SectionType =
   | 'stats'
   | 'cta'
   | 'contact'
-  | 'html';
+  | 'html'
+  | 'dynamic-slot';

@@ -85,6 +85,23 @@ export async function getPageWithContent(pageId: string) {
 }
 
 /**
+ * Get site metadata (preview URL, available slots, etc.)
+ */
+export async function getSiteMetadata(siteId: string) {
+  const supabase = createAdminClient();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('sites')
+    .select('id, name, slug, domain, metadata')
+    .eq('id', siteId)
+    .single();
+
+  if (error || !data) return null;
+  return data;
+}
+
+/**
  * Save content as a new draft version.
  */
 export async function savePageContent(

@@ -1,7 +1,7 @@
 'use client';
 
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Layout, Type, Image, Grid3X3, GalleryHorizontalEnd, Quote, BarChart3, Megaphone, Phone, Code } from 'lucide-react';
+import { X, Layout, Type, Image, Grid3X3, GalleryHorizontalEnd, Quote, BarChart3, Megaphone, Phone, Code, Plug } from 'lucide-react';
 
 const SECTION_TYPES = [
   { type: 'hero', label: 'Hero Banner', description: 'Full-width hero with heading, buttons, and image', icon: Layout },
@@ -15,6 +15,7 @@ const SECTION_TYPES = [
   { type: 'cta', label: 'Call to Action', description: 'Banner with heading and buttons', icon: Megaphone },
   { type: 'contact', label: 'Contact Info', description: 'Email, phone, address display', icon: Phone },
   { type: 'html', label: 'Custom HTML', description: 'Raw HTML content block', icon: Code },
+  { type: 'dynamic-slot', label: 'Dynamic Slot', description: 'Placeholder for live data from the site\'s database', icon: Plug },
 ];
 
 interface AddSectionDialogProps {

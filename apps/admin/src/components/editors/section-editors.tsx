@@ -2,6 +2,7 @@
 
 import { Field, TextInput, TextArea, SelectInput, NumberInput, ImagePicker, Checkbox } from '@/components/ui/field';
 import { SortableItemList } from './sortable-item-list';
+import { DynamicSlotEditor } from './dynamic-slot-editor';
 
 // ── Shared types ───────────────────────────────────────────
 
@@ -295,6 +296,7 @@ export function SectionDataEditor({ type, data, onChange }: { type: string; data
     case 'cta': return <CtaEditor data={data as CtaData} onChange={onChange} />;
     case 'contact': return <ContactEditor data={data as ContactData} onChange={onChange} />;
     case 'html': return <HtmlEditor data={data as HtmlData} onChange={onChange} />;
+    case 'dynamic-slot': return <DynamicSlotEditor data={data as { slot?: string; label?: string; config?: string }} onChange={onChange} />;
     default: return <p className="text-[13px] text-ink-muted">Unknown section type: {type}</p>;
   }
 }

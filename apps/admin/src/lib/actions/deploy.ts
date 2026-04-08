@@ -1,6 +1,7 @@
 'use server';
 
 import type { DeployEnvironment, DeployStatus } from '@website-builder/content-schema';
+import { getSiteMetadata } from './pages';
 
 export interface DeployRecord {
   id: string;
@@ -36,6 +37,26 @@ export async function triggerDeploy(
     } catch (err) {
       console.error(`Failed to trigger ${environment} deploy hook:`, err);
     }
+  }
+
+  // Trigger on-demand revalidation if the site has a revalidation URL
+  try {
+    const site = await getSiteMetadata(siteId);
+    const metadata = site?.metadata as Record<string, unknown> | undefined;
+    const revalidationUrl = metadata?.revalidation_url as string | undefined;
+    const revalidationSecret = metadata?.revalidation_secret as string | undefined;
+    if (revalidationUrl) {
+      await fetch(revalidationUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(revalidationSecret ? { 'x-revalidation-secret': revalidationSecret } : {}),
+        },
+        body: JSON.stringify({ path: '/' }),
+      }).catch(err => console.error('Revalidation failed:', err));
+    }
+  } catch (err) {
+    console.error('Failed to trigger revalidation:', err);
   }
 
   // Log the deploy (TODO: save to Supabase deploys table)

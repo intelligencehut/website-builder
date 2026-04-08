@@ -7,7 +7,7 @@ import {
   ArrowLeft, Save, Rocket, Globe, ChevronDown, GripVertical,
   Plus, Trash2, Eye, Check, Loader2, History, PanelRightClose,
   Layout, Type, Image as ImageIcon, Grid3X3, GalleryHorizontalEnd,
-  Quote, BarChart3, Megaphone, Phone, Code,
+  Quote, BarChart3, Megaphone, Phone, Code, Plug,
 } from 'lucide-react';
 import { savePageContent, updateVersionStatus, updatePageMeta } from '@/lib/actions/pages';
 import { deployToStage, publishToProduction } from '@/lib/actions/deploy';
@@ -23,6 +23,7 @@ const SECTION_ICONS: Record<string, typeof Layout> = {
   hero: Layout, 'page-header': Layout, text: Type, 'text-with-image': ImageIcon,
   'card-grid': Grid3X3, gallery: GalleryHorizontalEnd, testimonials: Quote,
   stats: BarChart3, cta: Megaphone, contact: Phone, html: Code,
+  'dynamic-slot': Plug,
 };
 
 const SECTION_LABELS: Record<string, string> = {
@@ -30,6 +31,7 @@ const SECTION_LABELS: Record<string, string> = {
   'text-with-image': 'Text with Image', 'card-grid': 'Card Grid',
   gallery: 'Image Gallery', testimonials: 'Testimonials', stats: 'Statistics',
   cta: 'Call to Action', contact: 'Contact Info', html: 'Custom HTML',
+  'dynamic-slot': 'Dynamic Slot',
 };
 
 // ── Section type ───────────────────────────────────────────
