@@ -5,7 +5,7 @@ import { Header } from '@/components/header';
 import { Field, TextInput, TextArea } from '@/components/ui/field';
 import { TeamManager } from '@/components/team-manager';
 import { cn } from '@/lib/utils';
-import { getSiteMetadata } from '@/lib/actions/pages';
+import { getSiteMetadata, updateSiteSettings } from '@/lib/actions/pages';
 import {
   Globe,
   Key,
@@ -56,7 +56,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [siteId, setSiteId] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [siteLoaded, setSiteLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Read active site ID, current user, and load site config
   useEffect(() => {
@@ -70,18 +70,30 @@ export default function SettingsPage() {
 
     // Load site config from database
     getSiteMetadata(activeSiteId).then(site => {
-      if (site) {
-        const meta = (site.metadata || {}) as Record<string, string>;
-        setConfig(prev => ({
-          ...prev,
-          siteName: site.name || prev.siteName,
-          siteSlug: site.slug || prev.siteSlug,
-          domain: site.domain || prev.domain,
-          stageDomain: meta.stage_domain || prev.stageDomain,
-          description: meta.description || prev.description,
-        }));
-      }
-      setSiteLoaded(true);
+      if (!site) return;
+      const meta = (site.metadata || {}) as Record<string, unknown>;
+      const seo = (meta.seo || {}) as Record<string, string>;
+      const contact = (meta.contact || {}) as Record<string, string>;
+      const deploy = (meta.deploy || {}) as Record<string, string>;
+
+      setConfig({
+        siteName: site.name || '',
+        siteSlug: site.slug || '',
+        domain: site.domain || '',
+        stageDomain: (meta.stage_domain as string) || '',
+        description: (meta.description as string) || '',
+        seoTitle: seo.title || '',
+        seoDescription: seo.description || '',
+        seoKeywords: seo.keywords || '',
+        ogImage: seo.og_image || '',
+        email: contact.email || '',
+        emailSecondary: contact.email_secondary || '',
+        phone: contact.phone || '',
+        phoneSecondary: contact.phone_secondary || '',
+        address: contact.address || '',
+        stageHookUrl: deploy.stage_hook_url || '',
+        prodHookUrl: deploy.prod_hook_url || '',
+      });
     });
   }, []);
 
@@ -90,11 +102,42 @@ export default function SettingsPage() {
   }
 
   async function handleSave() {
+    if (!siteId) return;
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 800));
+    setError(null);
+    try {
+      await updateSiteSettings(siteId, {
+        name: config.siteName,
+        slug: config.siteSlug,
+        domain: config.domain,
+        metadata: {
+          description: config.description,
+          stage_domain: config.stageDomain,
+          seo: {
+            title: config.seoTitle,
+            description: config.seoDescription,
+            keywords: config.seoKeywords,
+            og_image: config.ogImage,
+          },
+          contact: {
+            email: config.email,
+            email_secondary: config.emailSecondary,
+            phone: config.phone,
+            phone_secondary: config.phoneSecondary,
+            address: config.address,
+          },
+          deploy: {
+            stage_hook_url: config.stageHookUrl,
+            prod_hook_url: config.prodHookUrl,
+          },
+        },
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save settings');
+    }
     setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
   }
 
   return (
@@ -137,6 +180,12 @@ export default function SettingsPage() {
 
           {/* Content */}
           <div className="flex-1 space-y-6">
+            {error && (
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 rounded-button">
+                <p className="text-[12px] text-red-700 flex-1">{error}</p>
+                <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 text-[14px]">×</button>
+              </div>
+            )}
             {activeTab === 'general' && (
               <div className="glass-card rounded-card overflow-hidden">
                 <div className="px-6 py-4 border-b border-surface-border">

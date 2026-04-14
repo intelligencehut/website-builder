@@ -129,6 +129,48 @@ export async function getSiteMetadata(siteId: string) {
 }
 
 /**
+ * Update site settings — stores top-level fields on the sites row and
+ * merges everything else into the metadata JSONB (preserving unrelated
+ * keys like preview_url, available_slots, etc.)
+ */
+export async function updateSiteSettings(
+  siteId: string,
+  updates: {
+    name?: string;
+    slug?: string;
+    domain?: string;
+    metadata?: Record<string, unknown>;
+  }
+) {
+  const supabase = createAdminClient();
+  if (!supabase) throw new Error('Supabase not configured');
+
+  // Fetch existing metadata to merge with new values
+  const { data: existing } = await supabase
+    .from('sites')
+    .select('metadata')
+    .eq('id', siteId)
+    .single();
+
+  const mergedMetadata = {
+    ...((existing?.metadata as Record<string, unknown>) || {}),
+    ...(updates.metadata || {}),
+  };
+
+  const payload: Record<string, unknown> = {
+    metadata: mergedMetadata,
+    updated_at: new Date().toISOString(),
+  };
+  if (updates.name !== undefined) payload.name = updates.name;
+  if (updates.slug !== undefined) payload.slug = updates.slug;
+  if (updates.domain !== undefined) payload.domain = updates.domain;
+
+  const { error } = await supabase.from('sites').update(payload).eq('id', siteId);
+
+  if (error) throw new Error(`Update failed: ${error.message}`);
+}
+
+/**
  * Save content as a new draft version.
  */
 export async function savePageContent(
