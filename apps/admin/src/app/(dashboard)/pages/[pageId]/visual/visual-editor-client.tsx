@@ -84,13 +84,15 @@ interface VisualEditorClientProps {
   initialStatus: string;
   previewBaseUrl?: string;
   siteId?: string;
+  siteDomain?: string;
+  stageDomain?: string;
 }
 
 // ── Component ──────────────────────────────────────────────
 
 export function VisualEditorClient({
   pageId, pageTitle, pageSlug, initialContent, initialVersionId, initialStatus,
-  previewBaseUrl, siteId,
+  previewBaseUrl, siteId, siteDomain, stageDomain,
 }: VisualEditorClientProps) {
   const [sections, setSections] = useState<PageSection[]>(parseToSections(initialContent));
   const [activeSection, setActiveSection] = useState<string | null>(null);
@@ -262,7 +264,7 @@ export function VisualEditorClient({
       {/* Publish dialog */}
       {publishAction && (
         <PublishDialog open={!!publishAction} onClose={() => setPublishAction(null)} action={publishAction} pageName={pageTitle}
-          onConfirm={publishAction === 'stage' ? handleDeployToStage : handlePublish} />
+          onConfirm={publishAction === 'stage' ? handleDeployToStage : handlePublish} siteDomain={siteDomain} stageDomain={stageDomain} />
       )}
     </div>
   );

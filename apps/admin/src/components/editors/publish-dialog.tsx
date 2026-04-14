@@ -13,40 +13,47 @@ interface PublishDialogProps {
   action: Action;
   onConfirm: () => Promise<void>;
   pageName: string;
+  siteDomain?: string;
+  stageDomain?: string;
 }
 
-const config: Record<Action, {
-  title: string;
-  description: string;
-  icon: typeof Rocket;
-  buttonText: string;
-  buttonClass: string;
-  successText: string;
-  env: string;
-}> = {
-  stage: {
-    title: 'Deploy to Stage',
-    description: 'This will update the staging environment with your current draft. The staging site will rebuild with the latest content.',
-    icon: Rocket,
-    buttonText: 'Deploy to Stage',
-    buttonClass: 'bg-amber-500 hover:bg-amber-600 text-white',
-    successText: 'Deployed to staging!',
-    env: 'stage-sevaa.vercel.app',
-  },
-  publish: {
-    title: 'Publish to Production',
-    description: 'This will push your content live to the production website. This action affects the public-facing site.',
-    icon: Globe,
-    buttonText: 'Publish to Production',
-    buttonClass: 'bg-sidebar hover:bg-sidebar-hover text-ink-inverse',
-    successText: 'Published to production!',
-    env: 'sevaa.org',
-  },
-};
+function getConfig(action: Action, siteDomain?: string, stageDomain?: string) {
+  const prodEnv = siteDomain || 'production';
+  const stageEnv = stageDomain || 'staging';
+  const configs: Record<Action, {
+    title: string;
+    description: string;
+    icon: typeof Rocket;
+    buttonText: string;
+    buttonClass: string;
+    successText: string;
+    env: string;
+  }> = {
+    stage: {
+      title: 'Deploy to Stage',
+      description: 'This will update the staging environment with your current draft. The staging site will rebuild with the latest content.',
+      icon: Rocket,
+      buttonText: 'Deploy to Stage',
+      buttonClass: 'bg-amber-500 hover:bg-amber-600 text-white',
+      successText: 'Deployed to staging!',
+      env: stageEnv,
+    },
+    publish: {
+      title: 'Publish to Production',
+      description: 'This will push your content live to the production website. This action affects the public-facing site.',
+      icon: Globe,
+      buttonText: 'Publish to Production',
+      buttonClass: 'bg-sidebar hover:bg-sidebar-hover text-ink-inverse',
+      successText: 'Published to production!',
+      env: prodEnv,
+    },
+  };
+  return configs[action];
+}
 
-export function PublishDialog({ open, onClose, action, onConfirm, pageName }: PublishDialogProps) {
+export function PublishDialog({ open, onClose, action, onConfirm, pageName, siteDomain, stageDomain }: PublishDialogProps) {
   const [status, setStatus] = useState<'idle' | 'deploying' | 'success' | 'error'>('idle');
-  const cfg = config[action];
+  const cfg = getConfig(action, siteDomain, stageDomain);
 
   async function handleConfirm() {
     setStatus('deploying');

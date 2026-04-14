@@ -15,7 +15,10 @@ export default async function VisualEditorPage({ params }: Props) {
   }
 
   const site = await getSiteMetadata(pageData.site_id);
-  const previewUrl = (site?.metadata as Record<string, unknown>)?.preview_url as string | undefined;
+  const metadata = site?.metadata as Record<string, unknown> | undefined;
+  const previewUrl = metadata?.preview_url as string | undefined;
+  const siteDomain = site?.domain || undefined;
+  const stageDomain = metadata?.stage_domain as string | undefined;
 
   return (
     <VisualEditorClient
@@ -27,6 +30,8 @@ export default async function VisualEditorPage({ params }: Props) {
       initialStatus={pageData.content_status}
       previewBaseUrl={previewUrl}
       siteId={pageData.site_id}
+      siteDomain={siteDomain}
+      stageDomain={stageDomain}
     />
   );
 }
