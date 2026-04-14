@@ -7,7 +7,7 @@ import {
   ArrowLeft, Save, Rocket, Globe, Check, Loader2, X,
   Monitor, Tablet, Smartphone, MousePointerClick, Columns,
 } from 'lucide-react';
-import { savePageContent, updateVersionStatus, updatePageMeta } from '@/lib/actions/pages';
+import { savePageContent, updateVersionStatus, updatePageMeta, revalidateSite } from '@/lib/actions/pages';
 import { deployToStage, publishToProduction } from '@/lib/actions/deploy';
 import { PublishDialog } from '@/components/editors/publish-dialog';
 import { SectionDataEditor } from '@/components/editors/section-editors';
@@ -83,13 +83,14 @@ interface VisualEditorClientProps {
   initialVersionId: string | null;
   initialStatus: string;
   previewBaseUrl?: string;
+  siteId?: string;
 }
 
 // ── Component ──────────────────────────────────────────────
 
 export function VisualEditorClient({
   pageId, pageTitle, pageSlug, initialContent, initialVersionId, initialStatus,
-  previewBaseUrl,
+  previewBaseUrl, siteId,
 }: VisualEditorClientProps) {
   const [sections, setSections] = useState<PageSection[]>(parseToSections(initialContent));
   const [activeSection, setActiveSection] = useState<string | null>(null);
@@ -124,9 +125,18 @@ export function VisualEditorClient({
       await updatePageMeta(pageId, { title: pageTitle, slug: pageSlug });
       const result = await savePageContent(pageId, { sections });
       setCurrentVersionId(result.id);
+      // Auto-publish and revalidate so the preview iframe shows updated content
+      await updateVersionStatus(result.id, 'published');
+      // Trigger server-side revalidation on the target site
+      if (siteId) {
+        await revalidateSite(siteId, pageSlug);
+      }
       setSaved(true);
       setDirty(false);
-      if (iframeRef.current) iframeRef.current.src = iframeRef.current.src;
+      // Reload iframe after a short delay to allow revalidation to complete
+      setTimeout(() => {
+        if (iframeRef.current) iframeRef.current.src = iframeRef.current.src;
+      }, 500);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) { console.error('Save failed:', err); }
     setSaving(false);
@@ -135,13 +145,13 @@ export function VisualEditorClient({
   async function handleDeployToStage() {
     if (dirty) await handleSave();
     if (currentVersionId) await updateVersionStatus(currentVersionId, 'staged');
-    await deployToStage('a0000000-0000-0000-0000-000000000001', currentVersionId || '');
+    await deployToStage(siteId || 'a0000000-0000-0000-0000-000000000001', currentVersionId || '');
   }
 
   async function handlePublish() {
     if (dirty) await handleSave();
     if (currentVersionId) await updateVersionStatus(currentVersionId, 'published');
-    await publishToProduction('a0000000-0000-0000-0000-000000000001', currentVersionId || '');
+    await publishToProduction(siteId || 'a0000000-0000-0000-0000-000000000001', currentVersionId || '');
   }
 
   const activeItem = sections.find(s => s.id === activeSection);

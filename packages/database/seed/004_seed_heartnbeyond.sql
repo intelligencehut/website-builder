@@ -7,7 +7,7 @@ VALUES (
   'heartnbeyond.com',
   '{
     "platform": "heartnbeyond",
-    "preview_url": "http://localhost:3001",
+    "preview_url": "http://localhost:3000",
     "available_slots": ["specialties", "latest-posts", "doctors", "newsletter"],
     "revalidation_url": "https://heartnbeyond.com/api/revalidate"
   }'

@@ -85,6 +85,33 @@ export async function getPageWithContent(pageId: string) {
 }
 
 /**
+ * Trigger on-demand revalidation on a site's preview URL (server-side).
+ */
+export async function revalidateSite(siteId: string, path: string = '/') {
+  const site = await getSiteMetadata(siteId);
+  if (!site) return;
+
+  const metadata = site.metadata as Record<string, unknown> | undefined;
+  const previewUrl = metadata?.preview_url as string | undefined;
+  const revalidationSecret = metadata?.revalidation_secret as string | undefined;
+
+  if (!previewUrl) return;
+
+  try {
+    await fetch(`${previewUrl}/api/revalidate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(revalidationSecret ? { 'x-revalidation-secret': revalidationSecret } : {}),
+      },
+      body: JSON.stringify({ path }),
+    });
+  } catch (err) {
+    console.error('revalidateSite failed:', err);
+  }
+}
+
+/**
  * Get site metadata (preview URL, available slots, etc.)
  */
 export async function getSiteMetadata(siteId: string) {

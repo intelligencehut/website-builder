@@ -26,6 +26,7 @@ export default async function VisualEditorPage({ params }: Props) {
       initialVersionId={pageData.version_id}
       initialStatus={pageData.content_status}
       previewBaseUrl={previewUrl}
+      siteId={pageData.site_id}
     />
   );
 }

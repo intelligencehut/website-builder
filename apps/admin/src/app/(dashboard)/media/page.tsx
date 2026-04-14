@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Header } from '@/components/header';
 import { UploadZone } from '@/components/media/upload-zone';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,9 @@ interface MediaItem {
   folder: string;
 }
 
-// Demo data
+// Demo data for SEVAA site only
+const SEVAA_SITE_ID = 'a0000000-0000-0000-0000-000000000001';
+
 const DEMO_MEDIA: MediaItem[] = [
   { id: '1', name: 'about-2.jpg', src: '/images/about/about-2.jpg', type: 'image', size: '245 KB', dimensions: '1920×1080', uploadedAt: '2025-03-26', folder: '/about' },
   { id: '2', name: 'gallery-1.jpg', src: '/images/gallery/gallery-1.jpg', type: 'image', size: '312 KB', dimensions: '1600×1200', uploadedAt: '2025-03-25', folder: '/gallery' },
@@ -65,8 +67,18 @@ export default function MediaPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showUpload, setShowUpload] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [siteId, setSiteId] = useState<string>('');
 
-  const filtered = DEMO_MEDIA
+  // Read active site from cookie
+  useEffect(() => {
+    const match = document.cookie.match(/wb_site_id=([^;]+)/);
+    setSiteId(match?.[1] || SEVAA_SITE_ID);
+  }, []);
+
+  // Only show demo media for SEVAA; other sites start empty until media DB is wired up
+  const siteMedia = siteId === SEVAA_SITE_ID ? DEMO_MEDIA : [];
+
+  const filtered = siteMedia
     .filter(m => typeFilter === 'all' || m.type === typeFilter)
     .filter(m => search === '' || m.name.toLowerCase().includes(search.toLowerCase()));
 
@@ -99,7 +111,7 @@ export default function MediaPage() {
     <>
       <Header
         title="Media Library"
-        description={`${DEMO_MEDIA.length} files · ${typeFilter === 'all' ? 'All types' : typeFilter + 's'}`}
+        description={`${siteMedia.length} files · ${typeFilter === 'all' ? 'All types' : typeFilter + 's'}`}
         actions={
           <button
             onClick={() => setShowUpload(!showUpload)}

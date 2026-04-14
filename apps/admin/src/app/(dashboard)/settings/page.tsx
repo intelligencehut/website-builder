@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/header';
 import { Field, TextInput, TextArea } from '@/components/ui/field';
+import { TeamManager } from '@/components/team-manager';
 import { cn } from '@/lib/utils';
+import { getSiteMetadata } from '@/lib/actions/pages';
 import {
   Globe,
   Key,
@@ -29,33 +31,59 @@ const tabs: { id: TabId; label: string; icon: typeof Globe }[] = [
 ];
 
 const DEFAULT_CONFIG = {
-  siteName: 'SEVAA',
-  siteSlug: 'sevaa',
-  domain: 'sevaa.org',
-  stageDomain: 'stage-sevaa.vercel.app',
-  description: 'Society for Envisioning Vivekananda in Awareness and Action',
-  seoTitle: 'SEVAA — Society for Envisioning Vivekananda in Awareness and Action',
-  seoDescription: 'Non-government philanthropic organisation inspired by the ideals of Thakur-Maa-Swamiji, working among the underprivileged section of society.',
-  seoKeywords: 'SEVAA, NGO, education, healthcare, livelihood, Purulia, West Bengal',
-  ogImage: '/images/banner-1.jpg',
-  email: 'infosevaa@gmail.com',
-  emailSecondary: 'sevaa.narendrapur@gmail.com',
-  phone: '+91 98271 93272',
-  phoneSecondary: '+91 33 2477 2545',
-  address: '131/B Sri Ramkrishna Pally, Sonarpur, Kolkata-700150, West Bengal.',
+  siteName: '',
+  siteSlug: '',
+  domain: '',
+  stageDomain: '',
+  description: '',
+  seoTitle: '',
+  seoDescription: '',
+  seoKeywords: '',
+  ogImage: '',
+  email: '',
+  emailSecondary: '',
+  phone: '',
+  phoneSecondary: '',
+  address: '',
   stageHookUrl: '',
   prodHookUrl: '',
 };
-
-const TEAM_MEMBERS = [
-  { email: 'amit@example.com', name: 'Amit Das', role: 'owner' },
-];
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabId>('general');
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [siteId, setSiteId] = useState('');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [siteLoaded, setSiteLoaded] = useState(false);
+
+  // Read active site ID, current user, and load site config
+  useEffect(() => {
+    const match = document.cookie.match(/wb_site_id=([^;]+)/);
+    const activeSiteId = match?.[1] || 'a0000000-0000-0000-0000-000000000001';
+    setSiteId(activeSiteId);
+
+    import('@/lib/site-context').then(({ getCurrentUserId }) => {
+      getCurrentUserId().then(setCurrentUserId);
+    });
+
+    // Load site config from database
+    getSiteMetadata(activeSiteId).then(site => {
+      if (site) {
+        const meta = (site.metadata || {}) as Record<string, string>;
+        setConfig(prev => ({
+          ...prev,
+          siteName: site.name || prev.siteName,
+          siteSlug: site.slug || prev.siteSlug,
+          domain: site.domain || prev.domain,
+          stageDomain: meta.stage_domain || prev.stageDomain,
+          description: meta.description || prev.description,
+        }));
+      }
+      setSiteLoaded(true);
+    });
+  }, []);
 
   function updateConfig(key: string, value: string) {
     setConfig(prev => ({ ...prev, [key]: value }));
@@ -244,41 +272,8 @@ export default function SettingsPage() {
               </>
             )}
 
-            {activeTab === 'team' && (
-              <div className="glass-card rounded-card overflow-hidden">
-                <div className="px-6 py-4 border-b border-surface-border flex items-center justify-between">
-                  <div>
-                    <h2 className="text-heading text-ink">Team Members</h2>
-                    <p className="text-[12px] text-ink-muted mt-0.5">People who can access this site in the admin panel</p>
-                  </div>
-                  <button className="flex items-center gap-2 px-3 py-1.5 border border-surface-border rounded-button text-[13px] font-medium text-ink hover:bg-surface-hover transition-colors">
-                    <Users className="w-3.5 h-3.5" />
-                    Invite Member
-                  </button>
-                </div>
-                <div className="divide-y divide-surface-border">
-                  {TEAM_MEMBERS.map(member => (
-                    <div key={member.email} className="px-6 py-4 flex items-center gap-4">
-                      <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-[13px] font-semibold text-accent">
-                          {member.name.charAt(0)}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-medium text-ink">{member.name}</p>
-                        <p className="text-[12px] text-ink-muted">{member.email}</p>
-                      </div>
-                      <span className={cn(
-                        'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-badge text-[11px] font-medium border',
-                        member.role === 'owner' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-600 border-slate-200'
-                      )}>
-                        <Shield className="w-3 h-3" />
-                        {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {activeTab === 'team' && siteId && (
+              <TeamManager siteId={siteId} currentUserId={currentUserId} />
             )}
           </div>
         </div>

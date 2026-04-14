@@ -46,6 +46,7 @@ interface PageSection {
 
 interface PageEditorClientProps {
   pageId: string;
+  siteId: string;
   initialTitle: string;
   initialSlug: string;
   initialMetaTitle: string;
@@ -113,7 +114,7 @@ function parseToSections(content: Record<string, unknown> | null): PageSection[]
 // ── Component ──────────────────────────────────────────────
 
 export function PageEditorClient({
-  pageId, initialTitle, initialSlug, initialMetaTitle, initialMetaDescription,
+  pageId, siteId, initialTitle, initialSlug, initialMetaTitle, initialMetaDescription,
   initialContent, initialVersionId, initialVersionNumber, initialStatus, pageType,
 }: PageEditorClientProps) {
   const [title, setTitle] = useState(initialTitle);
@@ -186,13 +187,13 @@ export function PageEditorClient({
   async function handleDeployToStage() {
     if (dirty) await handleSave();
     if (currentVersionId) { await updateVersionStatus(currentVersionId, 'staged'); setCurrentStatus('staged'); }
-    await deployToStage('a0000000-0000-0000-0000-000000000001', currentVersionId || '');
+    await deployToStage(siteId, currentVersionId || '');
   }
 
   async function handlePublish() {
     if (dirty) await handleSave();
     if (currentVersionId) { await updateVersionStatus(currentVersionId, 'published'); setCurrentStatus('published'); }
-    await publishToProduction('a0000000-0000-0000-0000-000000000001', currentVersionId || '');
+    await publishToProduction(siteId, currentVersionId || '');
   }
 
   const statusBadge = {

@@ -17,6 +17,7 @@ export default async function PageEditorPage({ params }: Props) {
   return (
     <PageEditorClient
       pageId={pageData.id}
+      siteId={pageData.site_id}
       initialTitle={pageData.title}
       initialSlug={pageData.slug}
       initialMetaTitle={pageData.meta_title || ''}

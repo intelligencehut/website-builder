@@ -15,6 +15,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { SiteSwitcher } from './site-switcher';
 
 const navItems = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -25,12 +26,21 @@ const navItems = [
   { label: 'Settings', href: '/settings', icon: Settings },
 ];
 
-interface SidebarProps {
-  user: { email?: string; name?: string } | null;
-  siteName?: string;
+interface Site {
+  id: string;
+  name: string;
+  slug: string;
+  domain: string;
 }
 
-export function Sidebar({ user, siteName = 'SEVAA' }: SidebarProps) {
+interface SidebarProps {
+  user: { email?: string; name?: string } | null;
+  sites?: Site[];
+  activeSiteId?: string;
+  userRole?: string | null;
+}
+
+export function Sidebar({ user, sites = [], activeSiteId = '', userRole }: SidebarProps) {
   const pathname = usePathname();
 
   async function handleSignOut() {
@@ -62,20 +72,7 @@ export function Sidebar({ user, siteName = 'SEVAA' }: SidebarProps) {
         </div>
 
         {/* Site selector */}
-        <div className="px-3 py-3 border-b border-sidebar-border">
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-button hover:bg-sidebar-hover transition-colors group">
-            <div className="w-7 h-7 bg-accent/10 rounded-[6px] flex items-center justify-center flex-shrink-0">
-              <span className="text-[11px] font-semibold text-accent">
-                {siteName.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0 text-left">
-              <p className="text-[13px] font-medium text-ink-inverse truncate">{siteName}</p>
-              <p className="text-[11px] text-sidebar-muted">Production</p>
-            </div>
-            <ChevronDown className="w-3.5 h-3.5 text-sidebar-muted group-hover:text-ink-inverse transition-colors flex-shrink-0" />
-          </button>
-        </div>
+        <SiteSwitcher sites={sites} activeSiteId={activeSiteId} />
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto custom-scrollbar">

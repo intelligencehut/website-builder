@@ -1,4 +1,5 @@
 import { getPages } from '@/lib/actions/pages';
+import { getActiveSiteId } from '@/lib/site-context';
 import { Header } from '@/components/header';
 import {
   FileText,
@@ -11,8 +12,6 @@ import {
   Zap,
 } from 'lucide-react';
 import Link from 'next/link';
-
-const SITE_ID = 'a0000000-0000-0000-0000-000000000001';
 
 function makeStats(pageCount: number) {
   return [
@@ -49,7 +48,8 @@ const quickActions = [
 ];
 
 export default async function DashboardPage() {
-  const pages = await getPages(SITE_ID);
+  const siteId = await getActiveSiteId();
+  const pages = await getPages(siteId);
   const stats = makeStats(pages.length);
 
   return (

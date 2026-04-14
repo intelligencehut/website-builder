@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar';
+import { getUserSites, getActiveSiteId, getUserRoleForSite } from '@/lib/site-context';
 
 export default async function DashboardLayout({
   children,
@@ -20,9 +21,15 @@ export default async function DashboardLayout({
     ? { email: user.email, name: user.user_metadata?.full_name || user.user_metadata?.name }
     : { email: 'demo@example.com', name: 'Demo User' };
 
+  const [sites, activeSiteId] = await Promise.all([
+    getUserSites(),
+    getActiveSiteId(),
+  ]);
+  const userRole = await getUserRoleForSite(activeSiteId);
+
   return (
     <div className="flex min-h-screen">
-      <Sidebar user={displayUser} />
+      <Sidebar user={displayUser} sites={sites} activeSiteId={activeSiteId} userRole={userRole} />
       <main className="flex-1 ml-[260px] bg-surface min-h-screen">
         {children}
       </main>

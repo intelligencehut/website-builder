@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/header';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -39,6 +40,7 @@ interface PagesClientProps {
 }
 
 export function PagesClient({ pages }: PagesClientProps) {
+  const router = useRouter();
   const [filter, setFilter] = useState<PageType>('all');
   const [search, setSearch] = useState('');
 
@@ -122,7 +124,11 @@ export function PagesClient({ pages }: PagesClientProps) {
                 const config = pageTypeConfig[page.page_type];
                 const status = (page.latest_status || 'draft') as 'draft' | 'staged' | 'published';
                 return (
-                  <tr key={page.id} className="hover:bg-surface-hover transition-colors group">
+                  <tr
+                    key={page.id}
+                    onClick={() => router.push(`/pages/${page.id}/visual`)}
+                    className="hover:bg-surface-hover transition-colors group cursor-pointer"
+                  >
                     <td className="px-6 py-3.5">
                       <div>
                         <p className="text-[13px] font-medium text-ink group-hover:text-accent transition-colors">
