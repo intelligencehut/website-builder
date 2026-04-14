@@ -280,6 +280,181 @@ export function HtmlEditor({ data, onChange }: EditorProps<HtmlData>) {
   );
 }
 
+// ── Cards Grid Editor (icon + stat variant) ──────────────────
+
+interface CardsGridItem { icon?: string; iconColor?: string; title?: string; stat?: string; description?: string }
+interface CardsGridData { eyebrow?: string; heading?: string; subtitle?: string; columns?: number; background?: string; items?: CardsGridItem[] }
+
+export function CardsGridEditor({ data, onChange }: EditorProps<CardsGridData>) {
+  const u = (patch: Partial<CardsGridData>) => upd(data, onChange, patch);
+  return (
+    <div className="space-y-3">
+      <Field label="Eyebrow"><TextInput value={data.eyebrow ?? ''} onChange={e => u({ eyebrow: e.currentTarget.value })} /></Field>
+      <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => u({ heading: e.currentTarget.value })} /></Field>
+      <Field label="Subtitle"><TextInput value={data.subtitle ?? ''} onChange={e => u({ subtitle: e.currentTarget.value })} /></Field>
+      <Field label="Columns"><SelectInput value={String(data.columns ?? 4)} onChange={e => u({ columns: Number(e.currentTarget.value) })} options={[{value:'2',label:'2 columns'},{value:'3',label:'3 columns'},{value:'4',label:'4 columns'}]} /></Field>
+      <Field label="Background"><SelectInput value={data.background ?? 'white'} onChange={e => u({ background: e.currentTarget.value })} options={[{value:'white',label:'White'},{value:'cream',label:'Cream'}]} /></Field>
+      <SortableItemList
+        items={data.items ?? []}
+        onChange={items => u({ items })}
+        createItem={(): CardsGridItem => ({ title: '', description: '' })}
+        getItemLabel={item => item.title || 'Untitled Card'}
+        addLabel="Add Card"
+        renderItem={(item, _, upd) => (
+          <div className="space-y-2">
+            <Field label="Title"><TextInput value={item.title ?? ''} onChange={e => upd({ title: e.currentTarget.value })} /></Field>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="Icon" description="Lucide icon name"><TextInput value={item.icon ?? ''} onChange={e => upd({ icon: e.currentTarget.value })} placeholder="BookOpen" /></Field>
+              <Field label="Icon Color"><SelectInput value={item.iconColor ?? 'primary'} onChange={e => upd({ iconColor: e.currentTarget.value })} options={[{value:'primary',label:'Primary'},{value:'secondary',label:'Secondary'},{value:'red',label:'Red'},{value:'blue',label:'Blue'},{value:'gold',label:'Gold'},{value:'copper',label:'Copper'}]} /></Field>
+            </div>
+            <Field label="Stat" description="Large accent value shown above description"><TextInput value={item.stat ?? ''} onChange={e => upd({ stat: e.currentTarget.value })} /></Field>
+            <Field label="Description"><TextArea value={item.description ?? ''} onChange={e => upd({ description: e.currentTarget.value })} rows={2} /></Field>
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
+// ── Programs Grid Editor ─────────────────────────────────────
+
+interface ProgramsGridItem { title?: string; description?: string; image?: string; href?: string; icon?: string; iconColor?: string }
+interface ProgramsGridData { eyebrow?: string; heading?: string; subtitle?: string; background?: string; items?: ProgramsGridItem[] }
+
+export function ProgramsGridEditor({ data, onChange }: EditorProps<ProgramsGridData>) {
+  const u = (patch: Partial<ProgramsGridData>) => upd(data, onChange, patch);
+  return (
+    <div className="space-y-3">
+      <Field label="Eyebrow"><TextInput value={data.eyebrow ?? ''} onChange={e => u({ eyebrow: e.currentTarget.value })} /></Field>
+      <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => u({ heading: e.currentTarget.value })} /></Field>
+      <Field label="Subtitle"><TextArea value={data.subtitle ?? ''} onChange={e => u({ subtitle: e.currentTarget.value })} rows={2} /></Field>
+      <Field label="Background"><SelectInput value={data.background ?? 'white'} onChange={e => u({ background: e.currentTarget.value })} options={[{value:'white',label:'White'},{value:'warm',label:'Warm gradient'}]} /></Field>
+      <SortableItemList
+        items={data.items ?? []}
+        onChange={items => u({ items })}
+        createItem={(): ProgramsGridItem => ({ title: '', description: '', href: '/' })}
+        getItemLabel={item => item.title || 'Untitled Program'}
+        addLabel="Add Program"
+        renderItem={(item, _, upd) => (
+          <div className="space-y-2">
+            <Field label="Title"><TextInput value={item.title ?? ''} onChange={e => upd({ title: e.currentTarget.value })} /></Field>
+            <Field label="Description"><TextArea value={item.description ?? ''} onChange={e => upd({ description: e.currentTarget.value })} rows={2} /></Field>
+            <Field label="Image"><ImagePicker value={item.image ?? ''} onChange={v => upd({ image: v })} /></Field>
+            <div className="grid grid-cols-3 gap-2">
+              <Field label="Link"><TextInput value={item.href ?? ''} onChange={e => upd({ href: e.currentTarget.value })} mono /></Field>
+              <Field label="Icon"><TextInput value={item.icon ?? ''} onChange={e => upd({ icon: e.currentTarget.value })} placeholder="BookOpen" /></Field>
+              <Field label="Icon Color"><SelectInput value={item.iconColor ?? 'primary'} onChange={e => upd({ iconColor: e.currentTarget.value })} options={[{value:'primary',label:'Primary'},{value:'secondary',label:'Secondary'},{value:'red',label:'Red'},{value:'gold',label:'Gold'},{value:'copper',label:'Copper'}]} /></Field>
+            </div>
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
+// ── Partners Editor ─────────────────────────────────────────
+
+interface PartnerItem { name?: string; description?: string }
+interface PartnersData { icon?: string; heading?: string; subtitle?: string; background?: string; items?: PartnerItem[] }
+
+export function PartnersEditor({ data, onChange }: EditorProps<PartnersData>) {
+  const u = (patch: Partial<PartnersData>) => upd(data, onChange, patch);
+  return (
+    <div className="space-y-3">
+      <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => u({ heading: e.currentTarget.value })} /></Field>
+      <Field label="Subtitle"><TextInput value={data.subtitle ?? ''} onChange={e => u({ subtitle: e.currentTarget.value })} /></Field>
+      <Field label="Icon"><TextInput value={data.icon ?? ''} onChange={e => u({ icon: e.currentTarget.value })} placeholder="HeartHandshake" /></Field>
+      <Field label="Background"><SelectInput value={data.background ?? 'cream'} onChange={e => u({ background: e.currentTarget.value })} options={[{value:'cream',label:'Cream'},{value:'white',label:'White'}]} /></Field>
+      <SortableItemList
+        items={data.items ?? []}
+        onChange={items => u({ items })}
+        createItem={(): PartnerItem => ({ name: '', description: '' })}
+        getItemLabel={item => item.name || 'Partner'}
+        addLabel="Add Partner"
+        renderItem={(item, _, upd) => (
+          <div className="space-y-2">
+            <Field label="Name"><TextInput value={item.name ?? ''} onChange={e => upd({ name: e.currentTarget.value })} /></Field>
+            <Field label="Description"><TextArea value={item.description ?? ''} onChange={e => upd({ description: e.currentTarget.value })} rows={3} /></Field>
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
+// ── Feature Highlight Editor ────────────────────────────────
+
+interface FeatureHighlightData { eyebrow?: string; heading?: string; description?: string; items?: string[]; image?: string; imageCaption?: string }
+
+export function FeatureHighlightEditor({ data, onChange }: EditorProps<FeatureHighlightData>) {
+  const u = (patch: Partial<FeatureHighlightData>) => upd(data, onChange, patch);
+  return (
+    <div className="space-y-3">
+      <Field label="Eyebrow"><TextInput value={data.eyebrow ?? ''} onChange={e => u({ eyebrow: e.currentTarget.value })} /></Field>
+      <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => u({ heading: e.currentTarget.value })} /></Field>
+      <Field label="Description"><TextArea value={data.description ?? ''} onChange={e => u({ description: e.currentTarget.value })} rows={3} /></Field>
+      <Field label="Image"><ImagePicker value={data.image ?? ''} onChange={v => u({ image: v })} /></Field>
+      <Field label="Image Caption"><TextInput value={data.imageCaption ?? ''} onChange={e => u({ imageCaption: e.currentTarget.value })} /></Field>
+      <div>
+        <p className="text-[11px] font-medium text-ink-secondary mb-2">Bullet Items</p>
+        <div className="space-y-2">
+          {(data.items ?? []).map((item, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <TextInput value={item} onChange={e => { const next = [...(data.items ?? [])]; next[i] = e.currentTarget.value; u({ items: next }); }} />
+              <button onClick={() => u({ items: (data.items ?? []).filter((_, j) => j !== i) })} className="p-1 text-ink-muted hover:text-red-500 transition-colors text-[12px]">✕</button>
+            </div>
+          ))}
+          <button onClick={() => u({ items: [...(data.items ?? []), ''] })} className="w-full py-1.5 border border-dashed border-surface-border rounded text-[12px] text-ink-secondary hover:text-accent hover:border-accent/40 transition-all">+ Add Item</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Bank Details Editor ─────────────────────────────────────
+
+interface BankDetailsData { heading?: string; beneficiaryName?: string; bankName?: string; accountNumber?: string; ifscCode?: string; note?: string }
+
+export function BankDetailsEditor({ data, onChange }: EditorProps<BankDetailsData>) {
+  const u = (patch: Partial<BankDetailsData>) => upd(data, onChange, patch);
+  return (
+    <div className="space-y-3">
+      <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => u({ heading: e.currentTarget.value })} /></Field>
+      <Field label="Beneficiary Name"><TextInput value={data.beneficiaryName ?? ''} onChange={e => u({ beneficiaryName: e.currentTarget.value })} /></Field>
+      <Field label="Bank Name"><TextInput value={data.bankName ?? ''} onChange={e => u({ bankName: e.currentTarget.value })} /></Field>
+      <Field label="Account Number"><TextInput value={data.accountNumber ?? ''} onChange={e => u({ accountNumber: e.currentTarget.value })} mono /></Field>
+      <Field label="IFSC Code"><TextInput value={data.ifscCode ?? ''} onChange={e => u({ ifscCode: e.currentTarget.value })} mono /></Field>
+      <Field label="Note"><TextArea value={data.note ?? ''} onChange={e => u({ note: e.currentTarget.value })} rows={3} /></Field>
+    </div>
+  );
+}
+
+// ── List Editor ─────────────────────────────────────────────
+
+interface ListData { heading?: string; subtitle?: string; items?: string[] }
+
+export function ListEditor({ data, onChange }: EditorProps<ListData>) {
+  const u = (patch: Partial<ListData>) => upd(data, onChange, patch);
+  return (
+    <div className="space-y-3">
+      <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => u({ heading: e.currentTarget.value })} /></Field>
+      <Field label="Subtitle"><TextInput value={data.subtitle ?? ''} onChange={e => u({ subtitle: e.currentTarget.value })} /></Field>
+      <div>
+        <p className="text-[11px] font-medium text-ink-secondary mb-2">List Items</p>
+        <div className="space-y-2">
+          {(data.items ?? []).map((item, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <TextInput value={item} onChange={e => { const next = [...(data.items ?? [])]; next[i] = e.currentTarget.value; u({ items: next }); }} />
+              <button onClick={() => u({ items: (data.items ?? []).filter((_, j) => j !== i) })} className="p-1 text-ink-muted hover:text-red-500 transition-colors text-[12px]">✕</button>
+            </div>
+          ))}
+          <button onClick={() => u({ items: [...(data.items ?? []), ''] })} className="w-full py-1.5 border border-dashed border-surface-border rounded text-[12px] text-ink-secondary hover:text-accent hover:border-accent/40 transition-all">+ Add Item</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Editor lookup ──────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -296,6 +471,12 @@ export function SectionDataEditor({ type, data, onChange }: { type: string; data
     case 'cta': return <CtaEditor data={data as CtaData} onChange={onChange} />;
     case 'contact': return <ContactEditor data={data as ContactData} onChange={onChange} />;
     case 'html': return <HtmlEditor data={data as HtmlData} onChange={onChange} />;
+    case 'cards-grid': return <CardsGridEditor data={data as CardsGridData} onChange={onChange} />;
+    case 'programs-grid': return <ProgramsGridEditor data={data as ProgramsGridData} onChange={onChange} />;
+    case 'partners': return <PartnersEditor data={data as PartnersData} onChange={onChange} />;
+    case 'feature-highlight': return <FeatureHighlightEditor data={data as FeatureHighlightData} onChange={onChange} />;
+    case 'bank-details': return <BankDetailsEditor data={data as BankDetailsData} onChange={onChange} />;
+    case 'list': return <ListEditor data={data as ListData} onChange={onChange} />;
     case 'dynamic-slot': return <DynamicSlotEditor data={data as { slot?: string; label?: string; config?: string }} onChange={onChange} />;
     default: return <p className="text-[13px] text-ink-muted">Unknown section type: {type}</p>;
   }

@@ -1,7 +1,7 @@
 'use client';
 
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Layout, Type, Image, Grid3X3, GalleryHorizontalEnd, Quote, BarChart3, Megaphone, Phone, Code, Plug } from 'lucide-react';
+import { X, Layout, Type, Image, Grid3X3, GalleryHorizontalEnd, Quote, BarChart3, Megaphone, Phone, Code, Plug, Sparkles, HeartHandshake, Landmark, List } from 'lucide-react';
 
 const SECTION_TYPES = [
   { type: 'hero', label: 'Hero Banner', description: 'Full-width hero with heading, buttons, and image', icon: Layout },
@@ -9,11 +9,17 @@ const SECTION_TYPES = [
   { type: 'text', label: 'Text Block', description: 'Heading and body text content', icon: Type },
   { type: 'text-with-image', label: 'Text with Image', description: 'Text on one side, image on the other', icon: Image },
   { type: 'card-grid', label: 'Card Grid', description: 'Grid of cards with images and descriptions', icon: Grid3X3 },
+  { type: 'cards-grid', label: 'Cards Grid (Icon + Stat)', description: 'Cards with icon, stat, and description', icon: Grid3X3 },
+  { type: 'programs-grid', label: 'Programs Grid', description: 'Grid of linked program cards with images', icon: Grid3X3 },
   { type: 'gallery', label: 'Image Gallery', description: 'Grid of images with optional captions', icon: GalleryHorizontalEnd },
   { type: 'testimonials', label: 'Testimonials', description: 'Customer or supporter quotes', icon: Quote },
   { type: 'stats', label: 'Statistics', description: 'Number counters with labels', icon: BarChart3 },
+  { type: 'feature-highlight', label: 'Feature Highlight', description: 'Large feature box with image and bullet list', icon: Sparkles },
+  { type: 'partners', label: 'Partners', description: 'Cards listing partner organisations', icon: HeartHandshake },
   { type: 'cta', label: 'Call to Action', description: 'Banner with heading and buttons', icon: Megaphone },
   { type: 'contact', label: 'Contact Info', description: 'Email, phone, address display', icon: Phone },
+  { type: 'bank-details', label: 'Bank Details', description: 'Donation bank transfer details', icon: Landmark },
+  { type: 'list', label: 'List', description: 'Simple bulleted list with heading', icon: List },
   { type: 'html', label: 'Custom HTML', description: 'Raw HTML content block', icon: Code },
   { type: 'dynamic-slot', label: 'Dynamic Slot', description: 'Placeholder for live data from the site\'s database', icon: Plug },
 ];

@@ -17,7 +17,8 @@ export interface DeployRecord {
 
 /**
  * Trigger a deploy to stage or production.
- * Calls the Vercel deploy hook and logs the deploy.
+ * Calls the site's Vercel deploy hook (from site metadata) and logs the deploy.
+ * Falls back to the global env vars only if the site has no hook configured.
  */
 export async function triggerDeploy(
   siteId: string,
@@ -25,24 +26,35 @@ export async function triggerDeploy(
   contentVersionId?: string,
   triggeredBy?: string
 ): Promise<DeployRecord> {
-  const hookUrl =
-    environment === 'stage'
-      ? process.env.STAGE_DEPLOY_HOOK_URL
-      : process.env.PRODUCTION_DEPLOY_HOOK_URL;
+  const site = await getSiteMetadata(siteId);
+  const metadata = site?.metadata as Record<string, unknown> | undefined;
+  const deployMeta = metadata?.deploy as Record<string, unknown> | undefined;
 
-  // Trigger Vercel deploy hook if configured
+  const siteHookUrl = environment === 'stage'
+    ? (deployMeta?.stage_hook_url as string | undefined)
+    : (deployMeta?.prod_hook_url as string | undefined);
+
+  const fallbackHookUrl = environment === 'stage'
+    ? process.env.STAGE_DEPLOY_HOOK_URL
+    : process.env.PRODUCTION_DEPLOY_HOOK_URL;
+
+  const hookUrl = siteHookUrl || fallbackHookUrl;
+
   if (hookUrl) {
     try {
       await fetch(hookUrl, { method: 'POST' });
     } catch (err) {
       console.error(`Failed to trigger ${environment} deploy hook:`, err);
     }
+  } else {
+    console.warn(
+      `No deploy hook configured for site ${siteId} (${environment}). ` +
+      `Set metadata.deploy.${environment === 'stage' ? 'stage' : 'prod'}_hook_url in the site settings.`
+    );
   }
 
   // Trigger on-demand revalidation if the site has a revalidation URL
   try {
-    const site = await getSiteMetadata(siteId);
-    const metadata = site?.metadata as Record<string, unknown> | undefined;
     const revalidationUrl = metadata?.revalidation_url as string | undefined;
     const revalidationSecret = metadata?.revalidation_secret as string | undefined;
     if (revalidationUrl) {
@@ -59,6 +71,13 @@ export async function triggerDeploy(
     console.error('Failed to trigger revalidation:', err);
   }
 
+  // Derive a human-readable deploy URL from the site itself.
+  const stageDomain = metadata?.stage_domain as string | undefined;
+  const prodDomain = site?.domain || undefined;
+  const deployUrl = environment === 'stage'
+    ? (stageDomain ? `https://${stageDomain}` : undefined)
+    : (prodDomain ? `https://${prodDomain}` : undefined);
+
   // Log the deploy (TODO: save to Supabase deploys table)
   const deploy: DeployRecord = {
     id: crypto.randomUUID(),
@@ -66,9 +85,7 @@ export async function triggerDeploy(
     environment,
     status: 'building',
     version: contentVersionId ? `v${Date.now() % 1000}` : undefined,
-    deploy_url: environment === 'stage'
-      ? 'https://stage-sevaa.vercel.app'
-      : 'https://sevaa.org',
+    deploy_url: deployUrl,
     triggered_by: triggeredBy,
     triggered_at: new Date().toISOString(),
   };
