@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { Header } from '@/components/header';
-import { UploadZone } from '@/components/media/upload-zone';
 import { cn } from '@/lib/utils';
 import {
   Upload,
@@ -13,45 +12,37 @@ import {
   FileText,
   Film,
   Trash2,
-  Download,
   Link2,
   MoreHorizontal,
   Check,
   X,
   Eye,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
+import type { MediaItem } from '@/lib/actions/media';
+import { listMediaForSite, uploadMediaFile, deleteMediaFile } from '@/lib/actions/media';
 
 type MediaType = 'all' | 'image' | 'document' | 'video';
 type ViewMode = 'grid' | 'list';
 
-interface MediaItem {
-  id: string;
-  name: string;
-  src: string;
-  type: 'image' | 'document' | 'video';
-  size: string;
-  dimensions?: string;
-  uploadedAt: string;
-  folder: string;
+const ACCEPTED_TYPES = [
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+  'application/pdf', 'video/mp4', 'video/webm',
+];
+
+function getFileCategory(mimeType: string): 'image' | 'document' | 'video' {
+  if (mimeType.startsWith('image/')) return 'image';
+  if (mimeType.startsWith('video/')) return 'video';
+  return 'document';
 }
 
-// Demo data for SEVAA site only
-const SEVAA_SITE_ID = 'a0000000-0000-0000-0000-000000000001';
-
-const DEMO_MEDIA: MediaItem[] = [
-  { id: '1', name: 'about-2.jpg', src: '/images/about/about-2.jpg', type: 'image', size: '245 KB', dimensions: '1920×1080', uploadedAt: '2025-03-26', folder: '/about' },
-  { id: '2', name: 'gallery-1.jpg', src: '/images/gallery/gallery-1.jpg', type: 'image', size: '312 KB', dimensions: '1600×1200', uploadedAt: '2025-03-25', folder: '/gallery' },
-  { id: '3', name: 'gallery-2.jpg', src: '/images/gallery/gallery-2.jpg', type: 'image', size: '287 KB', dimensions: '1600×1200', uploadedAt: '2025-03-25', folder: '/gallery' },
-  { id: '4', name: 'events-1.jpg', src: '/images/events/1.jpg', type: 'image', size: '198 KB', dimensions: '1920×1280', uploadedAt: '2025-03-24', folder: '/events' },
-  { id: '5', name: 'events-2.jpg', src: '/images/events/2.jpg', type: 'image', size: '210 KB', dimensions: '1920×1280', uploadedAt: '2025-03-24', folder: '/events' },
-  { id: '6', name: 'events-3.jpg', src: '/images/events/3.jpg', type: 'image', size: '175 KB', dimensions: '1920×1280', uploadedAt: '2025-03-24', folder: '/events' },
-  { id: '7', name: 'seva-activities-1.jpg', src: '/images/programs/seva-activities-1.jpg', type: 'image', size: '420 KB', dimensions: '2048×1365', uploadedAt: '2025-03-20', folder: '/programs' },
-  { id: '8', name: 'saparambera-1.jpg', src: '/images/programs/saparambera-1.jpg', type: 'image', size: '380 KB', dimensions: '2048×1365', uploadedAt: '2025-03-18', folder: '/programs' },
-  { id: '9', name: 'banner-1.jpg', src: '/images/banner-1.jpg', type: 'image', size: '510 KB', dimensions: '2400×800', uploadedAt: '2025-03-15', folder: '/' },
-  { id: '10', name: 'blessing-shivapradananda.jpg', src: '/images/blessing-letter-shivapradananda.jpg', type: 'image', size: '890 KB', dimensions: '1200×1600', uploadedAt: '2025-03-10', folder: '/' },
-  { id: '11', name: 'Tilka Murmu Forest School.pdf', src: '/documents/Tilka Murmu Forest School.pdf', type: 'document', size: '2.1 MB', uploadedAt: '2025-03-09', folder: '/documents' },
-  { id: '12', name: 'Sevaa Booklet 2024.jpg', src: '/images/userfiles/image/Sevaa Booklet 2024_001.jpg', type: 'image', size: '1.2 MB', dimensions: '2480×3508', uploadedAt: '2025-02-20', folder: '/publications' },
-];
+function formatSize(bytes: number | null): string {
+  if (bytes == null) return '—';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 const typeFilters: { key: MediaType; label: string; icon: typeof ImageIcon }[] = [
   { key: 'all', label: 'All Files', icon: Grid3X3 },
@@ -61,26 +52,92 @@ const typeFilters: { key: MediaType; label: string; icon: typeof ImageIcon }[] =
 ];
 
 export default function MediaPage() {
+  const [siteId, setSiteId] = useState<string>('');
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<MediaType>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [showUpload, setShowUpload] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [siteId, setSiteId] = useState<string>('');
+  const [isDragOver, setIsDragOver] = useState(false);
 
-  // Read active site from cookie
+  // Read active site and load media
   useEffect(() => {
     const match = document.cookie.match(/wb_site_id=([^;]+)/);
-    setSiteId(match?.[1] || SEVAA_SITE_ID);
+    const activeSiteId = match?.[1] || 'a0000000-0000-0000-0000-000000000001';
+    setSiteId(activeSiteId);
   }, []);
 
-  // Only show demo media for SEVAA; other sites start empty until media DB is wired up
-  const siteMedia = siteId === SEVAA_SITE_ID ? DEMO_MEDIA : [];
+  const loadMedia = useCallback(async () => {
+    if (!siteId) return;
+    setLoading(true);
+    try {
+      const data = await listMediaForSite(siteId);
+      setMedia(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load media');
+    }
+    setLoading(false);
+  }, [siteId]);
 
-  const filtered = siteMedia
-    .filter(m => typeFilter === 'all' || m.type === typeFilter)
-    .filter(m => search === '' || m.name.toLowerCase().includes(search.toLowerCase()));
+  useEffect(() => {
+    loadMedia();
+  }, [loadMedia]);
+
+  const handleUpload = useCallback(async (files: FileList | File[]) => {
+    if (!siteId) return;
+    const validFiles = Array.from(files).filter(f => ACCEPTED_TYPES.includes(f.type));
+    if (validFiles.length === 0) {
+      setError('No valid files selected. Allowed: images, PDFs, videos.');
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+    try {
+      for (const file of validFiles) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('siteId', siteId);
+        await uploadMediaFile(formData);
+      }
+      await loadMedia();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed');
+    }
+    setUploading(false);
+  }, [siteId, loadMedia]);
+
+  const handleDelete = useCallback(async (mediaId: string) => {
+    setError(null);
+    try {
+      await deleteMediaFile(mediaId);
+      setMedia(prev => prev.filter(m => m.id !== mediaId));
+      setSelected(prev => {
+        const next = new Set(prev);
+        next.delete(mediaId);
+        return next;
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Delete failed');
+    }
+  }, []);
+
+  const handleBulkDelete = useCallback(async () => {
+    const ids = Array.from(selected);
+    for (const id of ids) {
+      await handleDelete(id);
+    }
+    setSelected(new Set());
+  }, [selected, handleDelete]);
+
+  const filtered = media
+    .filter(m => typeFilter === 'all' || getFileCategory(m.mime_type) === typeFilter)
+    .filter(m => search === '' || m.original_filename.toLowerCase().includes(search.toLowerCase()));
 
   const toggleSelect = useCallback((id: string) => {
     setSelected(prev => {
@@ -111,28 +168,58 @@ export default function MediaPage() {
     <>
       <Header
         title="Media Library"
-        description={`${siteMedia.length} files · ${typeFilter === 'all' ? 'All types' : typeFilter + 's'}`}
+        description={`${media.length} files · ${typeFilter === 'all' ? 'All types' : typeFilter + 's'}`}
         actions={
-          <button
-            onClick={() => setShowUpload(!showUpload)}
+          <label
             className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-button text-[13px] font-medium transition-colors',
-              showUpload
+              'flex items-center gap-2 px-4 py-2 rounded-button text-[13px] font-medium transition-colors cursor-pointer',
+              uploading
                 ? 'bg-accent/10 text-accent border border-accent/30'
                 : 'bg-sidebar text-ink-inverse hover:bg-sidebar-hover'
             )}
           >
-            <Upload className="w-3.5 h-3.5" />
-            {showUpload ? 'Close Upload' : 'Upload Files'}
-          </button>
+            {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+            {uploading ? 'Uploading...' : 'Upload Files'}
+            <input
+              type="file"
+              multiple
+              accept={ACCEPTED_TYPES.join(',')}
+              onChange={(e) => e.target.files && handleUpload(e.target.files)}
+              disabled={uploading}
+              className="hidden"
+            />
+          </label>
         }
       />
 
-      <div className="p-8 space-y-5 animate-fade-in">
-        {/* Upload zone (collapsible) */}
-        {showUpload && (
-          <div className="animate-slide-up">
-            <UploadZone onUpload={() => {}} />
+      <div
+        className="p-8 space-y-5 animate-fade-in"
+        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setIsDragOver(false);
+          if (e.dataTransfer.files.length > 0) handleUpload(e.dataTransfer.files);
+        }}
+      >
+        {/* Drag overlay */}
+        {isDragOver && (
+          <div className="fixed inset-0 bg-accent/5 border-2 border-dashed border-accent pointer-events-none z-50 flex items-center justify-center">
+            <div className="bg-surface-card rounded-card p-6 shadow-panel border border-accent/30">
+              <Upload className="w-10 h-10 text-accent mx-auto mb-3" />
+              <p className="text-heading text-ink text-center">Drop files to upload</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error banner */}
+        {error && (
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 rounded-button animate-scale-in">
+            <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+            <p className="text-[12px] text-red-700 flex-1">{error}</p>
+            <button onClick={() => setError(null)} className="p-0.5 text-red-400 hover:text-red-600">
+              <X className="w-3 h-3" />
+            </button>
           </div>
         )}
 
@@ -201,9 +288,7 @@ export default function MediaPage() {
             >
               <X className="w-3.5 h-3.5" />
             </button>
-            <span className="text-[13px] font-medium text-ink">
-              {selected.size} selected
-            </span>
+            <span className="text-[13px] font-medium text-ink">{selected.size} selected</span>
             <div className="flex-1" />
             <button
               onClick={selectAll}
@@ -212,22 +297,33 @@ export default function MediaPage() {
               {selected.size === filtered.length ? 'Deselect all' : 'Select all'}
             </button>
             <div className="h-4 w-px bg-surface-border" />
-            <button className="flex items-center gap-1.5 px-3 py-1 text-[12px] font-medium text-ink-secondary hover:text-ink rounded-[4px] hover:bg-surface-hover transition-colors">
-              <Download className="w-3 h-3" /> Download
-            </button>
-            <button className="flex items-center gap-1.5 px-3 py-1 text-[12px] font-medium text-red-600 hover:text-red-700 rounded-[4px] hover:bg-red-50 transition-colors">
+            <button
+              onClick={handleBulkDelete}
+              className="flex items-center gap-1.5 px-3 py-1 text-[12px] font-medium text-red-600 hover:text-red-700 rounded-[4px] hover:bg-red-50 transition-colors"
+            >
               <Trash2 className="w-3 h-3" /> Delete
             </button>
           </div>
         )}
 
-        {/* Grid view */}
-        {filtered.length === 0 ? (
+        {/* Loading / empty / grid / list */}
+        {loading ? (
+          <div className="glass-card rounded-card py-20 text-center">
+            <Loader2 className="w-6 h-6 text-ink-muted animate-spin mx-auto mb-3" />
+            <p className="text-[12px] text-ink-muted">Loading media...</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="glass-card rounded-card py-20 text-center">
             <ImageIcon className="w-8 h-8 text-ink-muted mx-auto mb-3" />
-            <p className="text-heading text-ink">No files found</p>
+            <p className="text-heading text-ink">
+              {media.length === 0 ? 'No files yet' : 'No files found'}
+            </p>
             <p className="text-body text-ink-secondary mt-1">
-              {search ? 'Try a different search term' : 'Upload files to get started'}
+              {search
+                ? 'Try a different search term'
+                : media.length === 0
+                ? 'Upload files or drag & drop to get started'
+                : 'Try a different filter'}
             </p>
           </div>
         ) : viewMode === 'grid' ? (
@@ -235,7 +331,8 @@ export default function MediaPage() {
             {filtered.map((item) => {
               const isSelected = selected.has(item.id);
               const isCopied = copiedId === item.id;
-              const isImage = item.type === 'image';
+              const category = getFileCategory(item.mime_type);
+              const isImage = category === 'image';
 
               return (
                 <div
@@ -250,9 +347,10 @@ export default function MediaPage() {
                   {/* Thumbnail */}
                   <div className="aspect-square bg-surface-raised relative">
                     {isImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={item.src}
-                        alt={item.name}
+                        src={item.public_url}
+                        alt={item.alt_text || item.original_filename}
                         className="w-full h-full object-cover"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
@@ -265,21 +363,24 @@ export default function MediaPage() {
                     {/* Hover overlay */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                       <button
-                        onClick={(e) => { e.stopPropagation(); copyUrl(item.id, item.src); }}
+                        onClick={(e) => { e.stopPropagation(); copyUrl(item.id, item.public_url); }}
                         className="p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
                         title="Copy URL"
                       >
                         {isCopied ? <Check className="w-3.5 h-3.5 text-status-published" /> : <Link2 className="w-3.5 h-3.5" />}
                       </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); }}
+                      <a
+                        href={item.public_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                         className="p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
                         title="Preview"
                       >
                         <Eye className="w-3.5 h-3.5" />
-                      </button>
+                      </a>
                       <button
-                        onClick={(e) => { e.stopPropagation(); }}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
                         className="p-2 bg-white/90 rounded-button text-red-600 hover:bg-red-50 transition-colors shadow-md"
                         title="Delete"
                       >
@@ -302,14 +403,14 @@ export default function MediaPage() {
 
                     {/* Size badge */}
                     <span className="absolute bottom-2 right-2 text-[10px] font-mono bg-black/60 text-white px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                      {item.size}
+                      {formatSize(item.size_bytes)}
                     </span>
                   </div>
 
                   {/* Info */}
                   <div className="px-2.5 py-2 bg-surface-card">
-                    <p className="text-[12px] font-medium text-ink truncate">{item.name}</p>
-                    <p className="text-[11px] text-ink-muted mt-0.5">{item.dimensions || item.type}</p>
+                    <p className="text-[12px] font-medium text-ink truncate">{item.original_filename}</p>
+                    <p className="text-[11px] text-ink-muted mt-0.5">{category}</p>
                   </div>
                 </div>
               );
@@ -346,6 +447,7 @@ export default function MediaPage() {
               <tbody className="divide-y divide-surface-border">
                 {filtered.map((item) => {
                   const isSelected = selected.has(item.id);
+                  const category = getFileCategory(item.mime_type);
                   return (
                     <tr key={item.id} className="hover:bg-surface-hover transition-colors group">
                       <td className="px-4 py-2.5">
@@ -362,30 +464,46 @@ export default function MediaPage() {
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-[4px] overflow-hidden bg-surface-raised flex-shrink-0">
-                            {item.type === 'image' ? (
-                              <img src={item.src} alt="" className="w-full h-full object-cover" />
+                            {category === 'image' ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={item.public_url} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
                                 <FileText className="w-4 h-4 text-ink-muted" />
                               </div>
                             )}
                           </div>
-                          <span className="text-[13px] font-medium text-ink truncate">{item.name}</span>
+                          <span className="text-[13px] font-medium text-ink truncate">{item.original_filename}</span>
                         </div>
                       </td>
                       <td className="px-4 py-2.5">
-                        <span className="text-[12px] text-ink-secondary capitalize">{item.type}</span>
+                        <span className="text-[12px] text-ink-secondary capitalize">{category}</span>
                       </td>
                       <td className="px-4 py-2.5">
-                        <span className="text-[12px] text-ink-secondary font-mono">{item.size}</span>
+                        <span className="text-[12px] text-ink-secondary font-mono">{formatSize(item.size_bytes)}</span>
                       </td>
                       <td className="px-4 py-2.5">
-                        <span className="text-[12px] text-ink-muted">{item.uploadedAt}</span>
+                        <span className="text-[12px] text-ink-muted">
+                          {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
                       </td>
                       <td className="px-4 py-2.5">
-                        <button className="p-1 text-ink-muted hover:text-ink rounded opacity-0 group-hover:opacity-100 transition-all">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button
+                            onClick={() => copyUrl(item.id, item.public_url)}
+                            className="p-1 text-ink-muted hover:text-accent rounded transition-colors"
+                            title="Copy URL"
+                          >
+                            {copiedId === item.id ? <Check className="w-3.5 h-3.5 text-status-published" /> : <Link2 className="w-3.5 h-3.5" />}
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="p-1 text-ink-muted hover:text-red-500 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
