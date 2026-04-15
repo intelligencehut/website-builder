@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar';
-import { getUserSites, getActiveSiteId, getUserRoleForSite, syncCurrentUser } from '@/lib/site-context';
+import { getUserSites, getActiveSiteId, getUserRoleForSite, setActiveSiteId, syncCurrentUser } from '@/lib/site-context';
 import { AccessRequestScreen } from '@/components/access-request-screen';
 import { listAllSites, listUserPendingRequests, createAccessRequest } from '@/lib/actions/access-requests';
 
@@ -65,13 +65,17 @@ export default async function DashboardLayout({
   }
 
   // Validate active site — if cookie points to a site the user doesn't have
-  // access to, use the first available site instead.
-  // Note: we don't call setActiveSiteId() here because cookies can't be set
-  // during Server Component rendering. The site switcher handles persisting.
+  // access to, reset to the first available site.
   let activeSiteId = await getActiveSiteId();
   const hasAccess = sites.some(s => s.id === activeSiteId);
   if (!hasAccess) {
     activeSiteId = sites[0]!.id;
+    try {
+      await setActiveSiteId(activeSiteId);
+    } catch {
+      // Cookie may fail to set in some server rendering contexts — safe to ignore.
+      // The sidebar receives the correct activeSiteId via props regardless.
+    }
   }
 
   const userRole = await getUserRoleForSite(activeSiteId);
