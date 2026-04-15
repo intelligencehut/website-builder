@@ -11,6 +11,7 @@ import { savePageContent, updateVersionStatus, updatePageMeta, revalidateSite } 
 import { deployToStage, publishToProduction } from '@/lib/actions/deploy';
 import { PublishDialog } from '@/components/editors/publish-dialog';
 import { SectionDataEditor } from '@/components/editors/section-editors';
+import { PreviewUrlProvider } from '@/components/editors/preview-url-context';
 
 // ── Section type ───────────────────────────────────────────
 
@@ -163,6 +164,7 @@ export function VisualEditorClient({
   const webAppUrl = `${baseUrl}${pageSlug === '/' ? '' : pageSlug}?_edit=1`;
 
   return (
+    <PreviewUrlProvider url={previewBaseUrl}>
     <div className="h-screen flex flex-col bg-sidebar overflow-hidden">
       {/* Toolbar */}
       <header className="flex items-center justify-between px-4 py-2 bg-sidebar border-b border-sidebar-border flex-shrink-0">
@@ -267,5 +269,6 @@ export function VisualEditorClient({
           onConfirm={publishAction === 'stage' ? handleDeployToStage : handlePublish} siteDomain={siteDomain} stageDomain={stageDomain} />
       )}
     </div>
+    </PreviewUrlProvider>
   );
 }

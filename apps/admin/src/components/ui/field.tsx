@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { cn } from '@/lib/utils';
+import { PreviewUrlContext } from '@/components/editors/preview-url-context';
 
 interface FieldProps {
   label: string;
@@ -154,14 +155,24 @@ interface ImagePickerProps {
 
 export function ImagePicker({ value, onChange, label }: ImagePickerProps) {
   const [showPicker, setShowPicker] = useState(false);
+  const previewUrl = useContext(PreviewUrlContext);
+
+  // Resolve relative paths using the site's preview URL for thumbnail display
+  const thumbnailSrc = value
+    ? value.startsWith('http')
+      ? value
+      : previewUrl && value.startsWith('/')
+        ? `${previewUrl}${value}`
+        : null
+    : null;
 
   return (
     <div className="space-y-1.5">
       {label && <label className="text-[11px] font-medium text-ink-secondary block">{label}</label>}
       <div className="flex items-start gap-3">
         <div className="w-20 h-14 bg-surface-raised rounded-[6px] border border-dashed border-surface-border flex items-center justify-center flex-shrink-0 overflow-hidden">
-          {value && value.startsWith('http') ? (
-            <img src={value} alt="" className="w-full h-full object-cover rounded-[5px]" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          {thumbnailSrc ? (
+            <img src={thumbnailSrc} alt="" className="w-full h-full object-cover rounded-[5px]" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           ) : (
             <svg className="w-5 h-5 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <rect x="3" y="3" width="18" height="18" rx="2" />
