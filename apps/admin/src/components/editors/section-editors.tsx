@@ -18,22 +18,42 @@ function upd(data: any, onChange: (d: any) => void, patch: Record<string, unknow
 
 // ── Hero Editor ────────────────────────────────────────────
 
+interface HeroImage { src?: string; alt?: string }
 interface HeroData {
-  heading?: string; headingHighlight?: string; subtitle?: string;
+  heading?: string; headingHighlight?: string; subtitle?: string; eyebrow?: string;
   description?: string; image?: string; backgroundImage?: string;
+  images?: HeroImage[];
   primaryCta?: { label: string; href: string };
   secondaryCta?: { label: string; href: string };
 }
 
 export function HeroEditor({ data, onChange }: EditorProps<HeroData>) {
   const u = (patch: Partial<HeroData>) => upd(data, onChange, patch);
+  const hasImages = Array.isArray(data.images) && data.images.length > 0;
   return (
     <div className="space-y-3">
+      <Field label="Eyebrow" description="Small text above the heading"><TextInput value={data.eyebrow ?? ''} onChange={e => u({ eyebrow: e.currentTarget.value })} /></Field>
       <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => u({ heading: e.currentTarget.value })} /></Field>
       <Field label="Heading Highlight" description="Second line, accent color"><TextInput value={data.headingHighlight ?? ''} onChange={e => u({ headingHighlight: e.currentTarget.value })} /></Field>
       <Field label="Subtitle"><TextInput value={data.subtitle ?? ''} onChange={e => u({ subtitle: e.currentTarget.value })} /></Field>
       <Field label="Description"><TextArea value={data.description ?? ''} onChange={e => u({ description: e.currentTarget.value })} rows={3} /></Field>
-      <Field label="Image"><ImagePicker value={data.image ?? ''} onChange={v => u({ image: v })} /></Field>
+      {hasImages ? (
+        <div>
+          <p className="text-[11px] font-medium text-ink-secondary mb-2">Hero Images</p>
+          <div className="space-y-3">
+            {data.images!.map((img, i) => (
+              <div key={i} className="p-3 bg-surface-raised rounded-card border border-surface-border space-y-2">
+                <p className="text-[11px] text-ink-muted">Image {i + 1}</p>
+                <Field label="Image"><ImagePicker value={img.src ?? ''} onChange={v => { const next = [...(data.images ?? [])]; next[i] = { ...next[i], src: v }; u({ images: next }); }} /></Field>
+                <Field label="Alt Text"><TextInput value={img.alt ?? ''} onChange={e => { const next = [...(data.images ?? [])]; next[i] = { ...next[i], alt: e.currentTarget.value }; u({ images: next }); }} /></Field>
+              </div>
+            ))}
+            <button onClick={() => u({ images: [...(data.images ?? []), { src: '', alt: '' }] })} className="w-full py-1.5 border border-dashed border-surface-border rounded text-[12px] text-ink-secondary hover:text-accent hover:border-accent/40 transition-all">+ Add Image</button>
+          </div>
+        </div>
+      ) : (
+        <Field label="Image"><ImagePicker value={data.image ?? ''} onChange={v => u({ image: v })} /></Field>
+      )}
       <div className="grid grid-cols-2 gap-3">
         <Field label="Primary Button Label"><TextInput value={data.primaryCta?.label ?? ''} onChange={e => u({ primaryCta: { ...data.primaryCta, label: e.currentTarget.value, href: data.primaryCta?.href ?? '#' } })} /></Field>
         <Field label="Primary Button Link"><TextInput value={data.primaryCta?.href ?? ''} onChange={e => u({ primaryCta: { ...data.primaryCta, href: e.currentTarget.value, label: data.primaryCta?.label ?? '' } })} mono /></Field>
