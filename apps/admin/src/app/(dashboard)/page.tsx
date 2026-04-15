@@ -1,6 +1,8 @@
 import { getPages } from '@/lib/actions/pages';
 import { getActiveSiteId } from '@/lib/site-context';
+import { listPendingRequests } from '@/lib/actions/access-requests';
 import { Header } from '@/components/header';
+import { PendingRequestsWidget } from '@/components/pending-requests-widget';
 import {
   FileText,
   Image,
@@ -49,7 +51,10 @@ const quickActions = [
 
 export default async function DashboardPage() {
   const siteId = await getActiveSiteId();
-  const pages = await getPages(siteId);
+  const [pages, pendingRequests] = await Promise.all([
+    getPages(siteId),
+    listPendingRequests(),
+  ]);
   const stats = makeStats(pages.length);
 
   return (
@@ -60,6 +65,10 @@ export default async function DashboardPage() {
       />
 
       <div className="p-8 space-y-8 animate-fade-in">
+        {/* Pending access requests (visible to admins/owners) */}
+        {pendingRequests.length > 0 && (
+          <PendingRequestsWidget requests={pendingRequests as any} />
+        )}
         {/* Stats grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, i) => (
