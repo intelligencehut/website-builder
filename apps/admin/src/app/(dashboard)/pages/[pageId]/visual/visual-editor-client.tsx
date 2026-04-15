@@ -241,7 +241,7 @@ export function VisualEditorClient({
             <div className="px-5 py-3 border-t border-surface-border flex items-center justify-between bg-surface-raised/50 flex-shrink-0">
               <button onClick={() => setActiveSection(null)} className="text-[12px] text-ink-secondary hover:text-ink transition-colors">Close</button>
               <button onClick={handleSave} disabled={saving || !dirty} className="flex items-center gap-1.5 px-4 py-1.5 bg-sidebar text-ink-inverse rounded-button text-[12px] font-medium hover:bg-sidebar-hover transition-all disabled:opacity-40">
-                {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save & Preview
+                {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Save
               </button>
             </div>
           </aside>
