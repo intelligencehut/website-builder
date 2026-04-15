@@ -1,23 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { cn } from '@/lib/utils';
-import { Search, X, Check, ImageIcon } from 'lucide-react';
+import { Search, X, Check, ImageIcon, Loader2 } from 'lucide-react';
+import { listMediaForSite, type MediaItem } from '@/lib/actions/media';
+import { getActiveSiteId } from '@/lib/site-context';
 import { UploadZone } from './upload-zone';
-
-// Demo data
-const DEMO_IMAGES = [
-  { id: '1', src: '/images/about/about-2.jpg', name: 'about-2.jpg', size: '245 KB' },
-  { id: '2', src: '/images/gallery/gallery-1.jpg', name: 'gallery-1.jpg', size: '312 KB' },
-  { id: '3', src: '/images/gallery/gallery-2.jpg', name: 'gallery-2.jpg', size: '287 KB' },
-  { id: '4', src: '/images/events/1.jpg', name: 'events-1.jpg', size: '198 KB' },
-  { id: '5', src: '/images/events/2.jpg', name: 'events-2.jpg', size: '210 KB' },
-  { id: '6', src: '/images/events/3.jpg', name: 'events-3.jpg', size: '175 KB' },
-  { id: '7', src: '/images/programs/seva-activities-1.jpg', name: 'seva-activities-1.jpg', size: '420 KB' },
-  { id: '8', src: '/images/programs/saparambera-1.jpg', name: 'saparambera-1.jpg', size: '380 KB' },
-  { id: '9', src: '/images/banner-1.jpg', name: 'banner-1.jpg', size: '510 KB' },
-];
 
 interface MediaPickerModalProps {
   open: boolean;
@@ -29,21 +18,43 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
+  const [images, setImages] = useState<MediaItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = DEMO_IMAGES.filter(img =>
-    search === '' || img.name.toLowerCase().includes(search.toLowerCase())
+  useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+    (async () => {
+      const siteId = await getActiveSiteId();
+      const media = await listMediaForSite(siteId);
+      setImages(media);
+      setLoading(false);
+    })();
+  }, [open, showUpload]);
+
+  const filtered = images.filter(img =>
+    search === '' ||
+    img.original_filename.toLowerCase().includes(search.toLowerCase()) ||
+    (img.alt_text || '').toLowerCase().includes(search.toLowerCase())
   );
 
   function handleConfirm() {
     if (selected) {
-      const img = DEMO_IMAGES.find(i => i.id === selected);
+      const img = images.find(i => i.id === selected);
       if (img) {
-        onSelect(img.src);
+        onSelect(img.public_url);
         onClose();
         setSelected(null);
         setSearch('');
       }
     }
+  }
+
+  function formatSize(bytes: number | null) {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   return (
@@ -93,10 +104,17 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
           <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
             {showUpload ? (
               <UploadZone onUpload={() => setShowUpload(false)} />
+            ) : loading ? (
+              <div className="py-16 text-center">
+                <Loader2 className="w-6 h-6 text-ink-muted mx-auto mb-3 animate-spin" />
+                <p className="text-[13px] text-ink-secondary">Loading media...</p>
+              </div>
             ) : filtered.length === 0 ? (
               <div className="py-16 text-center">
                 <ImageIcon className="w-8 h-8 text-ink-muted mx-auto mb-3" />
-                <p className="text-[13px] text-ink-secondary">No images found</p>
+                <p className="text-[13px] text-ink-secondary">
+                  {images.length === 0 ? 'No images uploaded yet' : 'No images found'}
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-4 gap-3">
@@ -113,36 +131,31 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
                           : 'border-transparent hover:border-surface-border'
                       )}
                     >
-                      {/* Thumbnail */}
                       <div className="absolute inset-0 bg-surface-raised">
                         <img
-                          src={img.src}
-                          alt={img.name}
+                          src={img.public_url}
+                          alt={img.alt_text || img.original_filename}
                           className="w-full h-full object-cover"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                       </div>
 
-                      {/* Hover overlay */}
                       <div className={cn(
                         'absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-150',
                         isSelected && 'bg-accent/20'
                       )} />
 
-                      {/* Filename on hover */}
                       <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                        <p className="text-[11px] text-white font-medium truncate">{img.name}</p>
-                        <p className="text-[10px] text-white/70">{img.size}</p>
+                        <p className="text-[11px] text-white font-medium truncate">{img.original_filename}</p>
+                        <p className="text-[10px] text-white/70">{formatSize(img.size_bytes)}</p>
                       </div>
 
-                      {/* Selected check */}
                       {isSelected && (
                         <div className="absolute top-2 right-2 w-6 h-6 bg-accent rounded-full flex items-center justify-center shadow-md animate-scale-in">
                           <Check className="w-3.5 h-3.5 text-white" />
                         </div>
                       )}
 
-                      {/* Fallback for broken images */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <ImageIcon className="w-6 h-6 text-ink-muted/30" />
                       </div>
@@ -156,7 +169,7 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
           {/* Footer */}
           <div className="flex items-center justify-between px-6 py-3 border-t border-surface-border bg-surface-raised/50 flex-shrink-0">
             <p className="text-[12px] text-ink-muted">
-              {selected ? `1 image selected` : `${filtered.length} images`}
+              {selected ? '1 image selected' : `${filtered.length} images`}
             </p>
             <div className="flex items-center gap-2">
               <button
