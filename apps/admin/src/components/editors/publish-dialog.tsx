@@ -103,8 +103,19 @@ export function PublishDialog({ open, onClose, action, onConfirm, pageName, site
                 <CheckCircle2 className="w-10 h-10 text-status-published mx-auto mb-3" />
                 <p className="text-heading text-ink">{cfg.successText}</p>
                 <p className="text-[12px] text-ink-muted mt-1">
-                  Build triggered for {cfg.env}
+                  Build triggered — site will update in 1–2 minutes
                 </p>
+                {cfg.env && cfg.env !== 'production' && cfg.env !== 'staging' && (
+                  <a
+                    href={`https://${cfg.env}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 mt-3 px-4 py-1.5 bg-accent/10 text-accent rounded-button text-[12px] font-medium hover:bg-accent/20 transition-colors"
+                  >
+                    <Globe className="w-3 h-3" />
+                    Open {cfg.env}
+                  </a>
+                )}
               </div>
             ) : status === 'error' ? (
               <div className="text-center py-4 animate-scale-in">
