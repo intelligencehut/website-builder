@@ -195,9 +195,6 @@ export function VisualEditorClient({
             {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : saved ? <Check className="w-3 h-3 text-status-published" /> : <Save className="w-3 h-3" />}
             {saved ? 'Saved' : 'Save'}
           </button>
-          <button onClick={() => setPublishAction('stage')} className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-white rounded-button text-[12px] font-medium hover:bg-amber-600 transition-colors">
-            <Rocket className="w-3 h-3" /> Stage
-          </button>
           <button onClick={() => setPublishAction('publish')} className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white rounded-button text-[12px] font-medium hover:bg-accent-hover transition-colors">
             <Globe className="w-3 h-3" /> Publish
           </button>
