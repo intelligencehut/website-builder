@@ -1,9 +1,9 @@
-import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar';
 import { getUserSites, getActiveSiteId, getUserRoleForSite, syncCurrentUser } from '@/lib/site-context';
 import { AccessRequestScreen } from '@/components/access-request-screen';
+import { ResetSiteCookie } from '@/components/reset-site-cookie';
 import { listAllSites, listUserPendingRequests, createAccessRequest } from '@/lib/actions/access-requests';
 
 export default async function DashboardLayout({
@@ -66,20 +66,11 @@ export default async function DashboardLayout({
   }
 
   // Validate active site — if cookie points to a site the user doesn't have
-  // access to, set the cookie to the first available site and redirect so
-  // all child pages read the correct site ID.
+  // access to, render a client component that fixes the cookie and reloads.
   const activeSiteId = await getActiveSiteId();
   const hasAccess = sites.some(s => s.id === activeSiteId);
   if (!hasAccess) {
-    const correctSiteId = sites[0]!.id;
-    const cookieStore = await cookies();
-    cookieStore.set('wb_site_id', correctSiteId, {
-      path: '/',
-      maxAge: 60 * 60 * 24 * 365,
-      httpOnly: false,
-      sameSite: 'lax',
-    });
-    redirect('/');
+    return <ResetSiteCookie siteId={sites[0]!.id} />;
   }
 
   const userRole = await getUserRoleForSite(activeSiteId);
