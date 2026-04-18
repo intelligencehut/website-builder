@@ -1,7 +1,7 @@
 'use client';
 
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Layout, Type, Image, Grid3X3, GalleryHorizontalEnd, Quote, BarChart3, Megaphone, Phone, Code, Plug, Sparkles, HeartHandshake, Landmark, List } from 'lucide-react';
+import { X, Layout, Type, Image, Grid3X3, GalleryHorizontalEnd, Quote, BarChart3, Megaphone, Phone, Code, Plug, Sparkles, HeartHandshake, Landmark, List, Video } from 'lucide-react';
 
 const SECTION_TYPES = [
   { type: 'hero', label: 'Hero Banner', description: 'Full-width hero with heading, buttons, and image', icon: Layout },
@@ -12,6 +12,7 @@ const SECTION_TYPES = [
   { type: 'cards-grid', label: 'Cards Grid (Icon + Stat)', description: 'Cards with icon, stat, and description', icon: Grid3X3 },
   { type: 'programs-grid', label: 'Programs Grid', description: 'Grid of linked program cards with images', icon: Grid3X3 },
   { type: 'gallery', label: 'Image Gallery', description: 'Grid of images with optional captions', icon: GalleryHorizontalEnd },
+  { type: 'video', label: 'Video', description: 'Embed one or more YouTube videos in a grid', icon: Video },
   { type: 'testimonials', label: 'Testimonials', description: 'Customer or supporter quotes', icon: Quote },
   { type: 'stats', label: 'Statistics', description: 'Number counters with labels', icon: BarChart3 },
   { type: 'feature-highlight', label: 'Feature Highlight', description: 'Large feature box with image and bullet list', icon: Sparkles },

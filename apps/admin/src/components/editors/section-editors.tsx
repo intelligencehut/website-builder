@@ -475,6 +475,36 @@ export function ListEditor({ data, onChange }: EditorProps<ListData>) {
   );
 }
 
+// ── Video Editor ────────────────────────────────────────────
+
+interface VideoItem { youtubeId?: string; title?: string; caption?: string }
+interface VideoData { eyebrow?: string; heading?: string; subtitle?: string; items?: VideoItem[] }
+
+export function VideoEditor({ data, onChange }: EditorProps<VideoData>) {
+  const u = (patch: Partial<VideoData>) => upd(data, onChange, patch);
+  return (
+    <div className="space-y-3">
+      <Field label="Eyebrow"><TextInput value={data.eyebrow ?? ''} onChange={e => u({ eyebrow: e.currentTarget.value })} /></Field>
+      <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => u({ heading: e.currentTarget.value })} /></Field>
+      <Field label="Subtitle"><TextInput value={data.subtitle ?? ''} onChange={e => u({ subtitle: e.currentTarget.value })} /></Field>
+      <SortableItemList
+        items={data.items ?? []}
+        onChange={items => u({ items })}
+        createItem={(): VideoItem => ({ youtubeId: '', title: '' })}
+        getItemLabel={item => item.title || item.youtubeId || 'Video'}
+        addLabel="Add Video"
+        renderItem={(item, _, upd) => (
+          <div className="space-y-2">
+            <Field label="YouTube ID" description="The 11-char ID from the video URL (e.g. dQw4w9WgXcQ)"><TextInput value={item.youtubeId ?? ''} onChange={e => upd({ youtubeId: e.currentTarget.value })} mono /></Field>
+            <Field label="Title"><TextInput value={item.title ?? ''} onChange={e => upd({ title: e.currentTarget.value })} /></Field>
+            <Field label="Caption"><TextArea value={item.caption ?? ''} onChange={e => upd({ caption: e.currentTarget.value })} rows={2} /></Field>
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
 // ── Editor lookup ──────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -486,6 +516,7 @@ export function SectionDataEditor({ type, data, onChange }: { type: string; data
     case 'text-with-image': return <TextWithImageEditor data={data as TextWithImageData} onChange={onChange} />;
     case 'card-grid': return <CardGridEditor data={data as CardGridData} onChange={onChange} />;
     case 'gallery': return <GalleryEditor data={data as GalleryData} onChange={onChange} />;
+    case 'video': return <VideoEditor data={data as VideoData} onChange={onChange} />;
     case 'testimonials': return <TestimonialsEditor data={data as TestimonialsData} onChange={onChange} />;
     case 'stats': return <StatsEditor data={data as StatsData} onChange={onChange} />;
     case 'cta': return <CtaEditor data={data as CtaData} onChange={onChange} />;

@@ -24,17 +24,17 @@ interface PageSection {
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero Banner', 'page-header': 'Page Header', text: 'Text Block',
   'text-with-image': 'Text with Image', 'card-grid': 'Card Grid',
-  gallery: 'Image Gallery', testimonials: 'Testimonials', stats: 'Statistics',
-  cta: 'Call to Action', contact: 'Contact Info', html: 'Custom HTML',
-  'dynamic-slot': 'Dynamic Slot',
+  gallery: 'Image Gallery', video: 'Video', testimonials: 'Testimonials',
+  stats: 'Statistics', cta: 'Call to Action', contact: 'Contact Info',
+  html: 'Custom HTML', 'dynamic-slot': 'Dynamic Slot',
 };
 
 const SECTION_COLORS: Record<string, string> = {
   hero: '#3b82f6', 'page-header': '#1e40af', text: '#6366f1',
   'text-with-image': '#06b6d4', 'card-grid': '#10b981',
-  gallery: '#f97316', testimonials: '#8b5cf6', stats: '#f59e0b',
-  cta: '#84cc16', contact: '#ec4899', html: '#64748b',
-  'dynamic-slot': '#0ea5e9',
+  gallery: '#f97316', video: '#dc2626', testimonials: '#8b5cf6',
+  stats: '#f59e0b', cta: '#84cc16', contact: '#ec4899',
+  html: '#64748b', 'dynamic-slot': '#0ea5e9',
 };
 
 // ── Parse content into sections (same as form editor) ──────
