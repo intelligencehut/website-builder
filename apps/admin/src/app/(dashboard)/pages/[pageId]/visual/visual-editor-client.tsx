@@ -210,9 +210,9 @@ export function VisualEditorClient({
 
       {/* Main: iframe + editor */}
       <div className="flex-1 flex overflow-hidden">
-        <div className={cn('flex-1 flex justify-center bg-[#e5e5e5] overflow-auto p-4 transition-all', activeSection && 'pr-0')}>
-          <div className="bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-300 h-fit" style={{ width: viewportWidths[viewport], maxWidth: '100%', minHeight: '100%' }}>
-            <iframe ref={iframeRef} src={webAppUrl} className="w-full border-0" style={{ height: '3000px' }} title="Preview" />
+        <div className={cn('flex-1 flex justify-center bg-[#e5e5e5] overflow-hidden p-4 transition-all', activeSection && 'pr-0')}>
+          <div className="bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-300 h-full" style={{ width: viewportWidths[viewport], maxWidth: '100%' }}>
+            <iframe ref={iframeRef} src={webAppUrl} className="w-full h-full border-0" title="Preview" />
           </div>
         </div>
 
