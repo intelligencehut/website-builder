@@ -62,6 +62,21 @@ cd apps/admin
 SUPABASE_SERVICE_ROLE_KEY='<key>' node ../../packages/database/seed/seed-<slug>.mjs
 ```
 
+### Step 1b: Sync existing media (if the target site has images in `/public`)
+
+If you're onboarding an existing site with pre-existing images, upload them into the Supabase Storage `media` bucket so they appear in the admin's Media library. Skip this for brand-new sites with no pre-existing assets.
+
+```bash
+cd apps/admin
+SUPABASE_SERVICE_ROLE_KEY='<key>' \
+  node ../../packages/database/seed/sync-media-from-public.mjs \
+  <site_id> /path/to/target-repo/public
+```
+
+The script walks `/public/images/**`, uploads each asset to `{site_id}/images/...` in the `media` bucket, and inserts a `website.media` row. It's idempotent — re-running only uploads files that aren't already registered.
+
+Note: this duplicates the files in Storage; the target site still serves them from `/public` at runtime. The CMS content references (e.g. `/images/foo.jpg`) keep working as before. Media library entries are for NEW uploads via the admin and for the image picker UI.
+
 ### Step 2: Target website — Add CMS integration
 
 Copy these files from the Ukhra site as templates:
