@@ -34,13 +34,6 @@ const environments = [
     lastDeploy: '2 hours ago',
     version: 'v1.4.2',
   },
-  {
-    name: 'Staging',
-    url: 'stage-sevaa.vercel.app',
-    status: 'building' as const,
-    lastDeploy: '15 min ago',
-    version: 'v1.5.0-rc1',
-  },
 ];
 
 const quickActions = [
