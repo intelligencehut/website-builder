@@ -7,7 +7,7 @@ import {
   ArrowLeft, Save, Rocket, Globe, Check, Loader2, X,
   Monitor, Tablet, Smartphone, MousePointerClick, Columns,
 } from 'lucide-react';
-import { savePageContent, updateVersionStatus, updatePageMeta, revalidateSite } from '@/lib/actions/pages';
+import { savePageContent, updateVersionStatus, updatePageMeta } from '@/lib/actions/pages';
 import { deployToStage, publishToProduction } from '@/lib/actions/deploy';
 import { PublishDialog } from '@/components/editors/publish-dialog';
 import { SectionDataEditor } from '@/components/editors/section-editors';
@@ -103,6 +103,7 @@ export function VisualEditorClient({
   const [dirty, setDirty] = useState(false);
   const [publishAction, setPublishAction] = useState<'stage' | 'publish' | null>(null);
   const [currentVersionId, setCurrentVersionId] = useState<string | null>(initialVersionId);
+  const [iframeReady, setIframeReady] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const updateSectionData = useCallback((sectionId: string, data: Record<string, unknown>) => {
@@ -116,11 +117,20 @@ export function VisualEditorClient({
     function handleMessage(event: MessageEvent) {
       if (event.data?.type === 'section-click') {
         setActiveSection(event.data.sectionId);
+      } else if (event.data?.type === 'editor-ready') {
+        setIframeReady(true);
       }
     }
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, []);
+
+  // Push current sections to the iframe so editors see their unpublished
+  // changes live, without waiting for a rebuild of the static target site.
+  useEffect(() => {
+    if (!iframeReady) return;
+    iframeRef.current?.contentWindow?.postMessage({ type: 'draft-content', sections }, '*');
+  }, [sections, iframeReady]);
 
   async function handleSave() {
     setSaving(true);
@@ -128,18 +138,8 @@ export function VisualEditorClient({
       await updatePageMeta(pageId, { title: pageTitle, slug: pageSlug });
       const result = await savePageContent(pageId, { sections });
       setCurrentVersionId(result.id);
-      // Auto-publish and revalidate so the preview iframe shows updated content
-      await updateVersionStatus(result.id, 'published');
-      // Trigger server-side revalidation on the target site
-      if (siteId) {
-        await revalidateSite(siteId, pageSlug);
-      }
       setSaved(true);
       setDirty(false);
-      // Reload iframe after a short delay to allow revalidation to complete
-      setTimeout(() => {
-        if (iframeRef.current) iframeRef.current.src = iframeRef.current.src;
-      }, 500);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) { console.error('Save failed:', err); }
     setSaving(false);

@@ -140,6 +140,41 @@ If the new site introduces section types not already in the admin:
 2. Register them in the `SectionDataEditor` switch
 3. Add them to `apps/admin/src/components/editors/add-section-dialog.tsx`
 
+### Step 9: Draft preview in visual editor (SSG sites)
+
+Static sites don't re-render on save, so the admin pushes the editor's working sections into the iframe via `postMessage`. No API route, secret, or env var needed — the handshake is entirely in-memory and gated on `?_edit=1`.
+
+In the target site's `HybridRenderer.tsx`, add a draft-overlay hook and use it to replace the `sections` prop:
+
+```tsx
+'use client';
+import { useEffect, useState } from 'react';
+
+function useDraftSections<T>(initial: T[]): T[] {
+  const [sections, setSections] = useState<T[]>(initial);
+  useEffect(() => {
+    const isEdit = new URLSearchParams(window.location.search).get('_edit') === '1';
+    if (!isEdit) return;
+    function handleMessage(e: MessageEvent) {
+      if (e.data?.type === 'draft-content' && Array.isArray(e.data.sections)) {
+        setSections(e.data.sections as T[]);
+      }
+    }
+    window.addEventListener('message', handleMessage);
+    window.parent.postMessage({ type: 'editor-ready' }, '*');
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+  return sections;
+}
+
+export function HybridRenderer({ sections: initialSections }: { sections: Section[] }) {
+  const sections = useDraftSections(initialSections);
+  // ... existing render logic, using `sections`
+}
+```
+
+Real visitors never have `?_edit=1` → the effect short-circuits → zero runtime cost, SSG output untouched. Editors see every keystroke reflected in the iframe; Save persists as `draft`; Publish is the only path that rebuilds the static site.
+
 ## Available Section Types
 
 Shared (all sites): `hero`, `page-header`, `text`, `text-with-image`, `card-grid`, `gallery`, `testimonials`, `stats`, `cta`, `contact`, `html`, `dynamic-slot`

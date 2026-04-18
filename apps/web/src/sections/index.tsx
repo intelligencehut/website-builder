@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import type { PageSection } from './types';
 import { EditableSection, EditModeBar } from '@/components/edit-mode';
 import { HeroSection } from './hero-section';
@@ -13,6 +14,31 @@ import { StatsSection } from './stats-section';
 import { CtaSection } from './cta-section';
 import { ContactSection } from './contact-section';
 import { HtmlSection } from './html-section';
+
+// When the page is loaded inside the admin iframe (?_edit=1), swap
+// the SSG-rendered published sections for whatever the editor is
+// currently working on, pushed via postMessage. Real visitors never
+// hit this path — the effect is gated on _edit=1.
+function useDraftSections(initial: PageSection[]): PageSection[] {
+  const [sections, setSections] = useState<PageSection[]>(initial);
+
+  useEffect(() => {
+    const isEdit = new URLSearchParams(window.location.search).get('_edit') === '1';
+    if (!isEdit) return;
+
+    function handleMessage(e: MessageEvent) {
+      if (e.data?.type === 'draft-content' && Array.isArray(e.data.sections)) {
+        setSections(e.data.sections as PageSection[]);
+      }
+    }
+    window.addEventListener('message', handleMessage);
+    window.parent.postMessage({ type: 'editor-ready' }, '*');
+
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  return sections;
+}
 
 function renderSection(section: PageSection) {
   switch (section.type) {
@@ -37,7 +63,9 @@ function renderSection(section: PageSection) {
  * Renders an array of sections from the database.
  * No client-specific code — works for any website.
  */
-export function SectionRenderer({ sections }: { sections: PageSection[] }) {
+export function SectionRenderer({ sections: initialSections }: { sections: PageSection[] }) {
+  const sections = useDraftSections(initialSections);
+
   if (!sections || sections.length === 0) {
     return (
       <section className="py-20 text-center text-gray-400">
