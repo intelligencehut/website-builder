@@ -129,6 +129,14 @@ REVALIDATION_SECRET=<shared secret>
 2. Copy the hook URL
 3. Update the site's `metadata.deploy.prod_hook_url` in Supabase (via admin Settings → Deploy tab, or directly in DB)
 
+**⚠️ Verify the project first.** Multiple Vercel projects can be connected to the same GitHub repo (e.g. `sevaa`, `sevaa-8oqa`, `sevaa-internal` all point at `sevaaweb/Sevaa`). Only **one** of them actually serves the production domain — the rest are forks/previews. Before touching env vars or creating a hook:
+
+1. Open the project's Settings → Domains.
+2. Confirm the production domain (e.g. `sevaa.net`) is listed there — not just a `.vercel.app` preview URL.
+3. If it's the wrong project, find the one that owns the domain (scan each candidate's Domains page).
+
+Getting this wrong means env vars land on a dead project and the live site keeps serving the pre-CMS build (EmptyState or stale content) even after you trigger deploys — you'll chase it for a while before realising the mismatch.
+
 ### Step 7: Supabase auth (if the admin is freshly deployed)
 
 Add `https://<admin-domain>/auth/callback` to Supabase → Authentication → URL Configuration → Redirect URLs.
