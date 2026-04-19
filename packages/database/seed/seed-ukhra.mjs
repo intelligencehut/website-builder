@@ -68,6 +68,12 @@ const GALLERY_IMAGES = [
   { src: "/images/projects/ukhra 32.jpg", alt: "Ukhra educational initiative", caption: "Educational initiatives at Ukhra" },
   { src: "/images/projects/ukhra 33.jpg", alt: "Ukhra school program", caption: "School program activities" },
   { src: "/images/projects/ukhra 34.jpg", alt: "Ukhra project activities", caption: "Project activities in Ukhra village" },
+  { src: "/images/projects/health-workshop-1.jpeg", alt: "SEVAA Health Workshop at Ukhra", caption: "SEVAA Health Workshop with Service Place at Ukhra" },
+  { src: "/images/projects/health-workshop-2.jpeg", alt: "Vision screening at Ukhra health workshop", caption: "Vision screening using Bengali eye charts" },
+  { src: "/images/projects/health-workshop-3.jpeg", alt: "Student registration at health workshop", caption: "Student health checkup and registration" },
+  { src: "/images/projects/health-workshop-4.jpeg", alt: "Volunteers at Ukhra health workshop", caption: "Health workshop volunteers attending to students" },
+  { src: "/images/projects/health-workshop-5.jpeg", alt: "Children at Ukhra health checkup", caption: "Children waiting for health checkups" },
+  { src: "/images/projects/school-moment-1.jpeg", alt: "Students at a school in Ukhra", caption: "A moment from a school in Ukhra" },
 ];
 
 const HOME_SECTIONS = {
@@ -316,108 +322,294 @@ const ABOUT_SECTIONS = {
   ],
 };
 
-const programSections = (title, subtitle, description, objectives, objectivesHeading = "Program Objectives") => ({
+// Cross-link cards used by "Explore Other Programs" grids at the bottom of each program page
+const PROGRAM_LINKS = {
+  nabadisha: { href: "/programs/nabadisha", title: "Ukhra Nabadisha", icon: "BookOpen", iconColor: "primary", description: "Reading, writing, and creativity for ~900 children across Ukhra schools." },
+  smartClass: { href: "/programs/smart-class", title: "SMART Class", icon: "Monitor", iconColor: "gold", description: "Digital education introduced for classes 11 and 12 in the girls' school." },
+  joyBox: { href: "/programs/joy-box", title: "Joy Box Programme", icon: "Music", iconColor: "copper", description: "Portable Audio Visual unit for engaging, interactive learning." },
+  healthWorkshop: { href: "/programs/health-workshop", title: "Health Workshop", icon: "Activity", iconColor: "red", description: "Preventive care and vision screening in partnership with Service Place." },
+  environment: { href: "/programs/environment", title: "Environmental Work", icon: "TreePine", iconColor: "secondary", description: "Tree plantation and awareness for a greener Ukhra." },
+};
+
+const otherProgramsSection = (keys) => ({
+  id: "other-programs",
+  type: "programs-grid",
+  data: {
+    heading: "Explore Other Programs",
+    columns: keys.length >= 4 ? 4 : 3,
+    items: keys.map((k) => PROGRAM_LINKS[k]),
+  },
+});
+
+const NABADISHA_SECTIONS = {
   sections: [
     {
       id: "header",
       type: "page-header",
-      data: { icon: "GraduationCap", title, subtitle },
-    },
-    {
-      id: "overview",
-      type: "text",
       data: {
-        heading: `About ${title}`,
-        body: `<p>${description}</p>`,
+        icon: "GraduationCap",
+        badge: "Education Programme",
+        title: "Ukhra Nabadisha",
+        subtitle: "A comprehensive educational project covering 5 primary schools and 1 girls' high school, reaching approximately 900 children in the village.",
       },
     },
     {
       id: "objectives",
       type: "list",
       data: {
-        heading: objectivesHeading,
-        items: objectives,
+        eyebrow: "Our Goals",
+        heading: "Key Objectives",
+        subtitle: "Building comprehensive learning capabilities across 900 children",
+        items: [
+          "Develop quality reading ability among 100% children",
+          "Enhance listening and speaking skills",
+          "Foster observation skills and reasoning abilities",
+          "Develop independent writing capabilities",
+          "Encourage creativity among students",
+        ],
       },
     },
+    {
+      id: "impact",
+      type: "stats",
+      data: {
+        heading: "Scale of Impact",
+        background: "cream",
+        items: [
+          { value: "900+", label: "Children Reached" },
+          { value: "5", label: "Primary Schools" },
+          { value: "1", label: "Girls' High School" },
+        ],
+      },
+    },
+    otherProgramsSection(["smartClass", "joyBox", "environment"]),
     {
       id: "cta",
       type: "cta",
       data: {
-        heading: "Support This Initiative",
-        description: "Your support helps us reach more children through this programme.",
+        heading: "Support Education in Ukhra",
+        description: "Help us improve reading and writing skills for every child in the village",
         background: "terracotta",
-        primaryCta: { label: "Donate", href: "/donate", icon: "Heart" },
-        secondaryCta: { label: "Get in Touch", href: "/contact" },
+        primaryCta: { label: "Donate Now", href: "/donate", icon: "Heart" },
       },
     },
   ],
-});
+};
 
-const NABADISHA_SECTIONS = programSections(
-  "Ukhra Nabadisha",
-  "A comprehensive educational project reaching ~900 children across 5 primary schools and 1 girls' high school",
-  "Ukhra Nabadisha is a comprehensive educational project covering 5 primary schools and 1 girls' high school, reaching approximately 900 children in the village. Through innovative teaching methods and close collaboration with existing school structures, we are working to bridge the learning gap that leaves 50% of children struggling with reading and 80% with writing.",
-  [
-    "Develop quality reading ability among 100% children",
-    "Enhance listening and speaking skills",
-    "Foster observation skills and reasoning abilities",
-    "Develop independent writing capabilities",
-    "Encourage creativity among students",
-  ]
-);
-
-const SMART_CLASS_SECTIONS = programSections(
-  "SMART Class Initiative",
-  "Digital education arrives in Ukhra schools",
-  "For the first time, SEVAA introduced digital education during regular school hours. The SMART room in the girls' school was equipped with new technology to support interactive, tech-enabled learning for classes 11 and 12.",
-  [
-    "Advanced camera systems for interactive learning",
-    "Two-way communication capabilities",
-    "Focus on classes 11 and 12 students",
-    "Integration with school curriculum",
+const SMART_CLASS_SECTIONS = {
+  sections: [
+    {
+      id: "header",
+      type: "page-header",
+      data: {
+        icon: "Monitor",
+        badge: "Digital Education",
+        title: "SMART Class Initiative",
+        subtitle: "For the first time, SEVAA introduced digital education during regular school hours. The SMART room in the girls' school was equipped with new technology.",
+      },
+    },
+    {
+      id: "features",
+      type: "list",
+      data: {
+        heading: "Technology Features",
+        subtitle: "First-time digital education introduction during regular school hours",
+        items: [
+          "Advanced camera systems for interactive learning",
+          "Two-way communication capabilities",
+          "Focus on classes 11 and 12 students",
+          "Integration with school curriculum",
+        ],
+      },
+    },
+    {
+      id: "highlight",
+      type: "feature-highlight",
+      data: {
+        icon: "Monitor",
+        heading: "A First for Ukhra",
+        description: "The SMART room in the girls' school was equipped with advanced camera systems and two-way communication capabilities, focusing on classes 11 and 12 students. This digital education initiative is fully integrated with the school curriculum.",
+      },
+    },
+    otherProgramsSection(["nabadisha", "joyBox", "environment"]),
+    {
+      id: "cta",
+      type: "cta",
+      data: {
+        heading: "Help Expand Digital Learning",
+        description: "Support us in bringing technology-enabled education to more schools in Ukhra",
+        background: "terracotta",
+        primaryCta: { label: "Donate Now", href: "/donate", icon: "Heart" },
+      },
+    },
   ],
-  "Features"
-);
+};
 
-const JOY_BOX_SECTIONS = programSections(
-  "Joy Box Programme",
-  "Portable Audio Visual learning for every classroom",
-  "A portable Audio Visual unit designed to make learning engaging and interactive for children across schools. The Joy Box brings stories, puzzles, and vocabulary activities to students wherever they are.",
-  [
-    "Story listening sessions",
-    "Visual problem-solving exercises",
-    "Mind mapping for concept development",
-    "Vocabulary enhancement activities",
+const JOY_BOX_SECTIONS = {
+  sections: [
+    {
+      id: "header",
+      type: "page-header",
+      data: {
+        icon: "Music",
+        badge: "Interactive Learning",
+        title: "Joy Box Programme",
+        subtitle: "A portable Audio Visual unit designed to make learning engaging and interactive for children across schools.",
+      },
+    },
+    {
+      id: "activities",
+      type: "list",
+      data: {
+        heading: "Learning Activities",
+        subtitle: "Making education engaging through portable audio-visual experiences",
+        items: [
+          "Story listening sessions",
+          "Visual problem-solving exercises",
+          "Mind mapping for concept development",
+          "Vocabulary enhancement activities",
+        ],
+      },
+    },
+    {
+      id: "concept",
+      type: "feature-highlight",
+      data: {
+        icon: "Music",
+        heading: "Portable, Powerful Learning",
+        description: "The Joy Box is a portable Audio Visual unit that travels between schools, bringing interactive and engaging learning experiences to children across Ukhra. Through stories, visual exercises, mind mapping, and vocabulary activities, children discover the joy of learning.",
+      },
+    },
+    otherProgramsSection(["nabadisha", "smartClass", "environment"]),
+    {
+      id: "cta",
+      type: "cta",
+      data: {
+        heading: "Bring Joy to More Schools",
+        description: "Help us expand the Joy Box Programme to reach every child in Ukhra",
+        background: "terracotta",
+        primaryCta: { label: "Donate Now", href: "/donate", icon: "Heart" },
+      },
+    },
   ],
-  "Activities"
-);
+};
 
-const HEALTH_WORKSHOP_SECTIONS = programSections(
-  "Health Workshop",
-  "Preventive care and vision screening for schoolchildren",
-  "Free health workshops organized in Ukhra in partnership with Service Place, bringing preventive care, vision screening, and basic health checkups directly to schoolchildren and the community. A recurring initiative — repeated at intervals based on need.",
-  [
-    "Vision screening with standardized eye charts",
-    "General health checkups and vital signs monitoring",
-    "Student registration and medical records",
-    "Health awareness for children and parents",
-    "Distribution of basic medical essentials",
+const HEALTH_WORKSHOP_SECTIONS = {
+  sections: [
+    {
+      id: "header",
+      type: "page-header",
+      data: {
+        icon: "Activity",
+        badge: "Community Health",
+        title: "Health Workshop",
+        subtitle: "Free health workshops organized in Ukhra in partnership with Service Place, bringing preventive care, vision screening, and basic health checkups directly to schoolchildren and the community.",
+      },
+    },
+    {
+      id: "activities",
+      type: "list",
+      data: {
+        heading: "What We Do",
+        subtitle: "Bringing preventive care directly to the community",
+        items: [
+          "Vision screening with standardized eye charts",
+          "General health checkups and vital signs monitoring",
+          "Student registration and medical records",
+          "Health awareness for children and parents",
+          "Distribution of basic medical essentials",
+        ],
+      },
+    },
+    {
+      id: "gallery",
+      type: "gallery",
+      data: {
+        eyebrow: "Photo Stories",
+        heading: "Moments from Ukhra",
+        images: [
+          { src: "/images/projects/health-workshop-1.jpeg", alt: "SEVAA Health Workshop banner with Service Place", caption: "Health Workshop organized with Service Place" },
+          { src: "/images/projects/health-workshop-2.jpeg", alt: "Vision screening with Bengali eye charts", caption: "Vision screening using standardized eye charts" },
+          { src: "/images/projects/health-workshop-3.jpeg", alt: "Student registration and examination", caption: "Student health checkup and registration" },
+          { src: "/images/projects/health-workshop-4.jpeg", alt: "Health workshop volunteers", caption: "Volunteers attending to student records" },
+          { src: "/images/projects/health-workshop-5.jpeg", alt: "Children at the health checkup camp", caption: "Children waiting for their checkups" },
+        ],
+      },
+    },
+    {
+      id: "partnership",
+      type: "feature-highlight",
+      data: {
+        icon: "HeartPulse",
+        heading: "In Partnership with Service Place",
+        description: "Service Place has taken special steps to help SEVAA Ukhra in health matters and is implementing a telemedicine system through SEVAA.",
+        tagline: "Recurring initiative — repeated at intervals based on need",
+        background: "cream",
+      },
+    },
+    otherProgramsSection(["nabadisha", "smartClass", "joyBox", "environment"]),
+    {
+      id: "cta",
+      type: "cta",
+      data: {
+        heading: "Help Us Reach More Families",
+        description: "Your support enables free health workshops for children and families across Ukhra",
+        background: "terracotta",
+        primaryCta: { label: "Donate Now", href: "/donate", icon: "Heart" },
+      },
+    },
   ],
-  "Activities"
-);
+};
 
-const ENVIRONMENT_SECTIONS = programSections(
-  "Environmental Initiatives",
-  "Tree plantation and awareness for a greener Ukhra",
-  "Addressing environmental challenges through tree plantation and community awareness programs. SEVAA's long-term sustainability focus includes restoring green cover around water bodies impacted by coal mining in the area.",
-  [
-    "Tree plantation festival in 2023",
-    "Saplings planted along water bodies",
-    "Community environmental awareness",
-    "Long-term sustainability focus",
+const ENVIRONMENT_SECTIONS = {
+  sections: [
+    {
+      id: "header",
+      type: "page-header",
+      data: {
+        icon: "TreePine",
+        badge: "Conservation & Awareness",
+        title: "Environmental Initiatives",
+        subtitle: "Addressing environmental challenges through tree plantation and community awareness programs.",
+      },
+    },
+    {
+      id: "actions",
+      type: "list",
+      data: {
+        heading: "Actions Taken",
+        subtitle: "Combating coal mining's impact through community-driven environmental programs",
+        items: [
+          "Tree plantation festival in 2023",
+          "Saplings planted along water bodies",
+          "Community environmental awareness",
+          "Long-term sustainability focus",
+        ],
+      },
+    },
+    {
+      id: "context",
+      type: "feature-highlight",
+      data: {
+        icon: "TreePine",
+        heading: "The Environmental Challenge",
+        description: "Coal mining activities in the Ukhra area have caused rapid soil degradation and deforestation, directly affecting the quality of life for residents. SEVAA's environmental initiatives focus on tree plantation, water body restoration, and building long-term environmental awareness in the community.",
+        background: "cream",
+      },
+    },
+    otherProgramsSection(["nabadisha", "smartClass", "joyBox"]),
+    {
+      id: "cta",
+      type: "cta",
+      data: {
+        heading: "Help Us Heal the Environment",
+        description: "Support tree plantation and environmental awareness programs in Ukhra",
+        background: "terracotta",
+        primaryCta: { label: "Donate Now", href: "/donate", icon: "Heart" },
+      },
+    },
   ],
-  "Actions"
-);
+};
 
 const DONATE_SECTIONS = {
   sections: [
@@ -426,29 +618,58 @@ const DONATE_SECTIONS = {
       type: "page-header",
       data: {
         icon: "Heart",
-        title: "Support SEVAA Ukhra",
-        subtitle: "Your generous support helps us continue educational initiatives, SMART class programs, and community development work in Ukhra village.",
+        title: "Support Education in Ukhra",
+        subtitle: "Your generous support helps SEVAA continue its educational initiatives, SMART class programs, and community development work in Ukhra village.",
       },
     },
     {
       id: "bank",
       type: "bank-details",
       data: {
-        heading: "Donate via Bank Transfer",
+        heading: "Bank Transfer Details",
+        subtitle: "Make a direct bank transfer to support our programs",
         beneficiaryName: "SEVAA",
         bankName: "INDIAN BANK",
         accountNumber: "7103506260",
         ifscCode: "IDIB000K777",
-        note: "Please mention 'Ukhra' in the transfer remarks so we can route your contribution to the Ukhra initiative.",
+      },
+    },
+    {
+      id: "impact",
+      type: "cards-grid",
+      data: {
+        heading: "Your Donation Makes a Difference",
+        background: "cream",
+        columns: 3,
+        items: [
+          {
+            icon: "BookOpen",
+            iconColor: "primary",
+            title: "Education Quality",
+            description: "Support teaching materials, SMART class technology, and Joy Box units for interactive learning",
+          },
+          {
+            icon: "Users",
+            iconColor: "primary",
+            title: "Teacher Training",
+            description: "Teachers' training has been held thrice at Ukhra, significantly impacting local educational practices",
+          },
+          {
+            icon: "Heart",
+            iconColor: "primary",
+            title: "Creative Programs",
+            description: "Enable festivals and workshops like the Winter Service Creation Festival for 100 students",
+          },
+        ],
       },
     },
     {
       id: "cta",
       type: "cta",
       data: {
-        heading: "Other Ways to Help",
-        description: "Reach out to discuss volunteer opportunities, in-kind donations, or partnerships.",
-        background: "terracotta",
+        heading: "Want to Get Involved?",
+        description: "Beyond donations, there are many ways to support our mission",
+        background: "slate",
         primaryCta: { label: "Contact Us", href: "/contact" },
       },
     },
@@ -460,16 +681,38 @@ const CONTACT_SECTIONS = {
     {
       id: "header",
       type: "page-header",
-      data: { icon: "Heart", title: "Contact Us", subtitle: "Get in touch with the SEVAA Ukhra team" },
+      data: {
+        title: "Get in Touch",
+        subtitle: "We'd love to hear from you. Reach out to learn more about our programs or discuss how you can contribute.",
+      },
     },
     {
       id: "info",
       type: "contact",
       data: {
-        heading: "SEVAA Headquarters",
         email: "infosevaa@gmail.com",
         phone: "+91 98271 93272",
-        address: "131/B Sri Ramkrishna Pally, Sonarpur, Kolkata-700150, West Bengal",
+        location: "Ukhra, Paschim Bardhaman, West Bengal",
+      },
+    },
+    {
+      id: "sevaa-main",
+      type: "text",
+      data: {
+        heading: "Visit SEVAA Main Website",
+        body: "<p>For more information about SEVAA's other projects and initiatives across West Bengal, visit our main organizational website.</p>",
+        background: "cream",
+        cta: { label: "Visit sevaa.net", href: "https://sevaa.net", external: true, icon: "ExternalLink" },
+      },
+    },
+    {
+      id: "cta",
+      type: "cta",
+      data: {
+        heading: "Ready to Make a Difference?",
+        description: "Support quality education for 900 children in Ukhra",
+        background: "terracotta",
+        primaryCta: { label: "Donate Now", href: "/donate" },
       },
     },
   ],
@@ -480,13 +723,28 @@ const GALLERY_SECTIONS = {
     {
       id: "header",
       type: "page-header",
-      data: { icon: "BookOpen", title: "Gallery", subtitle: "Moments from SEVAA Ukhra programmes and events" },
+      data: {
+        title: "Gallery",
+        subtitle: "Photos and videos from our educational programs, health workshops, and community events in Ukhra",
+      },
     },
     {
-      id: "grid",
+      id: "photos",
       type: "gallery",
       data: {
+        eyebrow: "Photo Stories",
+        heading: "Moments in Pictures",
         images: GALLERY_IMAGES,
+      },
+    },
+    {
+      id: "videos",
+      type: "gallery",
+      data: {
+        eyebrow: "Video Stories",
+        heading: "Moments on Camera",
+        subtitle: "Classroom sessions, health workshops, and digital learning in action",
+        background: "cream",
       },
     },
   ],
@@ -497,14 +755,27 @@ const NEWS_SECTIONS = {
     {
       id: "header",
       type: "page-header",
-      data: { icon: "BookOpen", title: "News & Events", subtitle: "Updates from SEVAA Ukhra" },
+      data: {
+        icon: "Construction",
+        title: "News & Events",
+        subtitle: "Updates about our educational initiatives, community events, and milestone achievements in Ukhra will be shared here soon.",
+        pill: { icon: "Clock", label: "Expected: Soon", color: "heritage-gold" },
+      },
     },
     {
-      id: "coming-soon",
+      id: "about",
       type: "text",
       data: {
-        heading: "Coming Soon",
-        body: "<p>News and events updates from SEVAA Ukhra will appear here shortly. Check back soon for stories from the field.</p>",
+        heading: "About SEVAA Ukhra",
+        body: "<p>Empowering education and community development in Ukhra village, Paschim Bardhaman</p><p>Location: Ukhra, Paschim Bardhaman<br/>Children Reached: ~900 children<br/>Schools Covered: 5 primary schools and 1 girls' high school</p>",
+      },
+    },
+    {
+      id: "cta",
+      type: "cta",
+      data: {
+        primaryCta: { label: "Back to Home", href: "/", icon: "ArrowLeft" },
+        secondaryCta: { label: "Get Updates", href: "/contact" },
       },
     },
   ],
@@ -515,25 +786,13 @@ const SUPPORT_SECTIONS = {
     {
       id: "header",
       type: "page-header",
-      data: { icon: "Heart", title: "Support Us", subtitle: "Multiple ways to support SEVAA Ukhra" },
+      data: { icon: "Heart", title: "Volunteer & Support" },
     },
     {
-      id: "intro",
+      id: "coming-soon",
       type: "text",
       data: {
-        heading: "How You Can Help",
-        body: "<p>Whether through financial contributions, volunteering your time, or sharing our work with your network — every form of support helps us reach more children.</p>",
-      },
-    },
-    {
-      id: "cta",
-      type: "cta",
-      data: {
-        heading: "Make a Donation",
-        description: "Your contribution directly funds educational initiatives at Ukhra.",
-        background: "terracotta",
-        primaryCta: { label: "Donate Now", href: "/donate", icon: "Heart" },
-        secondaryCta: { label: "Get in Touch", href: "/contact" },
+        body: "<p>Information about volunteering opportunities, teacher training programs, and other ways to support education in Ukhra will be available here soon.</p>",
       },
     },
   ],
@@ -544,13 +803,13 @@ const PRIVACY_SECTIONS = {
     {
       id: "header",
       type: "page-header",
-      data: { title: "Privacy Policy", subtitle: "How we handle your information" },
+      data: { title: "Privacy Policy" },
     },
     {
-      id: "body",
-      type: "html",
+      id: "coming-soon",
+      type: "text",
       data: {
-        body: "<p>SEVAA Ukhra respects your privacy. We only collect personal information that you voluntarily provide (for example, when contacting us or making a donation), and we use it solely to communicate with you and process your contribution.</p><h3>Information We Collect</h3><p>Name, email address, phone number, and any message you choose to include when using our contact form.</p><h3>How We Use It</h3><p>To respond to your inquiries, send updates about SEVAA Ukhra's work, and acknowledge donations.</p><h3>Sharing</h3><p>We do not sell or share your personal information with third parties.</p><h3>Contact</h3><p>For any privacy-related questions, please email infosevaa@gmail.com.</p>",
+        body: "<p>Our privacy policy detailing how we handle your information will be published here soon.</p>",
       },
     },
   ],
@@ -561,13 +820,13 @@ const TERMS_SECTIONS = {
     {
       id: "header",
       type: "page-header",
-      data: { title: "Terms of Use", subtitle: "Terms governing your use of this website" },
+      data: { title: "Terms & Conditions" },
     },
     {
-      id: "body",
-      type: "html",
+      id: "coming-soon",
+      type: "text",
       data: {
-        body: "<p>By accessing the SEVAA Ukhra website, you agree to the terms below.</p><h3>Use of Content</h3><p>All text, images, and materials on this site are the property of SEVAA unless otherwise noted. You may share content with attribution; commercial reuse requires permission.</p><h3>Donations</h3><p>Donations are routed to the SEVAA bank account listed on the Donate page. Please ensure you enter correct details when transferring funds.</p><h3>External Links</h3><p>This site may link to third-party websites. SEVAA is not responsible for their content or privacy practices.</p><h3>Changes</h3><p>We may update these terms at any time. Continued use of the website after changes constitutes acceptance.</p>",
+        body: "<p>Our terms and conditions will be published here soon.</p>",
       },
     },
   ],
@@ -675,6 +934,7 @@ async function upsertPages() {
 }
 
 async function seedContent() {
+  const force = process.env.FORCE_RESEED === "1";
   for (const page of PAGES) {
     const content = PAGE_CONTENT[page.id];
     if (!content) continue;
@@ -687,7 +947,20 @@ async function seedContent() {
       .limit(1);
 
     if (existing && existing.length > 0) {
-      console.log(`  - ${page.slug}: already has content, skipping`);
+      if (!force) {
+        console.log(`  - ${page.slug}: already has content, skipping`);
+        continue;
+      }
+      const nextVersion = existing[0].version_number + 1;
+      const { error } = await supabase.from("content_versions").insert({
+        page_id: page.id,
+        version_number: nextVersion,
+        status: "published",
+        content,
+        published_at: new Date().toISOString(),
+      });
+      if (error) throw new Error(`content_versions ${page.slug}: ${error.message}`);
+      console.log(`  ↻ ${page.slug}: re-seeded as v${nextVersion}`);
       continue;
     }
 
