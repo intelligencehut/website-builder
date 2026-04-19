@@ -10,7 +10,6 @@ import {
   List,
   ImageIcon,
   FileText,
-  Film,
   Trash2,
   Link2,
   MoreHorizontal,
@@ -22,13 +21,14 @@ import {
 } from 'lucide-react';
 import type { MediaItem } from '@/lib/actions/media';
 import { listMediaForSite, uploadMediaFile, deleteMediaFile } from '@/lib/actions/media';
+import { DeleteConfirmDialog } from '@/components/media/delete-confirm-dialog';
 
 type MediaType = 'all' | 'image' | 'document' | 'video';
 type ViewMode = 'grid' | 'list';
 
 const ACCEPTED_TYPES = [
   'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-  'application/pdf', 'video/mp4', 'video/webm',
+  'application/pdf',
 ];
 
 function getFileCategory(mimeType: string): 'image' | 'document' | 'video' {
@@ -48,7 +48,6 @@ const typeFilters: { key: MediaType; label: string; icon: typeof ImageIcon }[] =
   { key: 'all', label: 'All Files', icon: Grid3X3 },
   { key: 'image', label: 'Images', icon: ImageIcon },
   { key: 'document', label: 'Documents', icon: FileText },
-  { key: 'video', label: 'Videos', icon: Film },
 ];
 
 export default function MediaPage() {
@@ -64,6 +63,7 @@ export default function MediaPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{ ids: string[]; filename?: string } | null>(null);
 
   // Read active site and load media
   useEffect(() => {
@@ -92,7 +92,7 @@ export default function MediaPage() {
     if (!siteId) return;
     const validFiles = Array.from(files).filter(f => ACCEPTED_TYPES.includes(f.type));
     if (validFiles.length === 0) {
-      setError('No valid files selected. Allowed: images, PDFs, videos.');
+      setError('No valid files selected. Allowed: images and PDFs.');
       return;
     }
 
@@ -112,28 +112,30 @@ export default function MediaPage() {
     setUploading(false);
   }, [siteId, loadMedia]);
 
-  const handleDelete = useCallback(async (mediaId: string) => {
-    setError(null);
-    try {
-      await deleteMediaFile(mediaId);
-      setMedia(prev => prev.filter(m => m.id !== mediaId));
-      setSelected(prev => {
-        const next = new Set(prev);
-        next.delete(mediaId);
-        return next;
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Delete failed');
-    }
+  const requestDelete = useCallback((mediaId: string, filename: string) => {
+    setPendingDelete({ ids: [mediaId], filename });
   }, []);
 
-  const handleBulkDelete = useCallback(async () => {
+  const requestBulkDelete = useCallback(() => {
     const ids = Array.from(selected);
-    for (const id of ids) {
-      await handleDelete(id);
+    if (ids.length === 0) return;
+    setPendingDelete({ ids });
+  }, [selected]);
+
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDelete) return;
+    setError(null);
+    for (const id of pendingDelete.ids) {
+      await deleteMediaFile(id);
     }
-    setSelected(new Set());
-  }, [selected, handleDelete]);
+    const deletedIds = new Set(pendingDelete.ids);
+    setMedia(prev => prev.filter(m => !deletedIds.has(m.id)));
+    setSelected(prev => {
+      const next = new Set(prev);
+      for (const id of pendingDelete.ids) next.delete(id);
+      return next;
+    });
+  }, [pendingDelete]);
 
   const filtered = media
     .filter(m => typeFilter === 'all' || getFileCategory(m.mime_type) === typeFilter)
@@ -298,7 +300,7 @@ export default function MediaPage() {
             </button>
             <div className="h-4 w-px bg-surface-border" />
             <button
-              onClick={handleBulkDelete}
+              onClick={requestBulkDelete}
               className="flex items-center gap-1.5 px-3 py-1 text-[12px] font-medium text-red-600 hover:text-red-700 rounded-[4px] hover:bg-red-50 transition-colors"
             >
               <Trash2 className="w-3 h-3" /> Delete
@@ -380,7 +382,7 @@ export default function MediaPage() {
                         <Eye className="w-3.5 h-3.5" />
                       </a>
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                        onClick={(e) => { e.stopPropagation(); requestDelete(item.id, item.original_filename); }}
                         className="p-2 bg-white/90 rounded-button text-red-600 hover:bg-red-50 transition-colors shadow-md"
                         title="Delete"
                       >
@@ -497,7 +499,7 @@ export default function MediaPage() {
                             {copiedId === item.id ? <Check className="w-3.5 h-3.5 text-status-published" /> : <Link2 className="w-3.5 h-3.5" />}
                           </button>
                           <button
-                            onClick={() => handleDelete(item.id)}
+                            onClick={() => requestDelete(item.id, item.original_filename)}
                             className="p-1 text-ink-muted hover:text-red-500 rounded transition-colors"
                             title="Delete"
                           >
@@ -513,6 +515,14 @@ export default function MediaPage() {
           </div>
         )}
       </div>
+
+      <DeleteConfirmDialog
+        open={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+        filename={pendingDelete?.filename}
+        count={pendingDelete?.ids.length}
+      />
     </>
   );
 }
