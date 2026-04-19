@@ -139,6 +139,13 @@ const HOME_SECTIONS = {
           "Inspired by the ideals of Thakur-Maa-Swamiji. Our organisation SEVAA dedicates itself to work among the underprivileged section of our society in the areas of Education, Health, Livelihood, Relief, Culture and Environment in the true spirit of \"Shiv Gyane Jeev Seva\" as espoused by Swamiji.",
         primaryCta: { label: "Explore Our Impact", href: "#impact" },
         secondaryCta: { label: "Our Programs", href: "#programs" },
+        images: [
+          { src: "/images/about/about-2.jpg", alt: "SEVAA Mission and Values" },
+          { src: "/images/gallery/gallery-1.jpg", alt: "SEVAA Gallery Image 1" },
+          { src: "/images/gallery/gallery-2.jpg", alt: "SEVAA Gallery Image 2" },
+          { src: "/images/events/2.jpg", alt: "SEVAA Events Image 2" },
+          { src: "/images/events/3.jpg", alt: "SEVAA Events Image 3" },
+        ],
       },
     },
     {
