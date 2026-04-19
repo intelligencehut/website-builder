@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Uploads every image under a target site's `/public/images` directory
- * into Supabase Storage (`media` bucket) and registers a row in
- * `website.media`, so the admin Media library lists them.
+ * Uploads every supported asset under a target site's `/public/images`
+ * and `/public/documents` directories into Supabase Storage (`media`
+ * bucket) and registers a row in `website.media`, so the admin Media
+ * library lists them.
  *
  * Idempotent: skips files that already have a matching `storage_path`
  * row in the DB.
@@ -78,20 +79,29 @@ async function existingStoragePaths() {
 }
 
 async function main() {
-  const imagesRoot = join(publicDir, "images");
-  try {
-    await stat(imagesRoot);
-  } catch {
-    console.error(`No directory at ${imagesRoot}`);
+  const ROOT_FOLDERS = ["images", "documents"];
+  const roots = [];
+  for (const name of ROOT_FOLDERS) {
+    const abs = join(publicDir, name);
+    try {
+      await stat(abs);
+      roots.push(abs);
+    } catch {
+      // folder doesn't exist, skip silently
+    }
+  }
+  if (roots.length === 0) {
+    console.error(`No ${ROOT_FOLDERS.join("/")} directory under ${publicDir}`);
     process.exit(1);
   }
 
   const existing = await existingStoragePaths();
   console.log(
-    `Scanning ${imagesRoot} — ${existing.size} existing media rows for site\n`
+    `Scanning ${roots.join(", ")} — ${existing.size} existing media rows for site\n`
   );
 
-  const files = await walk(imagesRoot);
+  const files = [];
+  for (const root of roots) await walk(root, files);
   const assets = files.filter((f) => MIME_BY_EXT[extname(f).toLowerCase()]);
   console.log(`Found ${assets.length} supported assets.\n`);
 
