@@ -84,6 +84,9 @@ const PAGES = [
   { id: "f0000000-0000-0000-0000-00000000002f", slug: "/support-activities", title: "We Support Activities", page_type: "static", sort_order: 46 },
   { id: "f0000000-0000-0000-0000-000000000030", slug: "/privacy", title: "Privacy Policy", page_type: "static", sort_order: 47 },
   { id: "f0000000-0000-0000-0000-000000000031", slug: "/terms", title: "Terms of Service", page_type: "static", sort_order: 48 },
+  { id: "f0000000-0000-0000-0000-000000000032", slug: "/news/sevaa-booklet-2024", title: "SEVAA Annual Booklet 2024 Released", page_type: "news", sort_order: 49 },
+  { id: "f0000000-0000-0000-0000-000000000033", slug: "/news/lac-training-program", title: "LAC Training Program Successfully Completed", page_type: "news", sort_order: 50 },
+  { id: "f0000000-0000-0000-0000-000000000034", slug: "/news/media-coverage-telegraph", title: "SEVAA Featured in The Telegraph", page_type: "news", sort_order: 51 },
 ];
 
 // ============================================================
@@ -119,6 +122,60 @@ function comingSoon({ icon = "Clock", title, subtitle, expected }) {
       },
     ],
   };
+}
+
+// ============================================================
+// News article helper
+// ============================================================
+
+function articleSections({ title, excerpt, content, images = [], date, category, readTime, author, pdfLink }) {
+  const highlights = [
+    category && { icon: "Tag", text: category },
+    date && { icon: "Calendar", text: date },
+    readTime && { icon: "Clock", text: readTime },
+    author && { icon: "User", text: author },
+  ].filter(Boolean);
+
+  const sections = [
+    {
+      id: "header",
+      type: "page-header",
+      data: {
+        title,
+        subtitle: excerpt,
+        ...(highlights.length > 0 ? { highlights } : {}),
+      },
+    },
+    {
+      id: "content",
+      type: "text",
+      data: { body: content },
+    },
+  ];
+
+  if (images.length > 0) {
+    sections.push({
+      id: "gallery",
+      type: "gallery",
+      data: {
+        images: images.map((src) => ({ src, alt: title })),
+      },
+    });
+  }
+
+  if (pdfLink) {
+    sections.push({
+      id: "pdf-cta",
+      type: "cta",
+      data: {
+        heading: "Download Full Document",
+        background: "terracotta",
+        primaryCta: { label: "Download PDF", href: pdfLink, icon: "ExternalLink" },
+      },
+    });
+  }
+
+  return { sections };
 }
 
 // ============================================================
@@ -1451,7 +1508,66 @@ const NEWS_BIRTHDAY_SECTIONS = comingSoon({ icon: "Cake", title: "Birthday Celeb
 const NEWS_INDEPENDENCE_SECTIONS = comingSoon({ icon: "Flag", title: "Independence Day Celebration", subtitle: "Independence Day celebrated with great enthusiasm at the TMSVV school with students and community participation." });
 const NEWS_MEDIA_SECTIONS = comingSoon({ icon: "Newspaper", title: "Media Coverage", subtitle: "Press features, newspaper articles, and television coverage of SEVAA's work." });
 const NEWS_RAKHI_SECTIONS = comingSoon({ icon: "Heart", title: "Rakhi Celebration", subtitle: "Celebrating Rakhi with children across our projects and Vivekpally village." });
-const NEWS_TILKA_MURMU_SECTIONS = comingSoon({ icon: "School", title: "Inauguration of TMSVV", subtitle: "Historic inauguration of Tilka Murmu SEVAA Vano Vidyalay at Saparambera, Ajodhya Hills, Purulia on 9th-10th March 2025." });
+const NEWS_TILKA_MURMU_SECTIONS = articleSections({
+  title: "Inauguration of Tilka Murmu SEVAA Vano Vidyalay",
+  excerpt:
+    "A historic moment as we inaugurate our forest school with allied facilities and centers at Saparambera, Ajodhya Hills, Purulia.",
+  content: `<p>We are proud to announce the inauguration of the Tilka Murmu SEVAA Vano Vidyalay (Forest School) on 9th & 10th March 2025 at Saparambera, Ajodhya Hills, Purulia.</p><p>This groundbreaking initiative represents our commitment to providing quality education in harmony with nature. The school features:</p><ul><li>Eco-friendly classrooms designed to blend with the natural environment</li><li>Allied facilities including library, computer lab, and health center</li><li>Community centers for local engagement and development</li><li>Sustainable infrastructure using local materials and renewable energy</li></ul><p>The forest school will serve the tribal and rural communities of the Ajodhya Hills region, providing education that respects and incorporates traditional knowledge while preparing students for the modern world.</p><h3>Key Features of the School</h3><p>The Tilka Murmu SEVAA Vano Vidyalay is designed with several innovative features:</p><ul><li><strong>Eco-friendly Infrastructure:</strong> Buildings constructed using local materials and sustainable practices</li><li><strong>Renewable Energy:</strong> Solar panels and biogas systems for clean energy</li><li><strong>Nature-integrated Learning:</strong> Outdoor classrooms and forest-based education</li><li><strong>Community Integration:</strong> Spaces for local cultural activities and community meetings</li></ul><h3>Impact on Local Community</h3><p>This initiative will directly benefit over 500 children from the tribal communities in the region, providing them with access to quality education while preserving their cultural heritage.</p>`,
+  images: [
+    "/images/userfiles/image/Sevaa Booklet 2024_001.jpg",
+    "/images/userfiles/image/Sevaa Booklet 2024_002.jpg",
+    "/images/userfiles/image/Sevaa Booklet 2024_003.jpg",
+  ],
+  date: "March 9-10, 2025",
+  category: "Education",
+  readTime: "5 min read",
+  author: "SEVAA Team",
+  pdfLink: "/documents/Tilka Murmu Forest School.pdf",
+});
+
+const NEWS_BOOKLET_2024_SECTIONS = articleSections({
+  title: "SEVAA Annual Booklet 2024 Released",
+  excerpt:
+    "Our comprehensive annual booklet showcasing all activities, achievements, and impact of SEVAA throughout 2024.",
+  content: `<p>We are pleased to release our Annual Booklet for 2024, a comprehensive document that showcases the remarkable journey of SEVAA throughout the year.</p><p>The booklet includes:</p><ul><li>Detailed reports on all our educational initiatives</li><li>Healthcare and livelihood programs impact assessment</li><li>Financial transparency and accountability reports</li><li>Stories from beneficiaries and community members</li><li>Future plans and vision for upcoming projects</li></ul><p>This publication reflects our commitment to transparency and community engagement, providing stakeholders with insights into how their support translates into meaningful change.</p><h3>Highlights from 2024</h3><p>The year 2024 has been transformative for SEVAA:</p><ul><li><strong>Education:</strong> Established 3 new learning centers</li><li><strong>Healthcare:</strong> Conducted 12 medical camps serving 2,000+ patients</li><li><strong>Livelihood:</strong> Trained 150 individuals in various skills</li><li><strong>Environment:</strong> Planted 5,000 trees in collaboration with local communities</li></ul>`,
+  images: [
+    "/images/userfiles/image/Sevaa Booklet 2024_002.jpg",
+    "/images/userfiles/image/Sevaa Booklet 2024_003.jpg",
+    "/images/userfiles/image/Sevaa Booklet 2024_004.jpg",
+  ],
+  date: "2024",
+  category: "Publication",
+  readTime: "8 min read",
+  author: "SEVAA Publications Team",
+});
+
+const NEWS_LAC_TRAINING_SECTIONS = articleSections({
+  title: "LAC Training Program Successfully Completed",
+  excerpt:
+    "Successful completion of Local Area Coordinator training program for community development and capacity building.",
+  content: `<p>Our Local Area Coordinator (LAC) Training Program has been successfully completed, marking a significant milestone in our community development efforts.</p><p>The training program focused on:</p><ul><li>Community mobilization and engagement strategies</li><li>Project management and monitoring techniques</li><li>Local resource mapping and utilization</li><li>Sustainable development practices</li><li>Leadership and communication skills</li></ul><p>The newly trained coordinators will play a crucial role in implementing our grassroots programs and ensuring community ownership of development initiatives.</p><h3>Training Methodology</h3><p>Our comprehensive training approach included:</p><ul><li><strong>Interactive Workshops:</strong> Hands-on learning sessions</li><li><strong>Field Practice:</strong> Real-world application of concepts</li><li><strong>Peer Learning:</strong> Knowledge sharing among participants</li><li><strong>Mentorship:</strong> Guidance from experienced coordinators</li></ul>`,
+  images: ["/images/news_image/org/lac training program-1721231943.jpg"],
+  date: "July 2024",
+  category: "Training",
+  readTime: "6 min read",
+  author: "Training Department",
+});
+
+const NEWS_TELEGRAPH_SECTIONS = articleSections({
+  title: "SEVAA Featured in The Telegraph",
+  excerpt:
+    "Our organization and impactful work has been featured in The Telegraph newspaper, highlighting our community development initiatives.",
+  content: `<p>We are honored to be featured in The Telegraph newspaper, which has highlighted our ongoing community development initiatives and their impact on rural communities.</p><p>The coverage includes:</p><ul><li>Our educational programs in remote areas</li><li>Healthcare initiatives and medical camps</li><li>Livelihood generation projects</li><li>Environmental conservation efforts</li><li>Community testimonials and success stories</li></ul><p>This media recognition helps us reach a wider audience and attract more supporters to our cause of serving the underprivileged communities.</p><h3>Media Impact</h3><p>The newspaper coverage has brought significant attention to our work:</p><ul><li><strong>Increased Awareness:</strong> Greater visibility for our cause</li><li><strong>New Partnerships:</strong> Interest from potential collaborators</li><li><strong>Volunteer Engagement:</strong> More people wanting to contribute</li><li><strong>Donor Support:</strong> Enhanced trust and credibility</li></ul>`,
+  images: [
+    "/images/userfiles/image/the telegraph_001.jpg",
+    "/images/userfiles/image/the telegraph_002.jpg",
+    "/images/userfiles/image/the telegraph_003.jpg",
+  ],
+  date: "2024",
+  category: "Media Coverage",
+  readTime: "4 min read",
+  author: "Media Relations Team",
+});
 
 const GALLERY_VIDEOS_SECTIONS = comingSoon({ icon: "Video", title: "Video Gallery", subtitle: "Videos from our community programs, school events, and cultural celebrations." });
 
@@ -1508,6 +1624,9 @@ const PAGE_CONTENT = {
   "f0000000-0000-0000-0000-000000000011": NEWS_MEDIA_SECTIONS,
   "f0000000-0000-0000-0000-000000000012": NEWS_RAKHI_SECTIONS,
   "f0000000-0000-0000-0000-000000000013": NEWS_TILKA_MURMU_SECTIONS,
+  "f0000000-0000-0000-0000-000000000032": NEWS_BOOKLET_2024_SECTIONS,
+  "f0000000-0000-0000-0000-000000000033": NEWS_LAC_TRAINING_SECTIONS,
+  "f0000000-0000-0000-0000-000000000034": NEWS_TELEGRAPH_SECTIONS,
   "f0000000-0000-0000-0000-000000000014": EVENTS_SECTIONS,
   "f0000000-0000-0000-0000-000000000015": GALLERY_PHOTOS_SECTIONS,
   "f0000000-0000-0000-0000-000000000016": GALLERY_VIDEOS_SECTIONS,
