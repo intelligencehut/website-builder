@@ -210,6 +210,7 @@ const HOME_SECTIONS = {
       type: "text-with-image",
       data: {
         heading: "Our Mission",
+        subtitle: "Empowering communities through service and compassion",
         body: "<p>We believe that we can save the deprived mankind and error in our environment along with you by enabling people to ensure quality of living through innovative socio-economic community collaboration, education, cultural activities and philanthropic services.</p><h4>We are committed to:</h4><ul><li>Equity, Diversity, and Inclusion</li><li>Collaboration & Community Engagement</li><li>Building self confidence within the community</li><li>Shared Commitment</li><li>Responsibility & Accountability</li><li>Respect, Mutual Trust and Compassion</li><li>Integrity in everything we do</li></ul>",
         image: { src: "/images/events/1.jpg", alt: "SEVAA Mission and Values" },
       },
@@ -1980,14 +1981,27 @@ const ARCHIVES_GENERAL_SECTIONS = {
         icon: "Archive",
         title: "সাধারণ আর্কাইভ",
         subtitle: "SEVAA এর ঐতিহাসিক তথ্য ও পূর্ববর্তী কাঠামোর সংরক্ষণাগার",
+        variant: "light",
       },
     },
     {
       id: "notice",
-      type: "text",
+      type: "feature-highlight",
       data: {
-        heading: "আর্কাইভ নোটিশ",
-        body: "<p>এই পৃষ্ঠায় SEVAA এর ঐতিহাসিক তথ্য সংরক্ষিত রয়েছে যা বর্তমানে সক্রিয় নয়। বর্তমান সাংগঠনিক কাঠামো ও কার্যকর তথ্যের জন্য অনুগ্রহ করে আমাদের <a href='/governance'>গভর্নেন্স</a> পৃষ্ঠা দেখুন।</p>",
+        eyebrow: "আর্কাইভ নোটিশ",
+        heading: "ঐতিহাসিক তথ্যের সংরক্ষণাগার",
+        description:
+          "এই পৃষ্ঠায় SEVAA এর ঐতিহাসিক তথ্য সংরক্ষিত রয়েছে যা বর্তমানে সক্রিয় নয়। বর্তমান সাংগঠনিক কাঠামো ও কার্যকর তথ্যের জন্য অনুগ্রহ করে আমাদের গভর্নেন্স পৃষ্ঠা দেখুন।",
+      },
+    },
+    {
+      id: "notice-cta",
+      type: "cta",
+      data: {
+        heading: "বর্তমান গভর্নেন্স দেখুন",
+        description: "SEVAA-র বর্তমান সাংগঠনিক কাঠামো ও নেতৃত্বের তথ্য জানতে গভর্নেন্স পৃষ্ঠাটি দেখুন।",
+        background: "terracotta",
+        primaryCta: { label: "বর্তমান গভর্নেন্স দেখুন", href: "/governance" },
       },
     },
     {
