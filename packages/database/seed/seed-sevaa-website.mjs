@@ -260,22 +260,6 @@ const HOME_SECTIONS = {
       },
     },
     {
-      id: "impact",
-      type: "stats",
-      data: {
-        eyebrow: "Our Impact",
-        heading: "Serving Communities Across India",
-        subtitle: "Measurable outcomes from our work in education, health, livelihood, and culture",
-        background: "dark",
-        items: [
-          { icon: "Users", value: "900+", label: "Children Reached" },
-          { icon: "GraduationCap", value: "6", label: "Schools Supported" },
-          { icon: "Home", value: "52", label: "Families in Vivekpally" },
-          { icon: "Heart", value: "4+", label: "Years of Service" },
-        ],
-      },
-    },
-    {
       id: "programs",
       type: "programs-grid",
       data: {
