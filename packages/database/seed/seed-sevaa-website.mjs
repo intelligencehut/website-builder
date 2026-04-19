@@ -885,6 +885,7 @@ const OUR_GENESIS_SECTIONS = {
         icon: "Sparkles",
         title: "Our Genesis",
         subtitle: "The inspiring story of how SEVAA came to be",
+        image: "/images/assets/banner/13.jpg",
       },
     },
     {
@@ -3116,7 +3117,11 @@ const GI_SPONSOR_MEAL_SECTIONS = comingSoon({
   title: "Sponsor Midday Meal",
   subtitle: "Sponsor nutritious midday meals for children at our schools and Vivekpally programs.",
   heroImage: "/images/events/3.jpg",
-  exploreLinks: GI_EXPLORE_LINKS.filter((l) => l.href !== "/get-involved/sponsor-midday-meal").slice(0, 5),
+  exploreLinks: GI_EXPLORE_LINKS.filter(
+    (l) =>
+      l.href !== "/get-involved/sponsor-midday-meal" &&
+      l.href !== "/get-involved/become-assoc-member",
+  ).slice(0, 4),
 });
 
 const JOIN_US_SECTIONS = {
