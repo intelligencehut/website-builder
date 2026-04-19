@@ -1948,28 +1948,28 @@ const ARCHIVES_SECTIONS = {
 };
 
 const FORMER_ADVISORY_ITEMS = [
-  { title: "Ashok Punjabi", description: "Advisory Member (2023-2025)" },
-  { title: "Debdas Bhattacharya", description: "Advisory Member (2023-2025)" },
-  { title: "Gautam Bannerjee", description: "Advisory Member (2023-2025)" },
-  { title: "Sajal Kumar Das", description: "Advisory Member (2023-2025)" },
-  { title: "Samir Nayak", description: "Advisory Member (2023-2025)" },
-  { title: "Siddharta Maity", description: "Advisory Member (2023-2025)" },
-  { title: "Saikat Das", description: "Advisory Member (2023-2025)" },
+  { icon: "Crown", title: "Ashok Punjabi", subtitle: "Advisory Member", description: "(2023-2025)" },
+  { icon: "Crown", title: "Debdas Bhattacharya", subtitle: "Advisory Member", description: "(2023-2025)" },
+  { icon: "Crown", title: "Gautam Bannerjee", subtitle: "Advisory Member", description: "(2023-2025)" },
+  { icon: "Crown", title: "Sajal Kumar Das", subtitle: "Advisory Member", description: "(2023-2025)" },
+  { icon: "Crown", title: "Samir Nayak", subtitle: "Advisory Member", description: "(2023-2025)" },
+  { icon: "Crown", title: "Siddharta Maity", subtitle: "Advisory Member", description: "(2023-2025)" },
+  { icon: "Crown", title: "Saikat Das", subtitle: "Advisory Member", description: "(2023-2025)" },
 ];
 
 const FORMER_EXEC_ITEMS = [
-  { title: "Dibyagopal Ghatak", description: "President (2023-2025)" },
-  { title: "Ratan Ghosh Dastidar", description: "Vice President (2023-2025)" },
-  { title: "Pradip Dey", description: "Vice President (2023-2025)" },
-  { title: "Krishnendu Das", description: "Secretary (2023-2025)" },
-  { title: "Dibes Bera", description: "Assistant Secretary (2023-2025)" },
-  { title: "Narayan Tatachari", description: "Treasurer (2023-2025)" },
-  { title: "Joydeb De", description: "Assistant Treasurer (2023-2025)" },
-  { title: "Pradip De", description: "Member (2023-2025)" },
-  { title: "Swapan Maity", description: "Member (2023-2025)" },
-  { title: "Manoj Kowar", description: "Member (2023-2025)" },
-  { title: "Monishankar Banerjee", description: "Member (2023-2025)" },
-  { title: "Pradip Mukhopadhyay", description: "Member (2023-2025)" },
+  { icon: "Crown", title: "Dibyagopal Ghatak", subtitle: "President", description: "(2023-2025)" },
+  { icon: "Crown", title: "Ratan Ghosh Dastidar", subtitle: "Vice President", description: "(2023-2025)" },
+  { icon: "Crown", title: "Pradip Dey", subtitle: "Vice President", description: "(2023-2025)" },
+  { icon: "Crown", title: "Krishnendu Das", subtitle: "Secretary", description: "(2023-2025)" },
+  { icon: "Crown", title: "Dibes Bera", subtitle: "Assistant Secretary", description: "(2023-2025)" },
+  { icon: "Crown", title: "Narayan Tatachari", subtitle: "Treasurer", description: "(2023-2025)" },
+  { icon: "Crown", title: "Joydeb De", subtitle: "Assistant Treasurer", description: "(2023-2025)" },
+  { icon: "Crown", title: "Pradip De", subtitle: "Member", description: "(2023-2025)" },
+  { icon: "Crown", title: "Swapan Maity", subtitle: "Member", description: "(2023-2025)" },
+  { icon: "Crown", title: "Manoj Kowar", subtitle: "Member", description: "(2023-2025)" },
+  { icon: "Crown", title: "Monishankar Banerjee", subtitle: "Member", description: "(2023-2025)" },
+  { icon: "Crown", title: "Pradip Mukhopadhyay", subtitle: "Member", description: "(2023-2025)" },
 ];
 
 const ARCHIVES_GENERAL_SECTIONS = {
