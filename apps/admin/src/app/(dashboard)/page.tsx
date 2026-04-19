@@ -1,5 +1,5 @@
 import { getPages } from '@/lib/actions/pages';
-import { getActiveSiteId } from '@/lib/site-context';
+import { getActiveSiteId, getUserSites } from '@/lib/site-context';
 import { listPendingRequests } from '@/lib/actions/access-requests';
 import { Header } from '@/components/header';
 import { PendingRequestsWidget } from '@/components/pending-requests-widget';
@@ -26,15 +26,16 @@ function makeStats(pageCount: number) {
 
 // Recent edits derived from pages data
 
-const environments = [
-  {
-    name: 'Production',
-    url: 'sevaa.org',
-    status: 'live' as const,
-    lastDeploy: '2 hours ago',
-    version: 'v1.4.2',
-  },
-];
+function formatRelative(date: Date): string {
+  const diffMs = Date.now() - date.getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hour${hrs === 1 ? '' : 's'} ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days} day${days === 1 ? '' : 's'} ago`;
+}
 
 const quickActions = [
   { label: 'Edit Home Page', href: '/pages/b0000000-0000-0000-0000-000000000001/edit', icon: FileText },
@@ -44,11 +45,32 @@ const quickActions = [
 
 export default async function DashboardPage() {
   const siteId = await getActiveSiteId();
-  const [pages, pendingRequests] = await Promise.all([
+  const [pages, pendingRequests, sites] = await Promise.all([
     getPages(siteId),
     listPendingRequests(),
+    getUserSites(),
   ]);
   const stats = makeStats(pages.length);
+
+  const activeSite = sites.find((s: any) => s.id === siteId) as
+    | { id: string; name: string; domain: string; metadata: Record<string, any> | null }
+    | undefined;
+  const previewUrl = (activeSite?.metadata as any)?.preview_url as string | undefined;
+  const productionUrl = previewUrl
+    ? previewUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')
+    : activeSite?.domain || '';
+  const lastEdit = pages.reduce<Date | null>((latest, p) => {
+    const d = new Date(p.updated_at);
+    return !latest || d > latest ? d : latest;
+  }, null);
+  const environments = [
+    {
+      name: 'Production',
+      url: productionUrl || '—',
+      status: 'live' as const,
+      lastDeploy: lastEdit ? formatRelative(lastEdit) : '—',
+    },
+  ];
 
   return (
     <>
@@ -149,9 +171,6 @@ export default async function DashboardPage() {
                         )}
                         <span className="text-[13px] font-medium text-ink">{env.name}</span>
                       </div>
-                      <span className="text-[11px] font-mono text-ink-muted bg-surface-card px-1.5 py-0.5 rounded border border-surface-border">
-                        {env.version}
-                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[12px] text-ink-secondary">{env.url}</span>

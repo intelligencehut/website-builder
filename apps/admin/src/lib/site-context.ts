@@ -5,7 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 
 const SITE_COOKIE = 'wb_site_id';
-const DEFAULT_SITE_ID = 'a0000000-0000-0000-0000-000000000001';
+const DEFAULT_SITE_ID = 'a0000000-0000-0000-0000-000000000005';
 
 // ── Cookie-based site selection ───────────────────────────────
 
