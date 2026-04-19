@@ -1,6 +1,7 @@
 'use client';
 
 import { Field, TextInput, TextArea, ImagePicker, DocumentPicker } from '@/components/ui/field';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import type { NewsArticle } from '@website-builder/content-schema';
 
 interface Props {
@@ -28,11 +29,11 @@ export function NewsArticleEditor({ article, onChange }: Props) {
           rows={2}
         />
       </Field>
-      <Field label="Content" description="HTML content">
-        <TextArea
+      <Field label="Content">
+        <RichTextEditor
           value={article.content}
-          onChange={(e) => update({ content: e.currentTarget.value })}
-          rows={10}
+          onChange={(content) => update({ content })}
+          minHeight="280px"
         />
       </Field>
       <Field label="Image">

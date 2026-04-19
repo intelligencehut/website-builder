@@ -1,6 +1,7 @@
 'use client';
 
 import { Field, TextInput, TextArea, SelectInput, NumberInput, ImagePicker, Checkbox } from '@/components/ui/field';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { SortableItemList } from './sortable-item-list';
 import { DynamicSlotEditor } from './dynamic-slot-editor';
 
@@ -87,7 +88,7 @@ export function TextEditor({ data, onChange }: EditorProps<TextData>) {
   return (
     <div className="space-y-3">
       <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => onChange({ ...data, heading: e.currentTarget.value })} /></Field>
-      <Field label="Body (HTML)" description="Supports HTML: &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;, &lt;strong&gt;"><TextArea value={data.body ?? ''} onChange={e => onChange({ ...data, body: e.currentTarget.value })} rows={10} /></Field>
+      <Field label="Body"><RichTextEditor value={data.body ?? ''} onChange={body => onChange({ ...data, body })} minHeight="240px" /></Field>
     </div>
   );
 }
@@ -106,7 +107,7 @@ export function TextWithImageEditor({ data, onChange }: EditorProps<TextWithImag
     <div className="space-y-3">
       <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => u({ heading: e.currentTarget.value })} /></Field>
       <Field label="Subtitle"><TextInput value={data.subtitle ?? ''} onChange={e => u({ subtitle: e.currentTarget.value })} /></Field>
-      <Field label="Description"><TextArea value={data.body ?? ''} onChange={e => u({ body: e.currentTarget.value })} rows={8} /></Field>
+      <Field label="Body"><RichTextEditor value={data.body ?? ''} onChange={body => u({ body })} minHeight="200px" /></Field>
       <Field label="Image"><ImagePicker value={data.image ?? ''} onChange={v => u({ image: v })} /></Field>
       <Field label="List Heading"><TextInput value={data.itemsHeading ?? ''} onChange={e => u({ itemsHeading: e.currentTarget.value })} placeholder="e.g. We are committed to:" /></Field>
       <div>
@@ -283,7 +284,7 @@ export function ContactEditor({ data, onChange }: EditorProps<ContactData>) {
       <Field label="Email"><TextInput value={data.email ?? ''} onChange={e => u({ email: e.currentTarget.value })} /></Field>
       <Field label="Phone"><TextInput value={data.phone ?? ''} onChange={e => u({ phone: e.currentTarget.value })} /></Field>
       <Field label="Address"><TextArea value={data.address ?? ''} onChange={e => u({ address: e.currentTarget.value })} rows={2} /></Field>
-      <Field label="Additional Content (HTML)"><TextArea value={data.body ?? ''} onChange={e => u({ body: e.currentTarget.value })} rows={4} /></Field>
+      <Field label="Additional Content"><RichTextEditor value={data.body ?? ''} onChange={body => u({ body })} minHeight="160px" /></Field>
     </div>
   );
 }
@@ -295,7 +296,7 @@ interface HtmlData { body?: string }
 export function HtmlEditor({ data, onChange }: EditorProps<HtmlData>) {
   return (
     <div className="space-y-3">
-      <Field label="HTML Content" description="Raw HTML — supports any valid HTML"><TextArea value={data.body ?? ''} onChange={e => onChange({ body: e.currentTarget.value })} rows={15} /></Field>
+      <Field label="HTML Content"><RichTextEditor value={data.body ?? ''} onChange={body => onChange({ body })} minHeight="320px" /></Field>
     </div>
   );
 }
