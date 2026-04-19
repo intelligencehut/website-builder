@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/components/header';
 import { Field, TextInput, TextArea } from '@/components/ui/field';
 import { TeamManager } from '@/components/team-manager';
+import { FooterEditor, type FooterData } from '@/components/settings/footer-editor';
 import { cn } from '@/lib/utils';
 import { getSiteMetadata, updateSiteSettings } from '@/lib/actions/pages';
 import {
@@ -18,14 +19,16 @@ import {
   Loader2,
   Users,
   Shield,
+  Layout,
 } from 'lucide-react';
 
-type TabId = 'general' | 'seo' | 'contact' | 'deploy' | 'team';
+type TabId = 'general' | 'seo' | 'contact' | 'footer' | 'deploy' | 'team';
 
 const tabs: { id: TabId; label: string; icon: typeof Globe }[] = [
   { id: 'general', label: 'General', icon: Globe },
   { id: 'seo', label: 'SEO', icon: Search },
   { id: 'contact', label: 'Contact', icon: Phone },
+  { id: 'footer', label: 'Footer', icon: Layout },
   { id: 'deploy', label: 'Deploy', icon: Webhook },
   { id: 'team', label: 'Team', icon: Users },
 ];
@@ -52,6 +55,7 @@ const DEFAULT_CONFIG = {
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabId>('general');
   const [config, setConfig] = useState(DEFAULT_CONFIG);
+  const [footer, setFooter] = useState<FooterData>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [siteId, setSiteId] = useState('');
@@ -94,6 +98,7 @@ export default function SettingsPage() {
         stageHookUrl: deploy.stage_hook_url || '',
         prodHookUrl: deploy.prod_hook_url || '',
       });
+      setFooter((meta.footer as FooterData) || {});
     });
   }, []);
 
@@ -130,6 +135,7 @@ export default function SettingsPage() {
             stage_hook_url: config.stageHookUrl,
             prod_hook_url: config.prodHookUrl,
           },
+          footer,
         },
       });
       setSaved(true);
@@ -267,6 +273,10 @@ export default function SettingsPage() {
                   </Field>
                 </div>
               </div>
+            )}
+
+            {activeTab === 'footer' && (
+              <FooterEditor value={footer} onChange={setFooter} />
             )}
 
             {activeTab === 'deploy' && (
