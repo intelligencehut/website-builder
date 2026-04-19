@@ -10,6 +10,10 @@
  *
  * Run from repo root:
  *   SUPABASE_SERVICE_ROLE_KEY='<key>' node packages/database/seed/seed-sevaa-website.mjs
+ *
+ * To re-publish all pages with the current seed content as a new version
+ * (e.g. after fixing image paths), set FORCE_RESEED=1:
+ *   FORCE_RESEED=1 SUPABASE_SERVICE_ROLE_KEY='<key>' node packages/database/seed/seed-sevaa-website.mjs
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -1608,6 +1612,7 @@ async function upsertPages() {
 }
 
 async function seedContent() {
+  const force = process.env.FORCE_RESEED === "1";
   for (const page of PAGES) {
     const content = PAGE_CONTENT[page.id];
     if (!content) continue;
@@ -1620,7 +1625,20 @@ async function seedContent() {
       .limit(1);
 
     if (existing && existing.length > 0) {
-      console.log(`  - ${page.slug}: already has content, skipping`);
+      if (!force) {
+        console.log(`  - ${page.slug}: already has content, skipping`);
+        continue;
+      }
+      const nextVersion = existing[0].version_number + 1;
+      const { error } = await supabase.from("content_versions").insert({
+        page_id: page.id,
+        version_number: nextVersion,
+        status: "published",
+        content,
+        published_at: new Date().toISOString(),
+      });
+      if (error) throw new Error(`content_versions ${page.slug}: ${error.message}`);
+      console.log(`  ↻ ${page.slug}: re-seeded as v${nextVersion}`);
       continue;
     }
 
