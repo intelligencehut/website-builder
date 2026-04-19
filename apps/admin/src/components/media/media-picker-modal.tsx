@@ -3,23 +3,34 @@
 import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { cn } from '@/lib/utils';
-import { Search, X, Check, ImageIcon, Loader2 } from 'lucide-react';
+import { Search, X, Check, ImageIcon, FileText, Loader2 } from 'lucide-react';
 import { listMediaForSite, type MediaItem } from '@/lib/actions/media';
 import { getActiveSiteId } from '@/lib/site-context';
 import { UploadZone } from './upload-zone';
+
+type MediaKind = 'image' | 'document';
 
 interface MediaPickerModalProps {
   open: boolean;
   onClose: () => void;
   onSelect: (url: string) => void;
+  kind?: MediaKind;
 }
 
-export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalProps) {
+function matchesKind(mimeType: string, kind: MediaKind): boolean {
+  if (kind === 'image') return mimeType.startsWith('image/');
+  return mimeType === 'application/pdf' || (!mimeType.startsWith('image/') && !mimeType.startsWith('video/'));
+}
+
+export function MediaPickerModal({ open, onClose, onSelect, kind = 'image' }: MediaPickerModalProps) {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
-  const [images, setImages] = useState<MediaItem[]>([]);
+  const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const noun = kind === 'document' ? 'document' : 'image';
+  const nounPlural = kind === 'document' ? 'documents' : 'images';
 
   useEffect(() => {
     if (!open) return;
@@ -27,22 +38,22 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
     (async () => {
       const siteId = await getActiveSiteId();
       const media = await listMediaForSite(siteId);
-      setImages(media);
+      setItems(media.filter(m => matchesKind(m.mime_type, kind)));
       setLoading(false);
     })();
-  }, [open, showUpload]);
+  }, [open, showUpload, kind]);
 
-  const filtered = images.filter(img =>
+  const filtered = items.filter(item =>
     search === '' ||
-    img.original_filename.toLowerCase().includes(search.toLowerCase()) ||
-    (img.alt_text || '').toLowerCase().includes(search.toLowerCase())
+    item.original_filename.toLowerCase().includes(search.toLowerCase()) ||
+    (item.alt_text || '').toLowerCase().includes(search.toLowerCase())
   );
 
   function handleConfirm() {
     if (selected) {
-      const img = images.find(i => i.id === selected);
-      if (img) {
-        onSelect(img.public_url);
+      const item = items.find(i => i.id === selected);
+      if (item) {
+        onSelect(item.public_url);
         onClose();
         setSelected(null);
         setSearch('');
@@ -67,7 +78,7 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
             <div>
               <Dialog.Title className="text-heading text-ink">Select Media</Dialog.Title>
               <Dialog.Description className="text-[12px] text-ink-muted mt-0.5">
-                Choose an image from the library or upload a new one
+                Choose {kind === 'document' ? 'a document' : 'an image'} from the library or upload a new one
               </Dialog.Description>
             </div>
             <Dialog.Close className="p-1.5 text-ink-muted hover:text-ink hover:bg-surface-hover rounded-button transition-colors">
@@ -83,7 +94,7 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search images..."
+                placeholder={`Search ${nounPlural}...`}
                 className="w-full pl-9 pr-3 py-1.5 bg-surface-raised border border-surface-border rounded-button text-[13px] text-ink placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
               />
             </div>
@@ -111,19 +122,24 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
               </div>
             ) : filtered.length === 0 ? (
               <div className="py-16 text-center">
-                <ImageIcon className="w-8 h-8 text-ink-muted mx-auto mb-3" />
+                {kind === 'document' ? (
+                  <FileText className="w-8 h-8 text-ink-muted mx-auto mb-3" />
+                ) : (
+                  <ImageIcon className="w-8 h-8 text-ink-muted mx-auto mb-3" />
+                )}
                 <p className="text-[13px] text-ink-secondary">
-                  {images.length === 0 ? 'No images uploaded yet' : 'No images found'}
+                  {items.length === 0 ? `No ${nounPlural} uploaded yet` : `No ${nounPlural} found`}
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-4 gap-3">
-                {filtered.map((img) => {
-                  const isSelected = selected === img.id;
+                {filtered.map((item) => {
+                  const isSelected = selected === item.id;
+                  const isImage = item.mime_type.startsWith('image/');
                   return (
                     <button
-                      key={img.id}
-                      onClick={() => setSelected(isSelected ? null : img.id)}
+                      key={item.id}
+                      onClick={() => setSelected(isSelected ? null : item.id)}
                       className={cn(
                         'group relative aspect-square rounded-card overflow-hidden border-2 transition-all duration-150',
                         isSelected
@@ -132,12 +148,21 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
                       )}
                     >
                       <div className="absolute inset-0 bg-surface-raised">
-                        <img
-                          src={img.public_url}
-                          alt={img.alt_text || img.original_filename}
-                          className="w-full h-full object-cover"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                        />
+                        {isImage ? (
+                          <img
+                            src={item.public_url}
+                            alt={item.alt_text || item.original_filename}
+                            className="w-full h-full object-cover"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-2 px-3">
+                            <FileText className="w-10 h-10 text-ink-muted" />
+                            <p className="text-[11px] text-ink-secondary font-medium text-center line-clamp-2 break-all">
+                              {item.original_filename}
+                            </p>
+                          </div>
+                        )}
                       </div>
 
                       <div className={cn(
@@ -146,8 +171,8 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
                       )} />
 
                       <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                        <p className="text-[11px] text-white font-medium truncate">{img.original_filename}</p>
-                        <p className="text-[10px] text-white/70">{formatSize(img.size_bytes)}</p>
+                        <p className="text-[11px] text-white font-medium truncate">{item.original_filename}</p>
+                        <p className="text-[10px] text-white/70">{formatSize(item.size_bytes)}</p>
                       </div>
 
                       {isSelected && (
@@ -155,10 +180,6 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
                           <Check className="w-3.5 h-3.5 text-white" />
                         </div>
                       )}
-
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <ImageIcon className="w-6 h-6 text-ink-muted/30" />
-                      </div>
                     </button>
                   );
                 })}
@@ -169,7 +190,7 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
           {/* Footer */}
           <div className="flex items-center justify-between px-6 py-3 border-t border-surface-border bg-surface-raised/50 flex-shrink-0">
             <p className="text-[12px] text-ink-muted">
-              {selected ? '1 image selected' : `${filtered.length} images`}
+              {selected ? `1 ${noun} selected` : `${filtered.length} ${nounPlural}`}
             </p>
             <div className="flex items-center gap-2">
               <button
@@ -183,7 +204,7 @@ export function MediaPickerModal({ open, onClose, onSelect }: MediaPickerModalPr
                 disabled={!selected}
                 className="px-4 py-1.5 bg-sidebar text-ink-inverse rounded-button text-[13px] font-medium hover:bg-sidebar-hover transition-colors disabled:opacity-40"
               >
-                Select Image
+                Select {noun === 'document' ? 'Document' : 'Image'}
               </button>
             </div>
           </div>

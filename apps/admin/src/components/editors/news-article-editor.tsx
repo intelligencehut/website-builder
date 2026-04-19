@@ -1,6 +1,6 @@
 'use client';
 
-import { Field, TextInput, TextArea, ImagePicker } from '@/components/ui/field';
+import { Field, TextInput, TextArea, ImagePicker, DocumentPicker } from '@/components/ui/field';
 import type { NewsArticle } from '@website-builder/content-schema';
 
 interface Props {
@@ -51,10 +51,9 @@ export function NewsArticleEditor({ article, onChange }: Props) {
         />
       </Field>
       <Field label="PDF Link">
-        <TextInput
-          mono
+        <DocumentPicker
           value={article.pdfLink ?? ''}
-          onChange={(e) => update({ pdfLink: e.currentTarget.value || undefined })}
+          onChange={(value) => update({ pdfLink: value || undefined })}
           placeholder="Optional"
         />
       </Field>

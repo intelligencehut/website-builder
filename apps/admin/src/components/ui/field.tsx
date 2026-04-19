@@ -209,7 +209,59 @@ export function ImagePicker({ value, onChange, label }: ImagePickerProps) {
 }
 
 /** Lazy-loaded media picker to avoid circular deps and bundle size */
-function MediaPickerLazy(props: { open: boolean; onClose: () => void; onSelect: (url: string) => void }) {
+function MediaPickerLazy(props: { open: boolean; onClose: () => void; onSelect: (url: string) => void; kind?: 'image' | 'document' }) {
   const { MediaPickerModal } = require('@/components/media/media-picker-modal');
   return <MediaPickerModal {...props} />;
+}
+
+interface DocumentPickerProps {
+  value: string;
+  onChange: (value: string) => void;
+  label?: string;
+  placeholder?: string;
+}
+
+export function DocumentPicker({ value, onChange, label, placeholder }: DocumentPickerProps) {
+  const [showPicker, setShowPicker] = useState(false);
+  const filename = value ? value.split('/').pop() || value : null;
+
+  return (
+    <div className="space-y-1.5">
+      {label && <label className="text-[11px] font-medium text-ink-secondary block">{label}</label>}
+      <div className="flex items-start gap-3">
+        <div className="w-14 h-14 bg-surface-raised rounded-[6px] border border-dashed border-surface-border flex items-center justify-center flex-shrink-0">
+          <svg className="w-5 h-5 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+        </div>
+        <div className="flex-1">
+          <TextInput
+            value={value}
+            onChange={(e) => onChange(e.currentTarget.value)}
+            placeholder={placeholder ?? '/documents/...'}
+            mono
+          />
+          {filename && value && (
+            <p className="mt-1 text-[11px] text-ink-muted truncate">{filename}</p>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowPicker(true)}
+            className="mt-1.5 text-[11px] text-accent hover:text-accent-hover transition-colors"
+          >
+            Browse Media Library
+          </button>
+        </div>
+      </div>
+      {showPicker && (
+        <MediaPickerLazy
+          open={showPicker}
+          onClose={() => setShowPicker(false)}
+          onSelect={(url) => { onChange(url); setShowPicker(false); }}
+          kind="document"
+        />
+      )}
+    </div>
+  );
 }

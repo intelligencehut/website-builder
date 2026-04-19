@@ -1,7 +1,7 @@
 'use client';
 
 import { SortableItemList } from './sortable-item-list';
-import { Field, TextInput, TextArea, SelectInput } from '@/components/ui/field';
+import { Field, TextInput, TextArea, SelectInput, DocumentPicker } from '@/components/ui/field';
 import type { Resource } from '@website-builder/content-schema';
 
 interface Props {
@@ -48,7 +48,7 @@ export function ResourcesEditor({ items, onChange }: Props) {
             />
           </Field>
           <Field label="URL">
-            <TextInput mono value={item.url} onChange={(e) => update({ url: e.currentTarget.value })} />
+            <DocumentPicker value={item.url} onChange={(value) => update({ url: value })} />
           </Field>
           <Field label="Size">
             <TextInput
