@@ -226,6 +226,38 @@ function articleSections({ title, excerpt, content, images = [], date, category,
 // Section content (verbatim from sevaa.net)
 // ============================================================
 
+// ---- Shared governance data (referenced by home + governance) ----
+const EXEC_COMMITTEE_ITEMS = [
+  { icon: "Crown", title: "Dibes BERA", description: "President" },
+  { icon: "Crown", title: "Dibya Gopal Ghatak", description: "Vice President" },
+  { icon: "Crown", title: "Samir Nayak", description: "Vice President" },
+  { icon: "Crown", title: "Narayan Tatachari", description: "Secretary" },
+  { icon: "Crown", title: "Pradip De", description: "Assistant Secretary" },
+  { icon: "Crown", title: "Pradip Mukherjee", description: "Treasurer" },
+  { icon: "Crown", title: "Gautam Banerjee", description: "Assistant Treasurer" },
+  { icon: "Users", title: "Asoke Punjabi", description: "Executive Member" },
+  { icon: "Users", title: "Bikas Baran Ghosh", description: "Executive Member" },
+  { icon: "Users", title: "Sajal Das", description: "Executive Member" },
+  { icon: "Users", title: "Krishnendu Das", description: "Executive Member" },
+];
+
+const GENERAL_MEMBERS_ITEMS = [
+  { icon: "Users", title: "Asit Baran Giri", description: "General Member" },
+  { icon: "Users", title: "Bikash Ghosh", description: "General Member" },
+  { icon: "Users", title: "Buddhadeb Midya", description: "General Member" },
+  { icon: "Users", title: "Debashis Bose", description: "General Member" },
+  { icon: "Users", title: "Debashis Chakraborty", description: "General Member" },
+  { icon: "Users", title: "Dilip Kar", description: "General Member" },
+  { icon: "Users", title: "Jyotirmoy Guha", description: "General Member" },
+  { icon: "Users", title: "Pralay Chakraborty", description: "General Member" },
+  { icon: "Users", title: "Pranab Mukherjee", description: "General Member" },
+  { icon: "Users", title: "Somnath Roy", description: "General Member" },
+  { icon: "Users", title: "Subrata Dhar", description: "General Member" },
+  { icon: "Users", title: "Sushil Mondal", description: "General Member" },
+  { icon: "Users", title: "Swaraj Bose", description: "General Member" },
+  { icon: "Users", title: "Tapas Samanta", description: "General Member" },
+];
+
 // ---- Home (/) ----
 const HOME_SECTIONS = {
   sections: [
@@ -260,55 +292,51 @@ const HOME_SECTIONS = {
       },
     },
     {
-      id: "programs",
-      type: "programs-grid",
+      id: "impact-areas",
+      type: "card-grid",
       data: {
-        eyebrow: "Our Programs",
-        heading: "Areas of Intervention",
-        subtitle: "Holistic community development through six interconnected programs",
-        background: "warm",
+        heading: "Our Impact",
+        subtitle: "Measuring success through lives transformed, communities empowered, and sustainable change created across West Bengal",
+        columns: 4,
         items: [
           {
+            icon: "Users",
+            title: "Community Development",
+            description: "Empowering communities through sustainable development initiatives",
+          },
+          {
             icon: "BookOpen",
-            iconColor: "primary",
-            title: "Education",
-            description: "Forest school, Nabadisha, and scholarships for underprivileged students.",
-            href: "/projects/saparambera",
+            title: "Education & Awareness",
+            description: "Quality education through Adur Pathshala and awareness programs",
           },
           {
             icon: "Heart",
-            iconColor: "red",
-            title: "Healthcare",
-            description: "Medical camps, telemedicine, and health awareness in rural villages.",
-            href: "/projects/health",
+            title: "Healthcare Services",
+            description: "Health awareness camps and medical support initiatives",
           },
           {
-            icon: "Users",
-            iconColor: "secondary",
-            title: "Livelihood",
-            description: "Lac cultivation, organic farming, and skill development for sustainable income.",
-            href: "/projects/livelihood",
+            icon: "TreePine",
+            title: "Environmental Conservation",
+            description: "Tree plantation and environmental awareness through Banomahotsab",
+          },
+        ],
+      },
+    },
+    {
+      id: "commitment",
+      type: "card-grid",
+      data: {
+        heading: "Our Commitment",
+        subtitle: "Dedicated to creating sustainable change in rural West Bengal",
+        columns: 2,
+        items: [
+          {
+            title: "Sustainable Development",
+            description: "Creating lasting change through education, healthcare, and environmental initiatives",
           },
           {
-            icon: "Globe",
-            iconColor: "gold",
-            title: "Environment",
-            description: "Tree plantation, climate mitigation, and sustainable village practices.",
-            href: "/formation-of-vivek-pally",
-          },
-          {
-            icon: "Lightbulb",
-            iconColor: "copper",
-            title: "Culture",
-            description: "Preserving tribal heritage through publications, events, and community celebrations.",
-            href: "/publications",
-          },
-          {
-            icon: "Shield",
-            iconColor: "primary",
-            title: "Relief",
-            description: "Emergency relief during natural disasters and health crises.",
-            href: "/support-activities",
+            title: "Community Empowerment",
+            description: "Working with local communities to build capacity and self-reliance",
           },
         ],
       },
@@ -346,21 +374,21 @@ const HOME_SECTIONS = {
       id: "testimonials",
       type: "testimonials",
       data: {
-        heading: "Voices from the Community",
-        subtitle: "What our partners and beneficiaries say about SEVAA's work",
+        heading: "What people say About Sevaa",
+        subtitle: "Testimonials",
         background: "cream",
         items: [
           {
             quote:
-              "SEVAA has transformed our village. From having no school, electricity, or proper livelihood, Saparambera today is a model for sustainable rural development.",
-            author: "Villager",
-            role: "Saparambera, Ajodhya Hills",
+              "I have been introduced with SEVAA through Pratham Housing Complex where a good number of SEVAA friends stay. I have been associated for last few years and see that the wheel turners who are running SEVAA are genuinely performing activities in the society, particularly for tribals and downtrodden people.",
+            author: "Himadri Saha",
+            role: "Engineer",
           },
           {
             quote:
-              "The dedication of SEVAA members in bringing quality education, healthcare, and livelihood opportunities to our tribal community is truly inspirational.",
-            author: "Community Leader",
-            role: "Purulia District",
+              "Wherever SEVAA works, a magical result is seen. It is due to the blessings of Thakur-Maa-Swamiji. SEVAA could converge education with health, health with agriculture, agriculture with environment and finally it promotes well being of the suffering people. This inspired my organisation, Medical Rehabilitation Trust to make a permanent tie with SEVAA. I hope a rapid success of this organisation in future.",
+            author: "Dr M M Ghatak",
+            role: "MD, Physician, eminent social worker and Chairman of Medical Rehabilitation Trust (MRT), Kolkata",
           },
         ],
       },
@@ -382,6 +410,16 @@ const HOME_SECTIONS = {
           { icon: "Crown", title: "Gautam Banerjee", description: "Assistant Treasurer" },
           { icon: "Users", title: "Asoke Punjabi", description: "Executive Member" },
         ],
+      },
+    },
+    {
+      id: "general-members",
+      type: "card-grid",
+      data: {
+        heading: "General Members",
+        subtitle: "14 dedicated general members who support SEVAA's mission",
+        columns: 4,
+        items: GENERAL_MEMBERS_ITEMS,
       },
     },
     {
@@ -459,28 +497,53 @@ const HOME_SECTIONS = {
       id: "upcoming-events",
       type: "card-grid",
       data: {
-        heading: "Upcoming Events",
-        subtitle: "Join us at our community programs and cultural celebrations",
-        columns: 3,
+        heading: "Join to our upcoming events and get involved",
+        subtitle: "Upcoming Events",
+        columns: 4,
         items: [
           {
-            title: "Inauguration of TMSVV",
-            description: "State Ministers and SP-Purulia inaugurated the school in a grand ceremony.",
-            badge: "March 9, 2025",
-            link: "/events",
+            title: "Lac Cultivation Training Program",
+            description: "Cluster-based lac cultivation training for sustainable livelihood development in Purulia district.",
+            image: "/images/events/1.jpg",
+            badge: "Livelihood",
+            link: "/projects/livelihood",
           },
           {
-            title: "Health Camp Inauguration",
-            description: "ServicePlace USA organized Health Camp at Primary Health Centre.",
-            badge: "March 10, 2025",
-            link: "/events",
+            title: "Adur Pathshala - Learning Centers",
+            description: "Neighbourhood learning centres providing quality education in rural areas of Purulia and Paschim Burdwan.",
+            image: "/images/events/2.jpg",
+            badge: "Education",
+            link: "/projects/saparambera",
           },
           {
-            title: "Independence Day Celebration",
-            description: "Independence Day celebrated with great enthusiasm at the TMSVV school.",
-            badge: "August 15, 2025",
-            link: "/events",
+            title: "Organic & Kitchen Garden Project",
+            description: "Promoting organic farming and kitchen gardens for food security and sustainable agriculture.",
+            image: "/images/events/3.jpg",
+            badge: "Agriculture",
+            link: "/projects/livelihood",
           },
+          {
+            title: "Health Awareness & Medical Camp",
+            description: "Regular health checkups and awareness programs for rural communities in Purulia district.",
+            image: "/images/events/2.jpg",
+            badge: "Healthcare",
+            link: "/projects/health",
+          },
+        ],
+      },
+    },
+    {
+      id: "upcoming-activities",
+      type: "list",
+      data: {
+        heading: "Activities in Progress",
+        subtitle: "Ongoing activities led by SEVAA across communities",
+        items: [
+          "School building under Construction",
+          "Health and Well-being Camps",
+          "Cluster based Lac cultivation",
+          "Organic food production",
+          "Audio visual Program at community centres",
         ],
       },
     },
@@ -498,16 +561,41 @@ const HOME_SECTIONS = {
     },
     {
       id: "resources",
-      type: "list",
+      type: "card-grid",
       data: {
-        heading: "Downloadable Resources",
-        subtitle: "Access our publications, reports, and awareness materials",
+        heading: "Resources & Downloads",
+        subtitle: "Access our annual reports, program documentation, and other important resources to learn more about our work and impact.",
+        columns: 4,
         items: [
-          "SEVAA Annual Report 2024",
-          "Tilka Murmu Forest School Brochure",
-          "Nostalgic Narendrapur E-Magazine",
-          "Sevaa Sammelan 2023 Proceedings",
-          "Campaign Videos and Documentation",
+          {
+            icon: "FileText",
+            title: "Tilka Murmu SEVAA Vano Vidyalay",
+            description: "Inauguration details and facilities information for Tilka Murmu Forest School at Saparambera, Ajodhya Hills, Purulia.",
+            badge: "March 2025 · 2.1 MB",
+            link: "/documents/Tilka Murmu Forest School.pdf",
+            ctaLabel: "Download",
+          },
+          {
+            icon: "BookOpen",
+            title: "Annual Report 2024",
+            description: "Comprehensive overview of our activities, impact, and financial statements for the year 2024.",
+            badge: "Coming Soon",
+            ctaLabel: "Coming Soon",
+          },
+          {
+            icon: "BookOpen",
+            title: "Audited Financial Reports",
+            description: "Year-wise audited financial reports showing transparency in our fund utilization.",
+            badge: "Yearly · Multiple Files · Coming Soon",
+            ctaLabel: "Coming Soon",
+          },
+          {
+            icon: "FileText",
+            title: "Program Brochure",
+            description: "Detailed information about all our ongoing programs and initiatives.",
+            badge: "Coming Soon",
+            ctaLabel: "Coming Soon",
+          },
         ],
       },
     },
@@ -588,37 +676,6 @@ const MISSION_VISION_SECTIONS = {
 };
 
 // ---- /governance ----
-const EXEC_COMMITTEE_ITEMS = [
-  { icon: "Crown", title: "Dibes BERA", description: "President" },
-  { icon: "Crown", title: "Dibya Gopal Ghatak", description: "Vice President" },
-  { icon: "Crown", title: "Samir Nayak", description: "Vice President" },
-  { icon: "Crown", title: "Narayan Tatachari", description: "Secretary" },
-  { icon: "Crown", title: "Pradip De", description: "Assistant Secretary" },
-  { icon: "Crown", title: "Pradip Mukherjee", description: "Treasurer" },
-  { icon: "Crown", title: "Gautam Banerjee", description: "Assistant Treasurer" },
-  { icon: "Users", title: "Asoke Punjabi", description: "Executive Member" },
-  { icon: "Users", title: "Bikas Baran Ghosh", description: "Executive Member" },
-  { icon: "Users", title: "Sajal Das", description: "Executive Member" },
-  { icon: "Users", title: "Krishnendu Das", description: "Executive Member" },
-];
-
-const GENERAL_MEMBERS_ITEMS = [
-  { icon: "Users", title: "Asit Baran Giri", description: "General Member" },
-  { icon: "Users", title: "Bikash Ghosh", description: "General Member" },
-  { icon: "Users", title: "Buddhadeb Midya", description: "General Member" },
-  { icon: "Users", title: "Debashis Bose", description: "General Member" },
-  { icon: "Users", title: "Debashis Chakraborty", description: "General Member" },
-  { icon: "Users", title: "Dilip Kar", description: "General Member" },
-  { icon: "Users", title: "Jyotirmoy Guha", description: "General Member" },
-  { icon: "Users", title: "Pralay Chakraborty", description: "General Member" },
-  { icon: "Users", title: "Pranab Mukherjee", description: "General Member" },
-  { icon: "Users", title: "Somnath Roy", description: "General Member" },
-  { icon: "Users", title: "Subrata Dhar", description: "General Member" },
-  { icon: "Users", title: "Sushil Mondal", description: "General Member" },
-  { icon: "Users", title: "Swaraj Bose", description: "General Member" },
-  { icon: "Users", title: "Tapas Samanta", description: "General Member" },
-];
-
 const GOVERNANCE_SECTIONS = {
   sections: [
     {
@@ -656,12 +713,36 @@ const GOVERNANCE_SECTIONS = {
         subtitle: "Specialized committees working on specific areas of our mission",
         columns: 3,
         items: [
-          { icon: "BookOpen", title: "Education Subcommittee", description: "Oversees forest school, Nabadisha and scholarships." },
-          { icon: "Heart", title: "Health Subcommittee", description: "Coordinates medical camps and telemedicine services." },
-          { icon: "Users", title: "Livelihood Subcommittee", description: "Guides lac cultivation and skill development programs." },
-          { icon: "Newspaper", title: "Publication Subcommittee", description: "Manages annual reports and e-magazines." },
-          { icon: "Wallet", title: "Finance Subcommittee", description: "Ensures transparency, audits and financial compliance." },
-          { icon: "Lightbulb", title: "Cultural Subcommittee", description: "Organizes Sammelan, festivals and cultural outreach." },
+          {
+            icon: "GraduationCap",
+            title: "Education Subcommittee",
+            description: "Focuses on educational initiatives and literacy programs. Leader: Dibya Gopal Ghatak. Assistant Leader: Samir Nayak. Members: Ratan Ghosh Dastidar, Swapan Maity, Ahana Bera, Asit Baran Giri, Sudesna Giri, Bina Punjabi, Bisweswar Ghosh.",
+          },
+          {
+            icon: "Heart",
+            title: "We Support Sub committee",
+            description: "Coordinates support activities and community assistance. Leader: Asoke Punjabi. Assistant Leader: Samir Nayak.",
+          },
+          {
+            icon: "Briefcase",
+            title: "Livelihood Sub Committee",
+            description: "Develops livelihood programs and skill development initiatives. Leader: Krishnendu Das. Assistant Leader: Pradip De. Members: Siddharth Maity, Tapas Halder.",
+          },
+          {
+            icon: "HeartHandshake",
+            title: "Health Sub Committee",
+            description: "Manages health programs and medical assistance initiatives. Leader: Bikas Baran Ghosh. Assistant Leader: Saikat Das. Members: Dr. Netai Dutta, Dr. M M Ghatak, Jaydev De, Debasis Chowdhury.",
+          },
+          {
+            icon: "BookOpen",
+            title: "Cultural & Publication Sub Committee",
+            description: "Oversees cultural activities and publication initiatives. Leader: Gautam Banerjee. Assistant Leader: Swapan Maity. Members: Subrata Dhar, Bikas Baran Ghosh, Saikat Das.",
+          },
+          {
+            icon: "Monitor",
+            title: "Tech-Support & Website Sub Committee",
+            description: "Manages technical infrastructure and website development. Leader: Sajal Das. Assistant Leader: Ratan Ghosh Dastidar. Members: Ramit Kumar Ray, Aadrita Banerjee, Amit Das, Gautam Banerjee, Samir Nayak.",
+          },
         ],
       },
     },
@@ -670,15 +751,15 @@ const GOVERNANCE_SECTIONS = {
       type: "card-grid",
       data: {
         heading: "Land Donors",
-        subtitle: "Families who generously donated land for SEVAA projects",
-        columns: 3,
+        subtitle: "Generous individuals who donated land for SEVAA's community development projects",
+        columns: 2,
         items: [
-          { icon: "HandHeart", title: "Nimai Sing Sardar", description: "Saparambera Village" },
-          { icon: "HandHeart", title: "Mahen Sing Sardar", description: "Saparambera Village" },
-          { icon: "HandHeart", title: "Pratima Sardar", description: "Saparambera Village" },
-          { icon: "HandHeart", title: "Duti Sardar", description: "Saparambera Village" },
-          { icon: "HandHeart", title: "Laxman Sardar", description: "Saparambera Village" },
-          { icon: "HandHeart", title: "Sukanti Sardar", description: "Saparambera Village" },
+          { icon: "MapPin", title: "Ganesh Murmu", description: "S/O Lt. Dhaniram Murmu" },
+          { icon: "MapPin", title: "Sudhir Murmu", description: "S/O Lt. Mansaram Murmu" },
+          { icon: "MapPin", title: "Joysingh Murmu", description: "S/O Lt. Mansaram Murmu" },
+          { icon: "MapPin", title: "Jamiswar Murmu", description: "S/O Lt. Rasik Murmu" },
+          { icon: "MapPin", title: "Matal Murmu", description: "S/O Lt. Rasik Murmu" },
+          { icon: "MapPin", title: "Buddhadeb Murmu", description: "S/O Lt. Shankar Murmu" },
         ],
       },
     },
@@ -700,21 +781,21 @@ const GOVERNANCE_SECTIONS = {
         subtitle: "15 associate members actively supporting our work",
         columns: 4,
         items: [
-          { title: "Associate Member 1", description: "Associate Member" },
-          { title: "Associate Member 2", description: "Associate Member" },
-          { title: "Associate Member 3", description: "Associate Member" },
-          { title: "Associate Member 4", description: "Associate Member" },
-          { title: "Associate Member 5", description: "Associate Member" },
-          { title: "Associate Member 6", description: "Associate Member" },
-          { title: "Associate Member 7", description: "Associate Member" },
-          { title: "Associate Member 8", description: "Associate Member" },
-          { title: "Associate Member 9", description: "Associate Member" },
-          { title: "Associate Member 10", description: "Associate Member" },
-          { title: "Associate Member 11", description: "Associate Member" },
-          { title: "Associate Member 12", description: "Associate Member" },
-          { title: "Associate Member 13", description: "Associate Member" },
-          { title: "Associate Member 14", description: "Associate Member" },
-          { title: "Associate Member 15", description: "Associate Member" },
+          { icon: "UserCheck", title: "Adrija Bannerjee", description: "Associate Member" },
+          { icon: "UserCheck", title: "Ahana Bera", description: "Associate Member" },
+          { icon: "UserCheck", title: "Dipankar Dan", description: "Associate Member" },
+          { icon: "UserCheck", title: "Krishnendu Kundu", description: "Associate Member" },
+          { icon: "UserCheck", title: "Ranita Ghosh Dastidar", description: "Associate Member" },
+          { icon: "UserCheck", title: "Santosh Mandal", description: "Associate Member" },
+          { icon: "UserCheck", title: "Tapas Kumar Haldar", description: "Associate Member" },
+          { icon: "UserCheck", title: "Tarun Ghatak", description: "Associate Member" },
+          { icon: "UserCheck", title: "Dr Tapas Mondal", description: "Associate Member" },
+          { icon: "UserCheck", title: "Dr Srishti Nayak", description: "Associate Member" },
+          { icon: "UserCheck", title: "Dilip kr Som", description: "Associate Member" },
+          { icon: "UserCheck", title: "Maloy Chakraborty", description: "Associate Member" },
+          { icon: "UserCheck", title: "Shukdev Das", description: "Associate Member" },
+          { icon: "UserCheck", title: "Ushakanta Kundu", description: "Associate Member" },
+          { icon: "UserCheck", title: "Jitendranath Jana", description: "Associate Member" },
         ],
       },
     },
@@ -777,15 +858,7 @@ const TEAM_SECTIONS = {
       type: "text",
       data: {
         heading: "উপদেষ্টা পরিষদ পুনর্গঠন চলমান",
-        body: "<p>SEVAA এর উপদেষ্টা পরিষদ বর্তমানে পুনর্গঠনের প্রক্রিয়াধীন রয়েছে। আমাদের সাংগঠনিক কাঠামো আধুনিকায়ন ও নতুন চ্যালেঞ্জ মোকাবেলার জন্য একটি নতুন উপদেষ্টা পরিষদ গঠনের কাজ চলমান।</p><p>পূর্ববর্তী উপদেষ্টা পরিষদের সদস্যদের অবদানের স্বীকৃতিস্বরূপ তাদের তথ্য আমাদের আর্কাইভে সংরক্ষিত রয়েছে।</p>",
-      },
-    },
-    {
-      id: "archives-link",
-      type: "text",
-      data: {
-        heading: "Former Members Archive",
-        body: "<p>The records of the previous Advisory Body and Executive Committee (2023-2025) who contributed to SEVAA during its foundational years are preserved in our archives. Their service and guidance helped shape the organization's current structure.</p><p><a href='/archives/general'>View former Advisory Body &amp; Executive Committee (2023-2025)</a></p>",
+        body: "<p>SEVAA এর উপদেষ্টা পরিষদ বর্তমানে পুনর্গঠনের প্রক্রিয়াধীন রয়েছে। আমাদের সাংগঠনিক কাঠামো আধুনিকায়ন ও নতুন চ্যালেঞ্জ মোকাবেলার জন্য একটি নতুন উপদেষ্টা পরিষদ গঠনের কাজ চলমান।</p><p>পূর্ববর্তী উপদেষ্টা পরিষদের সদস্যদের অবদানের স্বীকৃতিস্বরূপ তাদের তথ্য আমাদের <a href='/archives/general'>পূর্ববর্তী উপদেষ্টা পরিষদ</a> আর্কাইভে সংরক্ষিত রয়েছে।</p>",
       },
     },
     {
@@ -797,16 +870,6 @@ const TEAM_SECTIONS = {
         background: "terracotta",
         primaryCta: { label: "Join as Volunteer", href: "/join-us" },
         secondaryCta: { label: "View Governance", href: "/governance" },
-      },
-    },
-    {
-      id: "archives-cta",
-      type: "cta",
-      data: {
-        heading: "পূর্ববর্তী উপদেষ্টা পরিষদ",
-        description: "Explore the records of former Advisory Body and Executive Committee members (2023-2025) preserved in our archives.",
-        background: "light",
-        primaryCta: { label: "পূর্ববর্তী উপদেষ্টা পরিষদ দেখুন", href: "/archives/general" },
       },
     },
   ],
@@ -844,7 +907,6 @@ const OUR_GENESIS_SECTIONS = {
       id: "gallery",
       type: "gallery",
       data: {
-        heading: "Moments from the Journey",
         images: [
           { src: "/images/userfiles/image/Old memories Narendrapur college mates.jpg", alt: "Old memories of Narendrapur college mates", caption: "Old memories of Narendrapur college mates" },
           { src: "/images/userfiles/image/R K M College batch with Satyada.jpg", alt: "RKM College batch with Satyada", caption: "RKM College batch with our beloved Satyada" },
@@ -955,7 +1017,6 @@ const FORMATION_VP_SECTIONS = {
       type: "cta",
       data: {
         heading: "Tilka Murmu SEVAA Vano Vidyalaya",
-        description: "Learn more about our flagship forest school and the Vivekpalli model.",
         background: "terracotta",
         primaryCta: { label: "Download Brochure", href: "/documents/Tilka Murmu Forest School.pdf", icon: "ExternalLink" },
       },
@@ -969,23 +1030,19 @@ const FORMATION_VP_SECTIONS = {
       },
     },
     {
-      id: "beginning-impact",
-      type: "card-grid",
+      id: "beginning",
+      type: "text",
       data: {
-        heading: "From Beginning to Impact",
-        columns: 2,
-        items: [
-          {
-            title: "The Beginning",
-            description:
-              "SEVAA surveyed a few villages in Ajodhya Hills and the first Vivekpalli was established in April 2022 in the \"Village Saparambera\", Ajodhya, Purulia. The village had no school, electricity, proper livelihood and roads. The villagers had no adequate money to buy quality seeds for farming. SEVAA started connecting the village with the outside world and governmental facilities, training them how to solve problems through best utilisation of existing resources.",
-          },
-          {
-            title: "The Impact",
-            description:
-              "This Vivekpally was named as Birbaba Tilka Murmu Vivekpalli (an Unit of SEVAA) which has been executing activities on all 52 families of that village. In the last 2 years SEVAA has started projects at Saparambera Vivekpalli mainly in areas of Education, Health, Livelihood, Agriculture, Environment and Culture. A great impact can be seen on the minds of the villagers.",
-          },
-        ],
+        heading: "The Beginning",
+        body: "<p>SEVAA surveyed a few villages in Ajodhya Hills and the first Vivekpalli was established in April 2022 in the \"Village Saparambera\", Ajodhya, Purulia. The village had no school, electricity, proper livelihood and roads.</p><p>The villagers had no adequate money to buy quality seeds for farming. SEVAA started connecting the village with the outside world and governmental facilities, training them how to solve problems through best utilisation of existing resources.</p>",
+      },
+    },
+    {
+      id: "impact",
+      type: "text",
+      data: {
+        heading: "The Impact",
+        body: "<p>This Vivekpally was named as <strong>Birbaba Tilka Murmu Vivekpalli</strong> (an Unit of SEVAA) which has been executing activities on all 52 families of that village.</p><p>In the last 2 years SEVAA has started projects at Saparambera Vivekpalli mainly in areas of Education, Health, Livelihood, Agriculture, Environment and Culture. A great impact can be seen on the minds of the villagers.</p>",
       },
     },
     {
@@ -1251,6 +1308,22 @@ const CONTACT_SECTIONS = {
       },
     },
     {
+      id: "office-hours",
+      type: "text",
+      data: {
+        heading: "Office Hours",
+        body: "<ul><li><strong>Monday - Friday:</strong> 9:00 AM - 6:00 PM</li><li><strong>Saturday:</strong> 9:00 AM - 1:00 PM</li><li><strong>Sunday:</strong> Closed</li></ul>",
+      },
+    },
+    {
+      id: "quick-response",
+      type: "text",
+      data: {
+        heading: "Quick Response Guarantee",
+        body: "<p>We typically respond to all inquiries within 24 hours during business days. For urgent matters, please call us directly.</p>",
+      },
+    },
+    {
       id: "faq",
       type: "card-grid",
       data: {
@@ -1318,15 +1391,16 @@ const NEWS_SECTIONS = {
             description:
               "A historic moment as we inaugurate our forest school with allied facilities and centers at Saparambera, Ajodhya Hills, Purulia.",
             image: "/images/userfiles/image/Sevaa Booklet 2024_001.jpg",
-            link: "/news/tilka-murmu-school",
-            badge: "Education",
+            link: "/documents/Tilka Murmu Forest School.pdf",
+            ctaLabel: "Download PDF",
+            badge: "Forest School",
           },
           {
             title: "SEVAA Annual Booklet 2024 Released",
             description:
               "Our comprehensive annual booklet showcasing all activities, achievements, and impact of SEVAA throughout 2024.",
             image: "/images/userfiles/image/Sevaa Booklet 2024_002.jpg",
-            link: "/news",
+            link: "/news/sevaa-booklet-2024",
             badge: "Publication",
           },
           {
@@ -1334,7 +1408,7 @@ const NEWS_SECTIONS = {
             description:
               "Successful completion of Local Area Coordinator training program for community development and capacity building.",
             image: "/images/news_image/org/lac training program-1721231943.jpg",
-            link: "/news",
+            link: "/news/lac-training-program",
             badge: "Training",
           },
           {
@@ -1342,7 +1416,7 @@ const NEWS_SECTIONS = {
             description:
               "Our organization and impactful work has been featured in The Telegraph newspaper, highlighting our community development initiatives.",
             image: "/images/userfiles/image/the telegraph_001.jpg",
-            link: "/news/media",
+            link: "/news/media-coverage-telegraph",
             badge: "Media Coverage",
           },
         ],
@@ -1362,7 +1436,6 @@ const EVENTS_SECTIONS = {
         title: "Events",
         subtitle:
           "Stay connected with our community programs, educational activities, and cultural celebrations",
-        image: { src: "/images/events/2.jpg", alt: "SEVAA events and celebrations" },
       },
     },
     {
@@ -1384,7 +1457,6 @@ const EVENTS_SECTIONS = {
             description:
               "ServicePlace USA organized Health Camp arranged by Primary Health Centre was inaugurated.",
             badge: "March 10, 2025",
-            link: "/events",
           },
           {
             title: "Independence Day Celebration",
@@ -1497,25 +1569,6 @@ const GALLERY_PHOTOS_SECTIONS = {
         ],
       },
     },
-    {
-      id: "more-coming",
-      type: "text",
-      data: {
-        heading: "More Photos Coming Soon",
-        body: "<p>Our documentation team is continuously capturing moments from our programs across villages. New photo galleries from recent medical camps, school events, cultural celebrations and environmental drives will be added here regularly.</p>",
-      },
-    },
-    {
-      id: "support-docs",
-      type: "cta",
-      data: {
-        heading: "Support Our Documentation Efforts",
-        description: "Help us build a richer visual archive of SEVAA's community work — your support funds cameras, volunteer photographers, and on-site documentation.",
-        background: "terracotta",
-        primaryCta: { label: "Support Our Work", href: "/join-us" },
-        secondaryCta: { label: "Contact Us", href: "/contact" },
-      },
-    },
   ],
 };
 
@@ -1552,16 +1605,16 @@ const ANNUAL_REPORTS_SECTIONS = {
       id: "activities-summary-part-1",
       type: "text",
       data: {
-        heading: "Activities Summary — Part 1",
-        body: "<h4>Education</h4><p>Forest school operations at Saparambera, Nabadisha programme in Ukhra, scholarships for meritorious students, and SMART classroom initiatives during regular school hours.</p><h4>Healthcare</h4><p>Medical camps in tribal villages, specialist gynecological camps, telemedicine partnerships with ServicePlace USA, and individual healthcare support including cataract operations.</p><h4>Livelihood</h4><p>Lac cultivation training, organic farming collaborations with Kalyan Krishi Vigyan Kendra, skill development workshops, and agricultural training with district officers.</p>",
+        heading: "Annual Activities Summary - Part 1",
+        body: "<p>Overview of our key projects and initiatives throughout the year.</p><h4>Education</h4><p>Forest school operations at Saparambera, Nabadisha programme in Ukhra, scholarships for meritorious students, and classroom initiatives supporting marginalised students.</p><h4>Healthcare</h4><p>Medical camps in tribal villages, specialist camps, and individual healthcare support.</p><h4>Livelihood</h4><p>Lac cultivation training, organic farming, skill development workshops, and agricultural training sessions.</p>",
       },
     },
     {
       id: "activities-summary-part-2",
       type: "text",
       data: {
-        heading: "Activities Summary — Part 2",
-        body: "<h4>Environment &amp; Culture</h4><p>Tree plantation festivals, preservation of tribal folk culture, Sevaa Sammelan, and community celebrations anchored in local traditions.</p><h4>Emergency Relief</h4><p>Cyclone YAAS relief in 3 islands of North 24 Parganas, flood relief in Sundarbans, and COVID-19 support at Narendrapur and through Janaswasthya Suraksha Samanyay.</p><h4>Publications</h4><p>Nostalgic Narendrapur magazine (2 issues), annual reports, campaign materials and video documentation on YouTube.</p>",
+        heading: "Annual Activities Summary - Part 2",
+        body: "<p>Detailed breakdown of community impact and beneficiary statistics.</p><h4>Environment &amp; Culture</h4><p>Tree plantation festivals, preservation of tribal folk culture, Sevaa Sammelan, and community celebrations anchored in local traditions.</p><h4>Emergency Relief</h4><p>Relief activities during natural calamities and COVID-19 support.</p><h4>Publications</h4><p>Nostalgic Narendrapur magazine, annual reports, campaign materials and video documentation.</p>",
       },
     },
     {
@@ -1600,8 +1653,8 @@ const ANNUAL_REPORTS_SECTIONS = {
       id: "more-info",
       type: "text",
       data: {
-        heading: "Need More Info?",
-        body: "<p>For older reports, audited financial statements, 80G certificates, or any additional documentation related to our activities, please get in touch. We believe in complete transparency and are happy to share any details you need.</p>",
+        heading: "Need More Information?",
+        body: "<p>For detailed queries about our reports or specific information, please contact us.</p>",
       },
     },
     {
@@ -1667,7 +1720,7 @@ const PUBLICATIONS_SECTIONS = {
             title: "Video Documentation",
             description:
               "Campaign videos showcasing our work and impact, including content uploaded to our YouTube channel with significant community engagement. Content: 3+ campaign videos developed",
-            link: "/",
+            link: "/gallery/videos",
           },
         ],
       },
@@ -1677,7 +1730,41 @@ const PUBLICATIONS_SECTIONS = {
       type: "text",
       data: {
         heading: "Training, Festival and Sammelan",
-        body: "<p>Each year SEVAA holds several training programmes and Sammelan or Festival for attracting and involving outside people in SEVAA activities.</p><h3>Training Programs</h3><p><strong>Lac Cultivation Training:</strong> Conducted thrice at Saparambera, making huge impact on the local community.</p><p><strong>Teachers' Training:</strong> Held thrice at Ukhra, significantly impacting local educational practices.</p><h3>Program Evaluation Festival (January 2023)</h3><p>A program evaluation team visited Saparambera, Ajodhya Hills, which evolved into a community festival where tribal people performed their traditional rituals, songs, and dances in celebration.</p><h3>First SEVAA Sammelan (January 28, 2024)</h3><p><strong>Venue:</strong> Maa Sarada Hall, Narendrapur R.K. Mission Lokshiksha Parishad<br/><strong>Inaugurated by:</strong> Hon'ble Principal Maharaj, Swami Ekachittanandaji<br/><strong>Chief Guest:</strong> Dr. Manas Ghosh<br/><strong>Sessions:</strong> About SEVAA, Health Awareness & SEVAA, Civil Society Organisation & SEVAA, Open Discussion<br/><strong>Closing:</strong> Presided by Swami Basavananda, Chief Guest Justice Rajarshi Bharadwaj</p>",
+        body: "<p>Each year SEVAA holds several training programmes and Sammelan or Festival for attracting and involving outside people in SEVAA activities.</p><h3>Training Programs</h3><p><strong>Lac Cultivation Training:</strong> Conducted thrice at Saparambera, making huge impact on the local community.</p><p><strong>Teachers' Training:</strong> Held thrice at Ukhra, significantly impacting local educational practices.</p><h3>Program Evaluation Festival (January 2023)</h3><p>A program evaluation team visited Saparambera, Ajodhya Hills, which evolved into a community festival where tribal people performed their traditional rituals, songs, and dances in celebration.</p><h3>First SEVAA Sammelan (January 28, 2024)</h3><p><strong>Venue:</strong> Maa Sarada Hall, Narendrapur R.K. Mission Lokshiksha Parishad</p><p><strong>Participants:</strong> Regular members and families, Associate members, representatives from Saparambera and SEVAA Ukhra, well-wishers, and distinguished guests.</p><p><strong>Inaugurated by:</strong> Hon'ble Principal Maharaj, Swami Ekachittanandaji<br/><strong>Chief Guest:</strong> Dr. Manas Ghosh</p>",
+      },
+    },
+    {
+      id: "sammelan-sessions",
+      type: "card-grid",
+      data: {
+        heading: "Sammelan Session Schedule",
+        columns: 2,
+        items: [
+          {
+            title: "1. About SEVAA",
+            description: "Representatives introduced activities from Kolkata, Saparambera Vivekpally, SEVAA Ukhra, and Sudur Pathshala teachers. Compered by: Dr. Sajal Das and Dr. Swaraj Bose.",
+          },
+          {
+            title: "2. Health Awareness & SEVAA",
+            description: "Health-focused discussions and community wellness programs. Compered by: Samir Nayek and Dibes Bera. Participants: Dr. Punyabrata Gun, Dr. Nandini Mukherjee.",
+          },
+          {
+            title: "3. Civil Society Organisation & SEVAA",
+            description: "Representatives from 10+ CSOs discussed networking opportunities for field-level program implementation. Compered by: Dibya Gopal Ghatak and Dr. Jaydev De.",
+          },
+          {
+            title: "4. Open Discussion",
+            description: "Community dialogue and feedback session for future planning. Compered by: Ratan Ghosh Dastidar.",
+          },
+        ],
+      },
+    },
+    {
+      id: "sammelan-closing",
+      type: "text",
+      data: {
+        heading: "Closing Session",
+        body: "<p><strong>Presided by:</strong> Swami Basavananda<br/><strong>Chief Guest:</strong> Justice Rajarshi Bharadwaj<br/><strong>Special Guests:</strong> Dr. Nilendu Moitra and Dr. Mouli Madhab Ghatak</p><p>The event concluded with a beautiful evening cultural programme performed by SEVAA members and tribal participants from Saparambera.</p>",
       },
     },
     {
@@ -1685,14 +1772,12 @@ const PUBLICATIONS_SECTIONS = {
       type: "card-grid",
       data: {
         heading: "Publication Categories",
-        subtitle: "Explore our publications by category",
-        columns: 3,
+        columns: 4,
         items: [
-          { icon: "BookOpen", title: "Magazines", description: "Annual literary and activity magazines including the flagship \"Nostalgic Narendrapur\".", link: "/publications/nostalgic-narendrapur", ctaLabel: "View Magazine" },
-          { icon: "FileBarChart", title: "Annual Reports", description: "Detailed yearly reports documenting organizational activities, achievements, and financial statements.", link: "/annual-reports", ctaLabel: "View Reports" },
-          { icon: "FileText", title: "Campaign Materials", description: "Educational leaflets and promotional materials for awareness campaigns and program promotion.", link: "/contact", ctaLabel: "Request Materials" },
-          { icon: "Video", title: "Video Content", description: "Campaign videos and documentaries showcasing our impact, available on our YouTube channel.", link: "/gallery/videos", ctaLabel: "Watch Videos" },
-          { icon: "Mail", title: "Subscribe to Updates", description: "Receive notifications about new publications, reports, and campaign materials.", link: "/contact", ctaLabel: "Subscribe" },
+          { icon: "BookOpen", title: "Magazines", description: "Annual literary and activity magazines including the flagship \"Nostalgic Narendrapur\".", link: "/publications/nostalgic-narendrapur" },
+          { icon: "FileText", title: "Annual Reports", description: "Detailed yearly reports documenting organizational activities, achievements, and financial statements.", link: "/annual-reports" },
+          { icon: "FileText", title: "Campaign Materials", description: "Educational leaflets and promotional materials for awareness campaigns and program promotion." },
+          { icon: "Video", title: "Video Content", description: "Campaign videos and documentaries showcasing our impact, available on our YouTube channel.", link: "/gallery/videos" },
         ],
       },
     },
@@ -1764,7 +1849,7 @@ const ASSOCIATES_SECTIONS = {
         description: "See our complete governance structure including all associate members",
         background: "terracotta",
         primaryCta: { label: "View Associate Members", href: "/governance#sevaa-assoc-members" },
-        secondaryCta: { label: "View All Associate Members", href: "/governance" },
+        secondaryCta: { label: "View All Associate Members", href: "/governance#sevaa-assoc-members" },
       },
     },
   ],
@@ -1778,9 +1863,13 @@ const NEWS_BIRTHDAY_BASE = articleSections({
   title: "Birthday Celebrations",
   excerpt: "Celebrating special moments and strengthening community bonds",
   content: `<p>At SEVAA, we believe in celebrating life's special moments together as one big family. Our birthday celebrations and anniversary commemorations bring joy, strengthen bonds, and create lasting memories within our community.</p><p>These celebrations reflect our core values of unity, compassion, and community spirit. Every birthday and anniversary is an opportunity to express gratitude and strengthen our bonds as the SEVAA family.</p><h3>Our Celebration Categories</h3><ul><li><strong>Community Members:</strong> Celebrating birthdays of SEVAA team members and volunteers.</li><li><strong>Special Anniversaries:</strong> Marking important milestones and organizational anniversaries.</li><li><strong>Cultural Celebrations:</strong> Honoring traditional festivals and cultural occasions.</li></ul><h3>More Than Just Celebrations</h3><h4>Building Relationships</h4><p>Our celebrations foster deeper connections among team members, volunteers, and community partners.</p><h4>Creating Memories</h4><p>These special moments create lasting memories that strengthen our collective identity as the SEVAA family.</p><h4>Spreading Joy</h4><p>Every celebration brings happiness and positive energy to our community, enhancing our work environment.</p><h4>Cultural Values</h4><p>We honor cultural traditions and values through our celebration practices and customs.</p>`,
-  date: "Year-round Celebrations",
-  category: "Community",
 });
+
+// Override the page-header highlights to use Calendar + MapPin (pre-CMS style)
+NEWS_BIRTHDAY_BASE.sections[0].data.highlights = [
+  { icon: "Calendar", text: "Year-round Celebrations" },
+  { icon: "MapPin", text: "SEVAA Community Centers" },
+];
 
 const NEWS_BIRTHDAY_SECTIONS = (() => {
   const sections = [...NEWS_BIRTHDAY_BASE.sections];
@@ -1789,11 +1878,11 @@ const NEWS_BIRTHDAY_SECTIONS = (() => {
     id: "celebration-close",
     type: "cta",
     data: {
-      heading: "May the joy continue",
-      description: "Every shared candle, song and good wish deepens our SEVAA family. Celebrate a loved one's birthday with our children and communities.",
-      background: "light",
-      primaryCta: { label: "Celebrate a Special Day", href: "/get-involved/sponsor-child" },
-      secondaryCta: { label: "View More News", href: "/news" },
+      heading: "Join Our Celebrating Family",
+      description: "Become part of our joyful community and share in our celebrations",
+      background: "dark",
+      primaryCta: { label: "Join Our Family", href: "/join-us" },
+      secondaryCta: { label: "Meet Our Team", href: "/team" },
     },
   };
   if (stayIdx >= 0) sections.splice(stayIdx, 0, closing);
@@ -1808,9 +1897,12 @@ const NEWS_INDEPENDENCE_BASE = articleSections({
   images: [
     "/images/events/Independence Day 15th August 2025 Celebrated in School.png",
   ],
-  date: "August 15, 2025",
-  category: "Cultural Event",
 });
+
+NEWS_INDEPENDENCE_BASE.sections[0].data.highlights = [
+  { icon: "Calendar", text: "August 15, 2025" },
+  { icon: "MapPin", text: "TMSVV School, Saparambera" },
+];
 
 const NEWS_INDEPENDENCE_SECTIONS = (() => {
   const sections = [...NEWS_INDEPENDENCE_BASE.sections];
@@ -1916,9 +2008,12 @@ const NEWS_RAKHI_BASE = articleSections({
     "/images/news/2.jpg",
     "/images/news/3.jpg",
   ],
-  date: "August 2025",
-  category: "Cultural Event",
 });
+
+NEWS_RAKHI_BASE.sections[0].data.highlights = [
+  { icon: "Calendar", text: "August 2025" },
+  { icon: "MapPin", text: "SEVAA Community Centers" },
+];
 
 const NEWS_RAKHI_SECTIONS = (() => {
   const sections = [...NEWS_RAKHI_BASE.sections];
@@ -1927,11 +2022,11 @@ const NEWS_RAKHI_SECTIONS = (() => {
     id: "celebration-close",
     type: "cta",
     data: {
-      heading: "Bonds that endure",
-      description: "Rakhi reminded us that our SEVAA family extends far beyond blood — across villages, generations and cultures. Thank you for being part of it.",
-      background: "light",
-      primaryCta: { label: "Join Our Mission", href: "/join-us" },
-      secondaryCta: { label: "View More News", href: "/news" },
+      heading: "Join Our Community Family",
+      description: "Be part of our celebrations and community bonding activities",
+      background: "dark",
+      primaryCta: { label: "Join Our Family", href: "/join-us" },
+      secondaryCta: { label: "View Photo Gallery", href: "/gallery/photos" },
     },
   };
   if (stayIdx >= 0) sections.splice(stayIdx, 0, closing);
@@ -1939,43 +2034,116 @@ const NEWS_RAKHI_SECTIONS = (() => {
   return { sections };
 })();
 
-const NEWS_TILKA_MURMU_BASE = articleSections({
-  title: "Inauguration of Tilka Murmu SEVAA Vana Vidyalaya",
-  excerpt:
-    "A historic milestone in rural education development — State Ministers B. Roychoudhuri, Sandhyarani Tudu, and SP-Purulia inaugurated the Tilka Murmu SEVAA Vana Vidyalaya on March 9th, 2025.",
-  content: `<p>State Ministers B. Roychoudhuri, Sandhyarani Tudu, and SP-Purulia inaugurated the Tilka Murmu SEVAA Vana Vidyalaya on March 9th, 2025, marking a significant milestone in rural education development.</p><h3>School Infrastructure</h3><p>Modern educational facility designed to serve tribal communities in the Ajodhya Hills region with focus on preserving local culture.</p><h3>Community Impact</h3><p>Providing quality education to children from far-flung villages around Ajodhya Hills, bridging the education gap in rural areas.</p><h3>Key Features of the School</h3><ul><li><strong>Eco-friendly Infrastructure:</strong> Buildings constructed using local materials and sustainable practices</li><li><strong>Renewable Energy:</strong> Solar panels and biogas systems for clean energy</li><li><strong>Nature-integrated Learning:</strong> Outdoor classrooms and forest-based education</li><li><strong>Community Integration:</strong> Spaces for local cultural activities and community meetings</li><li>Allied facilities including library, computer lab, and health center</li></ul><h3>CSR Funding Achievement</h3><p>SEVAA has successfully registered itself in the Government of India's CSR (Corporate Social Responsibility) portal and has recently received funding under CSR allotment from the prestigious 'Murugappa Group of Companies' based in Tamil Nadu.</p><p><strong>Funded Projects Include:</strong></p><ul><li>Modern kitchen for cooking midday meals</li><li>Library construction</li><li>Preservation of Tribal Art &amp; Culture</li></ul><h3>Government Support</h3><p>The Government of India's Ministry of Science &amp; Technology, through Indian Institute of Engineering Science and Technology (IIEST), Shibpur (WB) has undertaken the construction of one solar toilet within the school premises, which will be completed soon.</p><p><strong>Sustainable Infrastructure:</strong> Focus on eco-friendly solutions including solar-powered facilities to make the school self-reliant in energy consumption.</p><h3>Future Development Plans</h3><p>After this initial success, SEVAA now plans to gradually expand the school infrastructure to better serve the community.</p><p><strong>Planned Infrastructure:</strong></p><ul><li>Students' hostel for children from far-flung villages</li><li>Guest house for resident teachers and SEVAA members</li><li>Solar panels and energy infrastructure</li></ul><p><strong>Investment Required:</strong> ₹20 Lakh estimated cost for hostel and guest house construction.</p><h3>Impact on Local Community</h3><p>This initiative will directly benefit over 500 children from the tribal communities in the region, providing them with access to quality education while preserving their cultural heritage.</p>`,
-  images: [
-    "/images/events/Picture7.png",
-    "/images/events/Picture8.png",
-    "/images/userfiles/image/Sevaa Booklet 2024_001.jpg",
-    "/images/userfiles/image/Sevaa Booklet 2024_002.jpg",
-    "/images/userfiles/image/Sevaa Booklet 2024_003.jpg",
-  ],
-  date: "March 9-10, 2025",
-  category: "Education",
-  readTime: "8 min read",
-  author: "SEVAA Team",
-  pdfLink: "/documents/Tilka Murmu Forest School.pdf",
-});
-
-// Insert highlights card-grid before the article body (after the page-header).
 const NEWS_TILKA_MURMU_SECTIONS = (() => {
-  const sections = [...NEWS_TILKA_MURMU_BASE.sections];
-  const highlights = {
-    id: "highlights",
-    type: "card-grid",
-    data: {
-      heading: "At a Glance",
-      columns: 2,
-      items: [
-        { icon: "School", title: "School Infrastructure", description: "Modern educational facility designed to serve tribal communities in the Ajodhya Hills region with focus on preserving local culture." },
-        { icon: "HandHeart", title: "Community Impact", description: "Providing quality education to children from far-flung villages around Ajodhya Hills, bridging the education gap in rural areas." },
-      ],
-    },
+  const title = "Inauguration of Tilka Murmu SEVAA Vana Vidyalaya";
+  return {
+    sections: [
+      {
+        id: "header",
+        type: "page-header",
+        data: {
+          title,
+          subtitle: "A historic milestone in rural education development",
+          highlights: [
+            { icon: "Calendar", text: "March 9, 2025" },
+            { icon: "MapPin", text: "Saparambera, Ajodhya Hills" },
+          ],
+        },
+      },
+      {
+        id: "intro",
+        type: "text",
+        data: {
+          body: "<p>State Ministers B. Roychoudhuri, Sandhyarani Tudu, and SP-Purulia inaugurated the Tilka Murmu SEVAA Vana Vidyalaya on March 9th, 2025, marking a significant milestone in rural education development.</p>",
+        },
+      },
+      {
+        id: "at-a-glance",
+        type: "card-grid",
+        data: {
+          heading: "At a Glance",
+          columns: 2,
+          items: [
+            { icon: "School", title: "School Infrastructure", description: "Modern educational facility designed to serve tribal communities in the Ajodhya Hills region with focus on preserving local culture." },
+            { icon: "Users", title: "Community Impact", description: "Providing quality education to children from far-flung villages around Ajodhya Hills, bridging the education gap in rural areas." },
+          ],
+        },
+      },
+      {
+        id: "inauguration-gallery",
+        type: "gallery",
+        data: {
+          heading: "School Inauguration & Infrastructure",
+          images: [
+            {
+              src: "/images/events/Picture7.png",
+              alt: "State Ministers B.Roychoudhuri, Sandhyarani Tudu, SP-Purulia inaugurating the school on 9th March, 2025",
+              caption: "School Inauguration Ceremony — State Ministers and officials inaugurating TMSVV on March 9, 2025",
+            },
+            {
+              src: "/images/events/Picture8.png",
+              alt: "Tilka Murmu SEVAA Vana Vidyalaya building as on 9th March, 2025",
+              caption: "School Infrastructure — Modern TMSVV building ready for tribal education",
+            },
+          ],
+        },
+      },
+      {
+        id: "csr-funding",
+        type: "text",
+        data: {
+          heading: "CSR Funding Achievement",
+          body: "<p>SEVAA has successfully registered itself in the Government of India's CSR (Corporate Social Responsibility) portal and has recently received funding under CSR allotment from the prestigious 'Murugappa Group of Companies' based in Tamil Nadu.</p><h4>Funded Projects Include:</h4><ul><li>Modern kitchen for cooking midday meals</li><li>Library construction</li><li>Preservation of Tribal Art &amp; Culture</li></ul>",
+        },
+      },
+      {
+        id: "government-support",
+        type: "text",
+        data: {
+          heading: "Government Support",
+          body: "<p>The Government of India's Ministry of Science &amp; Technology, through Indian Institute of Engineering Science and Technology (IIEST), Shibpur (WB) has undertaken the construction of one solar toilet within the school premises, which will be completed soon.</p><h4>Sustainable Infrastructure</h4><p>Focus on eco-friendly solutions including solar-powered facilities to make the school self-reliant in energy consumption.</p>",
+        },
+      },
+      {
+        id: "future-plans",
+        type: "text",
+        data: {
+          heading: "Future Development Plans",
+          body: "<p>After this initial success, SEVAA now plans to gradually expand the school infrastructure to better serve the community.</p><h4>Planned Infrastructure:</h4><ul><li>Students' hostel for children from far-flung villages</li><li>Guest house for resident teachers and SEVAA members</li><li>Solar panels and energy infrastructure</li></ul><h4>Investment Required:</h4><p><strong>₹20 Lakh</strong> — Estimated cost for hostel and guest house construction.</p>",
+        },
+      },
+      {
+        id: "pdf-cta",
+        type: "cta",
+        data: {
+          heading: "Download Full Document",
+          background: "terracotta",
+          primaryCta: { label: "Download PDF", href: "/documents/Tilka Murmu Forest School.pdf", icon: "ExternalLink" },
+        },
+      },
+      {
+        id: "support-cta",
+        type: "cta",
+        data: {
+          heading: "Support Rural Education",
+          description: "Help us continue expanding educational opportunities for tribal communities",
+          background: "dark",
+          primaryCta: { label: "Support Our Mission", href: "/join-us" },
+          secondaryCta: { label: "Learn More About the Project", href: "/projects/saparambera" },
+        },
+      },
+      {
+        id: "stay-connected",
+        type: "cta",
+        data: {
+          heading: "Stay Connected",
+          background: "terracotta",
+          primaryCta: { label: "← Back to News", href: "/news" },
+          secondaryCta: { label: "Share Article", href: "#share" },
+        },
+      },
+    ],
   };
-  // Insert at index 1 (after page-header).
-  sections.splice(1, 0, highlights);
-  return { sections };
 })();
 
 const NEWS_BOOKLET_2024_SECTIONS = articleSections({
@@ -2191,11 +2359,11 @@ const PUB_SAMMELAN_SECTIONS = {
       },
     },
     {
-      id: "details",
+      id: "documentation",
       type: "text",
       data: {
-        heading: "First SEVAA Sammelan — January 28, 2024",
-        body: "<p><strong>Venue:</strong> Maa Sarada Hall, Narendrapur R.K. Mission Lokshiksha Parishad</p><p><strong>Inaugurated by:</strong> Hon'ble Principal Maharaj, Swami Ekachittanandaji</p><p><strong>Chief Guest:</strong> Dr. Manas Ghosh</p><p><strong>Sessions:</strong> About SEVAA, Health Awareness &amp; SEVAA, Civil Society Organisation &amp; SEVAA, Open Discussion</p><p><strong>Closing:</strong> Presided by Swami Basavananda, Chief Guest Justice Rajarshi Bharadwaj</p><p>Comprehensive record of discussions, presentations, resolutions, and action plans from our annual gathering. We are compiling comprehensive documentation from Sevaa Sammelan 2023, including proceedings, presentations, and outcomes. The complete report will include participant feedback, strategic decisions, and actionable plans for community development initiatives.</p>",
+        heading: "Sammelan Documentation Available Soon",
+        body: "<p>We are compiling comprehensive documentation from Sevaa Sammelan 2023, including proceedings, presentations, and outcomes.</p><p>The complete report will include participant feedback, strategic decisions, and actionable plans for community development initiatives.</p><p><strong>Check back soon for the complete Sammelan documentation!</strong></p>",
       },
     },
     {
@@ -2607,31 +2775,14 @@ const PROJ_HEALTH_SECTIONS = {
         icon: "Heart",
         title: "Sevaa Health Projects",
         subtitle: "Bringing quality healthcare to underserved communities through comprehensive health initiatives",
-        image: { src: "/images/gallery/gallery-2.jpg", alt: "SEVAA health projects" },
       },
     },
     {
-      id: "intro",
+      id: "coming-soon",
       type: "text",
       data: {
-        heading: "Health Initiatives",
-        body: "<p>SEVAA is developing comprehensive health programs to provide accessible, quality healthcare services to rural and marginalized communities.</p><p>Our health initiatives focus on preventive care, community health education, and holistic wellness, inspired by Swami Vivekananda's vision of serving humanity.</p><h4>স্বাস্থ্যসেবা — Current Activities</h4><p>During COVID-19, SEVAA provided financial support for COVID patient camps at Gouranga Bhawan in Narendrapur College. We also supported the voluntary organization 'Janaswasthya Suraksha Samanyay'.</p><p>To increase health awareness, SEVAA has organized multiple Ayurvedic and Allopathic medical camps in Saparambera village. Specialist doctors from Kolkata, including gynecologists, participate in these camps.</p>",
-      },
-    },
-    {
-      id: "areas",
-      type: "card-grid",
-      data: {
-        heading: "Areas of Focus",
-        columns: 3,
-        items: [
-          { title: "Medical Camps", description: "Regular medical camps in tribal and rural villages with specialist doctors from Kolkata.", icon: "Stethoscope" },
-          { title: "Health Awareness", description: "Community health education programs focusing on preventive care and wellness.", icon: "Heart" },
-          { title: "Telemedicine", description: "Telemedicine services being developed with ServicePlace USA to reach remote communities.", icon: "Phone" },
-          { title: "Maternal Care", description: "Specialized gynecological camps bringing women's health services to tribal areas.", icon: "Users" },
-          { title: "COVID Response", description: "Financial support and relief activities during the COVID-19 pandemic crisis.", icon: "Shield" },
-          { title: "Healthcare Support", description: "Individual healthcare support including cataract operations and critical care assistance.", icon: "HeartPulse" },
-        ],
+        heading: "Health Initiatives Coming Soon",
+        body: "<p>SEVAA is developing comprehensive health programs to provide accessible, quality healthcare services to rural and marginalized communities.</p><p>Our upcoming health initiatives will focus on preventive care, community health education, and holistic wellness, inspired by Swami Vivekananda's vision of serving humanity.</p><p><strong>Stay tuned for updates on our health projects!</strong></p>",
       },
     },
     {
@@ -2654,40 +2805,25 @@ const PROJ_LIVELIHOOD_SECTIONS = {
       id: "header",
       type: "page-header",
       data: {
-        icon: "Users",
+        icon: "Sprout",
         title: "Sevaa Livelihood Projects",
         subtitle: "Empowering communities through sustainable livelihood programs and skill development initiatives",
-        image: { src: "/images/gallery/1.jpg", alt: "SEVAA livelihood projects" },
       },
     },
     {
-      id: "intro",
+      id: "coming-soon",
       type: "text",
       data: {
-        heading: "Livelihood Initiatives",
-        body: "<p>SEVAA is developing comprehensive livelihood programs to create sustainable income opportunities for rural and marginalized communities.</p><p>Our initiatives focus on skill development, sustainable agriculture, and community empowerment based on Swami Vivekananda's philosophy of self-reliance and community development.</p>",
-      },
-    },
-    {
-      id: "programs",
-      type: "card-grid",
-      data: {
-        heading: "Our Livelihood Programs",
-        columns: 2,
-        items: [
-          { title: "Lac Cultivation", description: "Training and support for lac cultivation in Saparambera village, providing sustainable income to tribal families. Training conducted thrice at Saparambera with significant community impact.", icon: "Leaf" },
-          { title: "Organic Farming", description: "Support for organic farming practices in collaboration with Kalyan Krishi Vigyan Kendra, Purulia, promoting agricultural sustainability.", icon: "Sprout" },
-          { title: "Skill Development", description: "Skill development programs for rural communities to create diverse income opportunities beyond traditional agriculture.", icon: "Users" },
-          { title: "Agricultural Training", description: "Regular agricultural training sessions with district agriculture officers to introduce modern farming techniques.", icon: "GraduationCap" },
-        ],
+        heading: "Livelihood Initiatives Coming Soon",
+        body: "<p>SEVAA is developing comprehensive livelihood programs to create sustainable income opportunities for rural and marginalized communities.</p><p>Our upcoming initiatives will focus on skill development, sustainable agriculture, and community empowerment based on Swami Vivekananda's philosophy of self-reliance and community development.</p><p><strong>Stay tuned for updates on our livelihood projects!</strong></p>",
       },
     },
     {
       id: "cta",
       type: "cta",
       data: {
-        heading: "Support Sustainable Livelihoods",
-        description: "Help us create lasting economic opportunities for rural communities",
+        heading: "Support Our Livelihood Programs",
+        description: "Help us create more sustainable livelihood opportunities for rural communities",
         background: "dark",
         primaryCta: { label: "Support Our Mission", href: "/join-us" },
         secondaryCta: { label: "Join Our Team", href: "/join-us" },
@@ -2921,7 +3057,6 @@ const GI_SECTIONS = {
         description: "Your support helps us continue our mission of empowering communities through education, healthcare, and sustainable development.",
         background: "dark",
         primaryCta: { label: "Contact Us", href: "/contact" },
-        secondaryCta: { label: "View Legal & Financial Info", href: "/legal-financial" },
       },
     },
   ],
@@ -2981,7 +3116,7 @@ const GI_SPONSOR_MEAL_SECTIONS = comingSoon({
   title: "Sponsor Midday Meal",
   subtitle: "Sponsor nutritious midday meals for children at our schools and Vivekpally programs.",
   heroImage: "/images/events/3.jpg",
-  exploreLinks: giExploreLinksExcept("/get-involved/sponsor-midday-meal"),
+  exploreLinks: GI_EXPLORE_LINKS.filter((l) => l.href !== "/get-involved/sponsor-midday-meal").slice(0, 5),
 });
 
 const JOIN_US_SECTIONS = {
@@ -3020,7 +3155,6 @@ const JOIN_US_SECTIONS = {
         description: "Your support helps us continue our mission of empowering communities through education, healthcare, and sustainable development.",
         background: "dark",
         primaryCta: { label: "Contact Us", href: "/contact" },
-        secondaryCta: { label: "View Legal & Financial Info", href: "/legal-financial" },
       },
     },
   ],
@@ -3084,7 +3218,7 @@ const SUPPORT_SECTIONS = {
       type: "text",
       data: {
         heading: "Office Hours",
-        body: "<ul><li><strong>Monday - Friday:</strong> 9:00 AM - 6:00 PM</li><li><strong>Saturday:</strong> 10:00 AM - 4:00 PM</li><li><strong>Sunday:</strong> Closed</li></ul><p><strong>Note:</strong> We aim to respond to all inquiries within 24 hours during business days. For urgent matters, please call us directly at +91 98271 93272.</p>",
+        body: "<ul><li><strong>Monday - Friday:</strong> 9:00 AM - 6:00 PM</li><li><strong>Saturday:</strong> 10:00 AM - 4:00 PM</li><li><strong>Sunday:</strong> Closed</li></ul><p><strong>Note:</strong> We aim to respond to all inquiries within 24 hours during business days.</p>",
       },
     },
     {
@@ -3094,8 +3228,7 @@ const SUPPORT_SECTIONS = {
         heading: "Still Need Help?",
         description: "Can't find what you're looking for? Our support team is here to help.",
         background: "terracotta",
-        primaryCta: { label: "Contact Us", href: "/contact" },
-        secondaryCta: { label: "View Legal & Financial", href: "/legal-financial" },
+        primaryCta: { label: "Contact Support", href: "/contact" },
       },
     },
   ],
