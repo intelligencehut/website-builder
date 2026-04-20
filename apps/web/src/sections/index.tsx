@@ -14,6 +14,7 @@ import { StatsSection } from './stats-section';
 import { CtaSection } from './cta-section';
 import { ContactSection } from './contact-section';
 import { HtmlSection } from './html-section';
+import { VideoSection } from './video-section';
 
 // When the page is loaded inside the admin iframe (?_edit=1), swap
 // the SSG-rendered published sections for whatever the editor is
@@ -53,6 +54,7 @@ function renderSection(section: PageSection) {
     case 'cta': return <CtaSection data={section.data} />;
     case 'contact': return <ContactSection data={section.data} />;
     case 'html': return <HtmlSection data={section.data} />;
+    case 'video': return <VideoSection data={section.data} />;
     case 'dynamic-slot': return null; // Rendered by the target site, not the website-builder
     default: return null;
   }
@@ -100,4 +102,5 @@ export const SECTION_TYPES = [
   { type: 'cta', label: 'Call to Action', description: 'Banner with heading, description, and buttons' },
   { type: 'contact', label: 'Contact Info', description: 'Email, phone, address, and optional text' },
   { type: 'html', label: 'Custom HTML', description: 'Raw HTML content block' },
+  { type: 'video', label: 'Video', description: 'YouTube video gallery with captions' },
 ] as const;

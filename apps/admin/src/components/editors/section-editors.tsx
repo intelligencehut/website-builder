@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Field, TextInput, TextArea, SelectInput, NumberInput, ImagePicker, Checkbox } from '@/components/ui/field';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { SortableItemList } from './sortable-item-list';
@@ -481,6 +482,54 @@ export function ListEditor({ data, onChange }: EditorProps<ListData>) {
 interface VideoItem { youtubeId?: string; title?: string; caption?: string }
 interface VideoData { eyebrow?: string; heading?: string; subtitle?: string; items?: VideoItem[] }
 
+function VideoPickerLazy(props: { open: boolean; onClose: () => void; onSelect: (sel: { youtubeId: string; title: string; caption?: string }) => void }) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { VideoPickerModal } = require('@/components/media/video-picker-modal');
+  return <VideoPickerModal {...props} />;
+}
+
+function YoutubeIdRow({
+  item,
+  upd,
+}: {
+  item: VideoItem;
+  upd: (patch: Partial<VideoItem>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Field label="YouTube ID" description="Pick from Library or paste the 11-char ID from a video URL (e.g. dQw4w9WgXcQ)">
+        <div className="flex items-start gap-2">
+          <div className="flex-1">
+            <TextInput value={item.youtubeId ?? ''} onChange={e => upd({ youtubeId: e.currentTarget.value })} mono />
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="mt-1.5 text-[11px] text-accent hover:text-accent-hover transition-colors"
+            >
+              Browse Video Library
+            </button>
+          </div>
+        </div>
+      </Field>
+      {open && (
+        <VideoPickerLazy
+          open={open}
+          onClose={() => setOpen(false)}
+          onSelect={(sel) => {
+            upd({
+              youtubeId: sel.youtubeId,
+              title: item.title || sel.title,
+              caption: item.caption || sel.caption,
+            });
+            setOpen(false);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
 export function VideoEditor({ data, onChange }: EditorProps<VideoData>) {
   const u = (patch: Partial<VideoData>) => upd(data, onChange, patch);
   return (
@@ -496,7 +545,7 @@ export function VideoEditor({ data, onChange }: EditorProps<VideoData>) {
         addLabel="Add Video"
         renderItem={(item, _, upd) => (
           <div className="space-y-2">
-            <Field label="YouTube ID" description="The 11-char ID from the video URL (e.g. dQw4w9WgXcQ)"><TextInput value={item.youtubeId ?? ''} onChange={e => upd({ youtubeId: e.currentTarget.value })} mono /></Field>
+            <YoutubeIdRow item={item} upd={upd} />
             <Field label="Title"><TextInput value={item.title ?? ''} onChange={e => upd({ title: e.currentTarget.value })} /></Field>
             <Field label="Caption"><TextArea value={item.caption ?? ''} onChange={e => upd({ caption: e.currentTarget.value })} rows={2} /></Field>
           </div>

@@ -198,9 +198,44 @@ export function HybridRenderer({ sections: initialSections }: { sections: Sectio
 
 Real visitors never have `?_edit=1` → the effect short-circuits → zero runtime cost, SSG output untouched. Editors see every keystroke reflected in the iframe; Save persists as `draft`; Publish is the only path that rebuilds the static site.
 
+## YouTube Video Uploads
+
+Admins can upload video files in Media → Videos; the server pushes them to YouTube via the Data API v3 (resumable upload) and stores the resulting `youtube_video_id`. Editors pick from the video library in the Video section editor (`Browse Video Library`), same as images.
+
+**One YouTube channel per site.** Credentials live in `website.youtube_tokens` (service-role only). Uploaded videos default to `unlisted` — anyone with the embed link (the site) can watch, but they won't show up in YouTube search.
+
+**Environment variables** (set on both Vercel and `.env.local`):
+
+```
+GOOGLE_CLIENT_ID=<OAuth client ID>
+GOOGLE_CLIENT_SECRET=<OAuth client secret>
+GOOGLE_OAUTH_REDIRECT_URI=https://<admin-domain>/api/youtube/auth/callback
+```
+
+**One-time Google Cloud setup** (per deployment environment):
+1. Go to [console.cloud.google.com](https://console.cloud.google.com) and create a project (or reuse an existing one).
+2. **APIs & Services → Library**: enable **YouTube Data API v3**.
+3. **APIs & Services → OAuth consent screen**: configure consent.
+   - User type: `External`.
+   - Add the scope `https://www.googleapis.com/auth/youtube.upload` (and optionally `.readonly` for channel info).
+   - Add your admin account as a Test user so you can connect without waiting for verification.
+4. **APIs & Services → Credentials**: create an **OAuth 2.0 Client ID** of type **Web application**.
+   - Authorized redirect URI: `https://<admin-domain>/api/youtube/auth/callback` (plus `http://localhost:3001/api/youtube/auth/callback` for dev).
+   - Copy Client ID + Client Secret into the env vars above.
+5. **Verification (eventually):** while the app is in `Testing` status, only explicitly-added Test users can upload, and uploaded videos may be force-locked to `private`. To publish public videos, submit the app for verification (can take days–weeks). Once approved, videos respect the `privacyStatus` we set (`unlisted` by default).
+
+**Per-site flow** (admin user):
+1. Select the site in the admin sidebar.
+2. Settings → YouTube → **Connect YouTube Channel** → sign in with the Google account that owns the target YouTube channel → consent.
+3. The channel name appears on Settings/YouTube. Media → Videos now accepts uploads.
+
+**Quota:** each upload costs ~1600 units; default quota is 10,000/day (~6 uploads/day). Request an increase in the GCP console if that's too tight.
+
+**Database migration:** `packages/database/migrations/008_videos.sql` — adds `website.videos`, `website.youtube_tokens`, `website.youtube_connections` view, `website.youtube_oauth_states`.
+
 ## Available Section Types
 
-Shared (all sites): `hero`, `page-header`, `text`, `text-with-image`, `card-grid`, `gallery`, `testimonials`, `stats`, `cta`, `contact`, `html`, `dynamic-slot`
+Shared (all sites): `hero`, `page-header`, `text`, `text-with-image`, `card-grid`, `gallery`, `testimonials`, `stats`, `cta`, `contact`, `html`, `video`, `dynamic-slot`
 
 Ukhra-specific: `cards-grid` (icon+stat), `programs-grid`, `partners`, `feature-highlight`, `bank-details`, `list`
 

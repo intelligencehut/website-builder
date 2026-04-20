@@ -12,23 +12,29 @@ import {
   FileText,
   Trash2,
   Link2,
-  MoreHorizontal,
   Check,
   X,
   Eye,
   Loader2,
   AlertCircle,
+  Play,
 } from 'lucide-react';
 import type { MediaItem } from '@/lib/actions/media';
 import { listMediaForSite, uploadMediaFile, deleteMediaFile } from '@/lib/actions/media';
+import { listVideosForSite, deleteVideo, isYoutubeConnected, type VideoItem } from '@/lib/actions/videos';
+import { uploadVideoToYoutube, YoutubeNotConnectedError } from '@/lib/youtube/browser-upload';
 import { DeleteConfirmDialog } from '@/components/media/delete-confirm-dialog';
 
 type MediaType = 'all' | 'image' | 'document' | 'video';
 type ViewMode = 'grid' | 'list';
 
-const ACCEPTED_TYPES = [
+const ACCEPTED_IMAGE_DOC_TYPES = [
   'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
   'application/pdf',
+];
+
+const ACCEPTED_VIDEO_TYPES = [
+  'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska',
 ];
 
 function getFileCategory(mimeType: string): 'image' | 'document' | 'video' {
@@ -41,20 +47,41 @@ function formatSize(bytes: number | null): string {
   if (bytes == null) return '—';
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 const typeFilters: { key: MediaType; label: string; icon: typeof ImageIcon }[] = [
   { key: 'all', label: 'All Files', icon: Grid3X3 },
   { key: 'image', label: 'Images', icon: ImageIcon },
+  { key: 'video', label: 'Videos', icon: Play },
   { key: 'document', label: 'Documents', icon: FileText },
 ];
+
+interface VideoUploadProgress {
+  id: string;
+  filename: string;
+  pct: number;
+  error?: string;
+}
 
 export default function MediaPage() {
   const [siteId, setSiteId] = useState<string>('');
   const [media, setMedia] = useState<MediaItem[]>([]);
+  const [videos, setVideos] = useState<VideoItem[]>([]);
+  const [youtubeConnected, setYoutubeConnected] = useState<boolean | null>(null);
+  const [youtubeChannelTitle, setYoutubeChannelTitle] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [videoProgress, setVideoProgress] = useState<VideoUploadProgress[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const [search, setSearch] = useState('');
@@ -63,7 +90,7 @@ export default function MediaPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<{ ids: string[]; filename?: string } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ ids: string[]; filename?: string; kind?: 'media' | 'video' } | null>(null);
 
   // Read active site and load media
   useEffect(() => {
@@ -76,8 +103,15 @@ export default function MediaPage() {
     if (!siteId) return;
     setLoading(true);
     try {
-      const data = await listMediaForSite(siteId);
-      setMedia(data);
+      const [mediaRes, videoRes, conn] = await Promise.all([
+        listMediaForSite(siteId),
+        listVideosForSite(siteId),
+        isYoutubeConnected(siteId),
+      ]);
+      setMedia(mediaRes);
+      setVideos(videoRes);
+      setYoutubeConnected(conn.connected);
+      setYoutubeChannelTitle(conn.channelTitle);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load media');
     }
@@ -90,46 +124,92 @@ export default function MediaPage() {
 
   const handleUpload = useCallback(async (files: FileList | File[]) => {
     if (!siteId) return;
-    const validFiles = Array.from(files).filter(f => ACCEPTED_TYPES.includes(f.type));
-    if (validFiles.length === 0) {
-      setError('No valid files selected. Allowed: images and PDFs.');
+    const all = Array.from(files);
+    const videoFiles = all.filter(f => f.type.startsWith('video/'));
+    const otherFiles = all.filter(f => ACCEPTED_IMAGE_DOC_TYPES.includes(f.type));
+
+    if (videoFiles.length === 0 && otherFiles.length === 0) {
+      setError('No valid files. Allowed: images, PDFs, and videos.');
       return;
     }
 
     setUploading(true);
     setError(null);
+
+    // Non-video uploads (images/PDFs) go through Supabase storage as before.
     try {
-      for (const file of validFiles) {
+      for (const file of otherFiles) {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('siteId', siteId);
         await uploadMediaFile(formData);
       }
-      await loadMedia();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     }
+
+    // Video uploads go through the YouTube pipeline.
+    for (const file of videoFiles) {
+      const progressId = crypto.randomUUID();
+      setVideoProgress(prev => [...prev, { id: progressId, filename: file.name, pct: 0 }]);
+      try {
+        await uploadVideoToYoutube(
+          {
+            siteId,
+            file,
+            title: file.name.replace(/\.[^.]+$/, ''),
+            privacyStatus: 'unlisted',
+          },
+          {
+            onProgress: (pct) =>
+              setVideoProgress(prev => prev.map(p => (p.id === progressId ? { ...p, pct } : p))),
+          }
+        );
+        setVideoProgress(prev => prev.filter(p => p.id !== progressId));
+      } catch (err) {
+        const message =
+          err instanceof YoutubeNotConnectedError
+            ? 'Connect a YouTube channel in Settings to upload videos.'
+            : err instanceof Error
+            ? err.message
+            : 'Video upload failed';
+        setVideoProgress(prev => prev.map(p => (p.id === progressId ? { ...p, error: message } : p)));
+        setError(message);
+      }
+    }
+
+    await loadMedia();
     setUploading(false);
   }, [siteId, loadMedia]);
 
-  const requestDelete = useCallback((mediaId: string, filename: string) => {
-    setPendingDelete({ ids: [mediaId], filename });
+  const requestDelete = useCallback((id: string, filename: string, kind: 'media' | 'video' = 'media') => {
+    setPendingDelete({ ids: [id], filename, kind });
   }, []);
 
   const requestBulkDelete = useCallback(() => {
     const ids = Array.from(selected);
     if (ids.length === 0) return;
-    setPendingDelete({ ids });
-  }, [selected]);
+    const kind: 'media' | 'video' = typeFilter === 'video' ? 'video' : 'media';
+    setPendingDelete({ ids, kind });
+  }, [selected, typeFilter]);
 
   const confirmDelete = useCallback(async () => {
     if (!pendingDelete) return;
     setError(null);
+    const kind = pendingDelete.kind ?? 'media';
     for (const id of pendingDelete.ids) {
-      await deleteMediaFile(id);
+      if (kind === 'video') {
+        await deleteVideo(id);
+      } else {
+        await deleteMediaFile(id);
+      }
     }
     const deletedIds = new Set(pendingDelete.ids);
-    setMedia(prev => prev.filter(m => !deletedIds.has(m.id)));
+    if (kind === 'video') {
+      setVideos(prev => prev.filter(v => !deletedIds.has(v.id)));
+    } else {
+      setMedia(prev => prev.filter(m => !deletedIds.has(m.id)));
+    }
     setSelected(prev => {
       const next = new Set(prev);
       for (const id of pendingDelete.ids) next.delete(id);
@@ -138,8 +218,21 @@ export default function MediaPage() {
   }, [pendingDelete]);
 
   const filtered = media
-    .filter(m => typeFilter === 'all' || getFileCategory(m.mime_type) === typeFilter)
+    .filter(m => {
+      if (typeFilter === 'all') return true;
+      if (typeFilter === 'image') return m.mime_type.startsWith('image/');
+      if (typeFilter === 'document') return !m.mime_type.startsWith('image/') && !m.mime_type.startsWith('video/');
+      return false; // videos rendered from their own collection
+    })
     .filter(m => search === '' || m.original_filename.toLowerCase().includes(search.toLowerCase()));
+
+  const filteredVideos = videos.filter(v =>
+    search === '' ||
+    v.title.toLowerCase().includes(search.toLowerCase()) ||
+    (v.original_filename ?? '').toLowerCase().includes(search.toLowerCase())
+  );
+
+  const showVideos = typeFilter === 'all' || typeFilter === 'video';
 
   const toggleSelect = useCallback((id: string) => {
     setSelected(prev => {
@@ -170,7 +263,7 @@ export default function MediaPage() {
     <>
       <Header
         title="Media Library"
-        description={`${media.length} files · ${typeFilter === 'all' ? 'All types' : typeFilter + 's'}`}
+        description={`${media.length + videos.length} files · ${typeFilter === 'all' ? 'All types' : typeFilter + 's'}`}
         actions={
           <label
             className={cn(
@@ -185,7 +278,7 @@ export default function MediaPage() {
             <input
               type="file"
               multiple
-              accept={ACCEPTED_TYPES.join(',')}
+              accept={[...ACCEPTED_IMAGE_DOC_TYPES, ...ACCEPTED_VIDEO_TYPES].join(',')}
               onChange={(e) => e.target.files && handleUpload(e.target.files)}
               disabled={uploading}
               className="hidden"
@@ -308,27 +401,188 @@ export default function MediaPage() {
           </div>
         )}
 
+        {/* YouTube connection banner (only in Videos view, when not connected) */}
+        {typeFilter === 'video' && youtubeConnected === false && (
+          <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-button">
+            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <p className="text-[12px] text-amber-800 flex-1">
+              No YouTube channel connected to this site. Uploaded videos go to the channel you connect.
+            </p>
+            <a
+              href="/settings?tab=youtube"
+              className="text-[12px] font-medium text-amber-900 hover:text-amber-950 underline"
+            >
+              Connect in Settings →
+            </a>
+          </div>
+        )}
+        {typeFilter === 'video' && youtubeConnected && youtubeChannelTitle && (
+          <p className="text-[11px] text-ink-muted">
+            Uploading to YouTube channel: <span className="font-medium text-ink-secondary">{youtubeChannelTitle}</span>
+          </p>
+        )}
+
+        {/* Video upload progress */}
+        {videoProgress.length > 0 && (
+          <div className="glass-card rounded-card p-4 space-y-2">
+            <p className="text-[12px] font-medium text-ink-secondary mb-2">Video uploads</p>
+            {videoProgress.map(p => (
+              <div key={p.id} className="flex items-center gap-3">
+                <Play className="w-3.5 h-3.5 text-ink-muted flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] text-ink truncate">{p.filename}</p>
+                  <div className="mt-1 h-1 bg-surface-raised rounded-full overflow-hidden">
+                    <div
+                      className={cn(
+                        'h-full transition-all',
+                        p.error ? 'bg-red-500' : 'bg-accent'
+                      )}
+                      style={{ width: `${p.error ? 100 : p.pct}%` }}
+                    />
+                  </div>
+                </div>
+                <span className="text-[11px] font-mono text-ink-muted w-16 text-right">
+                  {p.error ? 'failed' : `${p.pct}%`}
+                </span>
+                {p.error && (
+                  <button
+                    onClick={() => setVideoProgress(prev => prev.filter(x => x.id !== p.id))}
+                    className="text-ink-muted hover:text-ink"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Loading / empty / grid / list */}
         {loading ? (
           <div className="glass-card rounded-card py-20 text-center">
             <Loader2 className="w-6 h-6 text-ink-muted animate-spin mx-auto mb-3" />
             <p className="text-[12px] text-ink-muted">Loading media...</p>
           </div>
-        ) : filtered.length === 0 ? (
+        ) : filtered.length === 0 && (!showVideos || filteredVideos.length === 0) ? (
           <div className="glass-card rounded-card py-20 text-center">
             <ImageIcon className="w-8 h-8 text-ink-muted mx-auto mb-3" />
             <p className="text-heading text-ink">
-              {media.length === 0 ? 'No files yet' : 'No files found'}
+              {media.length + videos.length === 0 ? 'No files yet' : 'No files found'}
             </p>
             <p className="text-body text-ink-secondary mt-1">
               {search
                 ? 'Try a different search term'
-                : media.length === 0
+                : media.length + videos.length === 0
                 ? 'Upload files or drag & drop to get started'
                 : 'Try a different filter'}
             </p>
           </div>
         ) : viewMode === 'grid' ? (
+          <>
+          {showVideos && filteredVideos.length > 0 && (
+            <div className="space-y-2">
+              {typeFilter === 'all' && <p className="text-overline text-ink-muted">Videos</p>}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                {filteredVideos.map((v) => {
+                  const isSelected = selected.has(v.id);
+                  const isCopied = copiedId === v.id;
+                  const youtubeUrl = v.youtube_video_id ? `https://www.youtube.com/watch?v=${v.youtube_video_id}` : '';
+                  return (
+                    <div
+                      key={v.id}
+                      className={cn(
+                        'group relative rounded-card overflow-hidden border-2 transition-all duration-150',
+                        isSelected
+                          ? 'border-accent ring-2 ring-accent/20'
+                          : 'border-surface-border hover:border-ink-muted/30 hover:shadow-card-hover'
+                      )}
+                    >
+                      <div className="aspect-square bg-surface-raised relative">
+                        {v.thumbnail_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={v.thumbnail_url} alt={v.title} className="w-full h-full object-cover" />
+                        ) : v.youtube_video_id ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={`https://i.ytimg.com/vi/${v.youtube_video_id}/hqdefault.jpg`} alt={v.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Play className="w-10 h-10 text-ink-muted/40" />
+                          </div>
+                        )}
+
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="w-10 h-10 bg-black/60 rounded-full flex items-center justify-center">
+                            <Play className="w-4 h-4 text-white fill-white" />
+                          </div>
+                        </div>
+
+                        {v.status !== 'ready' && (
+                          <div className="absolute top-2 right-2 text-[10px] font-medium bg-black/70 text-white px-1.5 py-0.5 rounded uppercase tracking-wide">
+                            {v.status}
+                          </div>
+                        )}
+
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                          {youtubeUrl && (
+                            <>
+                              <button
+                                onClick={() => copyUrl(v.id, youtubeUrl)}
+                                className="p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
+                                title="Copy YouTube URL"
+                              >
+                                {isCopied ? <Check className="w-3.5 h-3.5 text-status-published" /> : <Link2 className="w-3.5 h-3.5" />}
+                              </button>
+                              <a
+                                href={youtubeUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
+                                title="Open on YouTube"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </a>
+                            </>
+                          )}
+                          <button
+                            onClick={() => requestDelete(v.id, v.title, 'video')}
+                            className="p-2 bg-white/90 rounded-button text-red-600 hover:bg-red-50 transition-colors shadow-md"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={() => toggleSelect(v.id)}
+                          className={cn(
+                            'absolute top-2 left-2 w-5 h-5 rounded-[4px] border-2 flex items-center justify-center transition-all',
+                            isSelected
+                              ? 'bg-accent border-accent'
+                              : 'bg-white/80 border-white/60 opacity-0 group-hover:opacity-100 hover:border-accent'
+                          )}
+                        >
+                          {isSelected && <Check className="w-3 h-3 text-white" />}
+                        </button>
+                      </div>
+
+                      <div className="px-2.5 py-2 bg-surface-card">
+                        <p className="text-[12px] font-medium text-ink truncate">{v.title}</p>
+                        <p className="text-[11px] text-ink-muted mt-0.5">
+                          video{v.duration_seconds ? ` · ${formatDuration(v.duration_seconds)}` : ''}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {filtered.length > 0 && (
+          <div className="space-y-2">
+            {typeFilter === 'all' && showVideos && filteredVideos.length > 0 && (
+              <p className="text-overline text-ink-muted mt-2">Images & Documents</p>
+            )}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {filtered.map((item) => {
               const isSelected = selected.has(item.id);
@@ -418,6 +672,9 @@ export default function MediaPage() {
               );
             })}
           </div>
+          </div>
+          )}
+          </>
         ) : (
           /* List view */
           <div className="glass-card rounded-card overflow-hidden">
@@ -447,6 +704,74 @@ export default function MediaPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-border">
+                {showVideos && filteredVideos.map((v) => {
+                  const isSelected = selected.has(v.id);
+                  const youtubeUrl = v.youtube_video_id ? `https://www.youtube.com/watch?v=${v.youtube_video_id}` : '';
+                  return (
+                    <tr key={v.id} className="hover:bg-surface-hover transition-colors group">
+                      <td className="px-4 py-2.5">
+                        <button
+                          onClick={() => toggleSelect(v.id)}
+                          className={cn(
+                            'w-4 h-4 rounded-[3px] border-2 flex items-center justify-center transition-all',
+                            isSelected ? 'bg-accent border-accent' : 'border-surface-border hover:border-ink-muted'
+                          )}
+                        >
+                          {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
+                        </button>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-[4px] overflow-hidden bg-surface-raised flex-shrink-0 relative">
+                            {v.thumbnail_url || v.youtube_video_id ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={v.thumbnail_url || `https://i.ytimg.com/vi/${v.youtube_video_id}/default.jpg`} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <Play className="w-4 h-4 text-ink-muted m-auto" />
+                            )}
+                          </div>
+                          <span className="text-[13px] font-medium text-ink truncate">{v.title}</span>
+                          {v.status !== 'ready' && (
+                            <span className="text-[10px] font-medium bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                              {v.status}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className="text-[12px] text-ink-secondary capitalize">video</span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className="text-[12px] text-ink-secondary font-mono">{formatSize(v.size_bytes)}</span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className="text-[12px] text-ink-muted">
+                          {new Date(v.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          {youtubeUrl && (
+                            <button
+                              onClick={() => copyUrl(v.id, youtubeUrl)}
+                              className="p-1 text-ink-muted hover:text-accent rounded transition-colors"
+                              title="Copy YouTube URL"
+                            >
+                              {copiedId === v.id ? <Check className="w-3.5 h-3.5 text-status-published" /> : <Link2 className="w-3.5 h-3.5" />}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => requestDelete(v.id, v.title, 'video')}
+                            className="p-1 text-ink-muted hover:text-red-500 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {filtered.map((item) => {
                   const isSelected = selected.has(item.id);
                   const category = getFileCategory(item.mime_type);

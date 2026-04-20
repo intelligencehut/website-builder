@@ -9,20 +9,19 @@ import { cn } from '@/lib/utils';
 import { getSiteMetadata, updateSiteSettings } from '@/lib/actions/pages';
 import {
   Globe,
-  Key,
   Webhook,
   Search,
-  Palette,
   Phone,
   Save,
   Check,
   Loader2,
   Users,
-  Shield,
   Layout,
+  Youtube,
 } from 'lucide-react';
+import { YoutubeSettings } from '@/components/settings/youtube-settings';
 
-type TabId = 'general' | 'seo' | 'contact' | 'footer' | 'deploy' | 'team';
+type TabId = 'general' | 'seo' | 'contact' | 'footer' | 'deploy' | 'youtube' | 'team';
 
 const tabs: { id: TabId; label: string; icon: typeof Globe }[] = [
   { id: 'general', label: 'General', icon: Globe },
@@ -30,6 +29,7 @@ const tabs: { id: TabId; label: string; icon: typeof Globe }[] = [
   { id: 'contact', label: 'Contact', icon: Phone },
   { id: 'footer', label: 'Footer', icon: Layout },
   { id: 'deploy', label: 'Deploy', icon: Webhook },
+  { id: 'youtube', label: 'YouTube', icon: Youtube },
   { id: 'team', label: 'Team', icon: Users },
 ];
 
@@ -52,8 +52,17 @@ const DEFAULT_CONFIG = {
   prodHookUrl: '',
 };
 
+const VALID_TABS: readonly TabId[] = ['general', 'seo', 'contact', 'footer', 'deploy', 'youtube', 'team'];
+function isTabId(v: string): v is TabId {
+  return (VALID_TABS as readonly string[]).includes(v);
+}
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabId>('general');
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    if (tab && isTabId(tab)) setActiveTab(tab);
+  }, []);
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [footer, setFooter] = useState<FooterData>({});
   const [saving, setSaving] = useState(false);
@@ -329,6 +338,10 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </>
+            )}
+
+            {activeTab === 'youtube' && siteId && (
+              <YoutubeSettings siteId={siteId} />
             )}
 
             {activeTab === 'team' && siteId && (

@@ -21,4 +21,5 @@ export type SectionType =
   | 'cta'
   | 'contact'
   | 'html'
+  | 'video'
   | 'dynamic-slot';
