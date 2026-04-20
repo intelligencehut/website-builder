@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentUserId, getUserRoleForSite } from '@/lib/site-context';
-import { getValidAccessToken, initResumableUpload } from '@/lib/youtube/client';
+import { getValidAccessToken } from '@/lib/youtube/client';
 
 /**
- * Mint a resumable upload URL from YouTube and create a `videos` DB row
- * with status='uploading'. The browser then PUTs the video bytes to the URL
- * directly — we never stream the file through our server (Vercel caps
- * request bodies at 4.5 MB).
+ * Step 1 of the upload flow: insert a `videos` row (status=uploading) and
+ * return a signed Supabase Storage upload URL. The browser PUTs the file
+ * bytes directly to Storage, bypassing Vercel's 4.5 MB request body cap.
+ *
+ * Step 2 happens in `/api/youtube/upload/from-storage` — the server pulls
+ * the file out of Storage and pushes it to YouTube.
  */
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -35,6 +38,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }
 
+  // Verify YouTube is connected before we let them upload 100s of MB.
   const accessToken = await getValidAccessToken(siteId);
   if (!accessToken) {
     return NextResponse.json(
@@ -43,28 +47,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const finalPrivacy = privacyStatus ?? 'unlisted';
-
-  let session;
-  try {
-    session = await initResumableUpload({
-      accessToken,
-      title,
-      description,
-      privacyStatus: finalPrivacy,
-      fileSize,
-      mimeType,
-    });
-  } catch (e) {
-    return NextResponse.json(
-      { error: 'youtube_init_failed', message: (e as Error).message },
-      { status: 502 }
-    );
-  }
-
   const db = createAdminClient();
   if (!db) return NextResponse.json({ error: 'db not configured' }, { status: 500 });
 
+  const finalPrivacy = privacyStatus ?? 'unlisted';
+
+  // Insert videos row first so we can key the storage path by its UUID.
   const { data: row, error: insertErr } = await db
     .from('videos')
     .insert({
@@ -87,5 +75,34 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ videoId: row.id, uploadUrl: session.uploadUrl });
+  // Mint a signed upload URL for the media bucket. Storage SDK needs a
+  // vanilla client (not the website-schema-scoped admin).
+  const storageUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const storageKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!storageUrl || !storageKey) {
+    return NextResponse.json({ error: 'storage not configured' }, { status: 500 });
+  }
+  const storage = createSupabaseClient(storageUrl, storageKey, {
+    auth: { persistSession: false },
+  });
+
+  const ext = originalFilename?.includes('.') ? `.${originalFilename.split('.').pop()}` : '';
+  const storagePath = `video-staging/${siteId}/${row.id}${ext}`;
+
+  const { data: signed, error: signErr } = await storage.storage
+    .from('media')
+    .createSignedUploadUrl(storagePath);
+
+  if (signErr || !signed) {
+    // Roll back the DB insert so the library isn't polluted with orphans.
+    await db.from('videos').delete().eq('id', row.id);
+    return NextResponse.json({ error: `signed URL failed: ${signErr?.message ?? 'unknown'}` }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    videoId: row.id,
+    storagePath,
+    storageSignedUrl: signed.signedUrl,
+    storageToken: signed.token,
+  });
 }

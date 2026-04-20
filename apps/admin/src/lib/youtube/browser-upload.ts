@@ -1,13 +1,18 @@
 /**
  * Client-side YouTube upload driver.
  *
- * Flow:
- *   1. POST /api/youtube/upload/init → { videoId, uploadUrl }
- *   2. PUT <uploadUrl> with the file bytes (direct to Google, with progress)
- *   3. POST /api/youtube/upload/complete → { ok, youtubeVideoId }
+ * Flow (works around Vercel's 4.5 MB request body cap):
+ *   1. POST /api/youtube/upload/init
+ *        → inserts `videos` row (status=uploading)
+ *        → returns a Supabase Storage signed upload URL
+ *   2. PUT <storageSignedUrl> with the file bytes
+ *        → browser uploads directly to Storage, no server in the path
+ *   3. POST /api/youtube/upload/from-storage { videoId }
+ *        → server fetches from Storage, streams to YouTube resumable upload
+ *        → updates DB row with youtube_video_id, deletes the staging file
  *
- * On failure at any step, POST /api/youtube/upload/fail so the DB row
- * doesn't sit in 'uploading' forever.
+ * On any failure, POST /api/youtube/upload/fail so the DB row doesn't sit
+ * in 'uploading' forever.
  */
 
 export interface UploadCallbacks {
@@ -39,7 +44,7 @@ export async function uploadVideoToYoutube(
   params: UploadParams,
   callbacks: UploadCallbacks = {}
 ): Promise<UploadResult> {
-  // 1. Init
+  // 1. Init — get storage signed URL.
   const initRes = await fetch('/api/youtube/upload/init', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -54,67 +59,77 @@ export async function uploadVideoToYoutube(
     }),
   });
 
-  if (initRes.status === 412) {
-    throw new YoutubeNotConnectedError();
-  }
+  if (initRes.status === 412) throw new YoutubeNotConnectedError();
   if (!initRes.ok) {
     const text = await initRes.text().catch(() => '');
     throw new Error(`init failed: ${text || initRes.status}`);
   }
-  const { videoId, uploadUrl } = (await initRes.json()) as {
+  const { videoId, storageSignedUrl } = (await initRes.json()) as {
     videoId: string;
-    uploadUrl: string;
+    storageSignedUrl: string;
   };
 
-  // 2. PUT file bytes to YouTube via our server-side proxy (browser→YouTube
-  //    direct PUT is blocked by CORS for non-whitelisted origins).
+  // 2. PUT to Supabase Storage with progress (most of the time is here —
+  //    up to 90% of total as reported to callbacks.onProgress).
   try {
-    const youtubeResponse = await putViaProxy(
-      params.siteId,
-      uploadUrl,
-      params.file,
-      callbacks.onProgress
-    );
-    const youtubeVideoId = youtubeResponse?.id;
-    if (!youtubeVideoId) {
-      throw new Error('YouTube response missing video id');
-    }
-
-    // 3. Complete
-    const completeRes = await fetch('/api/youtube/upload/complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videoId, youtubeVideoId }),
+    await putWithProgress(storageSignedUrl, params.file, (pct) => {
+      callbacks.onProgress?.(Math.round(pct * 0.9));
     });
-    if (!completeRes.ok) {
-      const text = await completeRes.text().catch(() => '');
-      throw new Error(`complete failed: ${text || completeRes.status}`);
-    }
-    const completed = (await completeRes.json()) as { thumbnailUrl: string | null };
-    return { videoId, youtubeVideoId, thumbnailUrl: completed.thumbnailUrl };
   } catch (e) {
-    fetch('/api/youtube/upload/fail', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videoId, errorMessage: (e as Error).message }),
-      keepalive: true,
-    }).catch(() => {});
+    await reportFail(videoId, `storage upload: ${(e as Error).message}`);
     throw e;
   }
+
+  // 3. Tell the server to push Storage → YouTube. This is a small HTTP
+  //    call but the server-side work takes a while (streams the whole
+  //    file up to YouTube). We optimistically surface progress in the
+  //    90–100% band.
+  callbacks.onProgress?.(92);
+  const completeRes = await fetch('/api/youtube/upload/from-storage', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ videoId }),
+  });
+  if (!completeRes.ok) {
+    const text = await completeRes.text().catch(() => '');
+    await reportFail(videoId, `youtube push: ${text || completeRes.status}`);
+    throw new Error(`YouTube push failed: ${text || completeRes.status}`);
+  }
+  const done = (await completeRes.json()) as {
+    youtubeVideoId: string;
+    thumbnailUrl: string | null;
+  };
+  callbacks.onProgress?.(100);
+  return { videoId, youtubeVideoId: done.youtubeVideoId, thumbnailUrl: done.thumbnailUrl };
 }
 
-function putViaProxy(
-  siteId: string,
-  uploadUrl: string,
+function reportFail(videoId: string, errorMessage: string): Promise<unknown> {
+  return fetch('/api/youtube/upload/fail', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ videoId, errorMessage }),
+    keepalive: true,
+  }).catch(() => {});
+}
+
+function putWithProgress(
+  url: string,
   file: File,
   onProgress?: (pct: number) => void
-): Promise<{ id?: string }> {
+): Promise<void> {
   return new Promise((resolve, reject) => {
+    // Supabase Storage's /object/upload/sign endpoint expects the file wrapped
+    // in multipart/form-data — raw PUT bodies get a 400. Matches what
+    // supabase-js's uploadToSignedUrl sends internally.
+    const form = new FormData();
+    form.append('cacheControl', '3600');
+    form.append('', file);
+
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/api/youtube/upload/proxy');
-    xhr.setRequestHeader('X-Site-Id', siteId);
-    xhr.setRequestHeader('X-Upload-Url', uploadUrl);
-    xhr.setRequestHeader('X-Mime-Type', file.type || 'video/*');
+    xhr.open('PUT', url);
+    // Do NOT set Content-Type — the browser fills in the multipart
+    // boundary automatically. Also do NOT set x-upsert — the signed URL's
+    // JWT pins the upsert flag.
 
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && onProgress) {
@@ -123,21 +138,20 @@ function putViaProxy(
     };
 
     xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          const parsed = JSON.parse(xhr.responseText);
-          // Proxy wraps YouTube response: { status, body: {...} }
-          resolve(parsed?.body ?? parsed);
-        } catch {
-          resolve({});
-        }
-      } else {
-        reject(new Error(`Upload proxy ${xhr.status}: ${xhr.responseText.slice(0, 500)}`));
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else {
+        // eslint-disable-next-line no-console
+        console.error('[storage upload] PUT failed', xhr.status, xhr.responseText);
+        reject(new Error(`Storage PUT ${xhr.status}: ${xhr.responseText.slice(0, 500)}`));
       }
     };
-    xhr.onerror = () => reject(new Error('Network error uploading to proxy'));
+    xhr.onerror = () => {
+      // eslint-disable-next-line no-console
+      console.error('[storage upload] network error', xhr.status, xhr.responseText);
+      reject(new Error('Network error uploading to Storage'));
+    };
     xhr.onabort = () => reject(new Error('Upload aborted'));
 
-    xhr.send(file);
+    xhr.send(form);
   });
 }
