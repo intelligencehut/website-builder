@@ -22,6 +22,7 @@ import {
 import type { MediaItem } from '@/lib/actions/media';
 import { listMediaForSite, uploadMediaFile, deleteMediaFile } from '@/lib/actions/media';
 import { listVideosForSite, deleteVideo, isYoutubeConnected, type VideoItem } from '@/lib/actions/videos';
+import { findAssetReferences } from '@/lib/actions/asset-references';
 import { uploadVideoToYoutube, YoutubeNotConnectedError } from '@/lib/youtube/browser-upload';
 import { DeleteConfirmDialog } from '@/components/media/delete-confirm-dialog';
 
@@ -847,6 +848,25 @@ export default function MediaPage() {
         onConfirm={confirmDelete}
         filename={pendingDelete?.filename}
         count={pendingDelete?.ids.length}
+        checkReferences={
+          pendingDelete && pendingDelete.ids.length === 1 && siteId
+            ? async () => {
+                const id = pendingDelete.ids[0];
+                if (pendingDelete.kind === 'video') {
+                  const v = videos.find((x) => x.id === id);
+                  if (!v?.youtube_video_id) return [];
+                  return findAssetReferences({ siteId, youtubeId: v.youtube_video_id });
+                }
+                const m = media.find((x) => x.id === id);
+                if (!m) return [];
+                return findAssetReferences({
+                  siteId,
+                  imageUrl: m.public_url,
+                  imagePath: m.storage_path,
+                });
+              }
+            : undefined
+        }
       />
     </>
   );
