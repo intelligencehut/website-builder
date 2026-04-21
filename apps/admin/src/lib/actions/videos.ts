@@ -2,7 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentUserId, getUserRoleForSite } from '@/lib/site-context';
-import { getValidAccessToken, deleteYoutubeVideo } from '@/lib/youtube/client';
+import { getValidAccessToken, deleteYoutubeVideo, updateYoutubeVideoSnippet } from '@/lib/youtube/client';
 
 export interface VideoItem {
   id: string;
@@ -105,7 +105,7 @@ export async function updateVideoMetadata(
 
   const { data: row } = await db
     .from('videos')
-    .select('site_id')
+    .select('site_id, youtube_video_id, title, description')
     .eq('id', videoId)
     .single();
   if (!row) throw new Error('Video not found');
@@ -113,9 +113,26 @@ export async function updateVideoMetadata(
   const role = await getUserRoleForSite(row.site_id, userId);
   if (role !== 'owner' && role !== 'editor') throw new Error('Forbidden');
 
+  const nextTitle = patch.title ?? row.title;
+  const nextDescription = patch.description ?? row.description ?? '';
+
+  // Push to YouTube first so we don't end up with the DB saying "updated"
+  // while YouTube still shows the old title. If the YouTube call fails, the
+  // error bubbles up and the DB row is untouched.
+  if (row.youtube_video_id) {
+    const token = await getValidAccessToken(row.site_id);
+    if (!token) throw new Error('YouTube connection required. Reconnect in Settings → YouTube.');
+    await updateYoutubeVideoSnippet({
+      accessToken: token,
+      youtubeVideoId: row.youtube_video_id,
+      title: nextTitle,
+      description: nextDescription,
+    });
+  }
+
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  if (patch.title !== undefined) update.title = patch.title;
-  if (patch.description !== undefined) update.description = patch.description;
+  if (patch.title !== undefined) update.title = nextTitle;
+  if (patch.description !== undefined) update.description = nextDescription;
 
   const { error } = await db.from('videos').update(update).eq('id', videoId);
   if (error) throw new Error(error.message);

@@ -7,6 +7,7 @@ import { Search, X, Check, Play, Loader2, Upload, AlertCircle } from 'lucide-rea
 import { listVideosForSite, isYoutubeConnected, type VideoItem } from '@/lib/actions/videos';
 import { getActiveSiteId } from '@/lib/site-context';
 import { uploadVideoToYoutube, YoutubeNotConnectedError } from '@/lib/youtube/browser-upload';
+import { VideoMetadataDialog, filenameToTitle } from '@/components/media/video-metadata-dialog';
 
 export interface VideoPickerSelection {
   youtubeId: string;
@@ -30,6 +31,7 @@ export function VideoPickerModal({ open, onClose, onSelect }: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadPct, setUploadPct] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   async function refresh() {
     setLoading(true);
@@ -68,20 +70,25 @@ export function VideoPickerModal({ open, onClose, onSelect }: Props) {
     setSearch('');
   }
 
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFilePicked(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    // Reset the input so picking the same file twice in a row still fires change.
+    e.target.value = '';
     if (!file || !siteId) return;
+    setError(null);
+    setPendingFile(file);
+  }
+
+  async function handleUploadConfirmed(title: string, description: string) {
+    const file = pendingFile;
+    if (!file || !siteId) return;
+    setPendingFile(null);
     setUploading(true);
     setUploadPct(0);
     setError(null);
     try {
       await uploadVideoToYoutube(
-        {
-          siteId,
-          file,
-          title: file.name.replace(/\.[^.]+$/, ''),
-          privacyStatus: 'unlisted',
-        },
+        { siteId, file, title, description, privacyStatus: 'unlisted' },
         { onProgress: setUploadPct }
       );
       await refresh();
@@ -152,7 +159,7 @@ export function VideoPickerModal({ open, onClose, onSelect }: Props) {
               <input
                 type="file"
                 accept="video/*"
-                onChange={handleUpload}
+                onChange={handleFilePicked}
                 disabled={uploading || !connected}
                 className="hidden"
               />
@@ -247,6 +254,16 @@ export function VideoPickerModal({ open, onClose, onSelect }: Props) {
           </div>
         </Dialog.Content>
       </Dialog.Portal>
+
+      <VideoMetadataDialog
+        open={pendingFile !== null}
+        mode="upload"
+        subheading={pendingFile?.name}
+        initialTitle={pendingFile ? filenameToTitle(pendingFile.name) : ''}
+        initialDescription=""
+        onClose={() => setPendingFile(null)}
+        onSubmit={handleUploadConfirmed}
+      />
     </Dialog.Root>
   );
 }

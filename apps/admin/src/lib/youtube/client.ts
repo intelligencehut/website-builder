@@ -203,6 +203,57 @@ export async function initResumableUpload(params: {
 }
 
 /**
+ * Update a video's title/description on YouTube. videos.update with
+ * part=snippet requires the full snippet block (including categoryId), so
+ * we fetch the current snippet first and merge in the edited fields.
+ */
+export async function updateYoutubeVideoSnippet(params: {
+  accessToken: string;
+  youtubeVideoId: string;
+  title: string;
+  description: string;
+}): Promise<void> {
+  const getRes = await fetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(params.youtubeVideoId)}`,
+    { headers: { Authorization: `Bearer ${params.accessToken}` } }
+  );
+  if (!getRes.ok) {
+    const text = await getRes.text().catch(() => '');
+    throw new Error(`snippet fetch failed: ${getRes.status} ${text}`);
+  }
+  const getBody = await getRes.json();
+  const currentSnippet = getBody.items?.[0]?.snippet;
+  if (!currentSnippet) throw new Error('Video not found on YouTube');
+
+  const updated = {
+    id: params.youtubeVideoId,
+    snippet: {
+      ...currentSnippet,
+      title: params.title,
+      description: params.description,
+      // categoryId is required; preserve whatever YouTube has, fall back to 22.
+      categoryId: currentSnippet.categoryId ?? '22',
+    },
+  };
+
+  const putRes = await fetch(
+    'https://www.googleapis.com/youtube/v3/videos?part=snippet',
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${params.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updated),
+    }
+  );
+  if (!putRes.ok) {
+    const text = await putRes.text().catch(() => '');
+    throw new Error(`videos.update failed: ${putRes.status} ${text}`);
+  }
+}
+
+/**
  * Delete a video from YouTube. Best-effort — returns success/failure but
  * doesn't throw, because the caller also wants to remove the DB row.
  */

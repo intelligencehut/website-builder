@@ -18,13 +18,15 @@ import {
   Loader2,
   AlertCircle,
   Play,
+  Pencil,
 } from 'lucide-react';
 import type { MediaItem } from '@/lib/actions/media';
 import { listMediaForSite, uploadMediaFile, deleteMediaFile } from '@/lib/actions/media';
-import { listVideosForSite, deleteVideo, isYoutubeConnected, type VideoItem } from '@/lib/actions/videos';
+import { listVideosForSite, deleteVideo, isYoutubeConnected, updateVideoMetadata, type VideoItem } from '@/lib/actions/videos';
 import { findAssetReferences } from '@/lib/actions/asset-references';
 import { uploadVideoToYoutube, YoutubeNotConnectedError } from '@/lib/youtube/browser-upload';
 import { DeleteConfirmDialog } from '@/components/media/delete-confirm-dialog';
+import { VideoMetadataDialog, filenameToTitle } from '@/components/media/video-metadata-dialog';
 
 type MediaType = 'all' | 'image' | 'document' | 'video';
 type ViewMode = 'grid' | 'list';
@@ -92,6 +94,10 @@ export default function MediaPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<{ ids: string[]; filename?: string; kind?: 'media' | 'video' } | null>(null);
+  const [pendingVideos, setPendingVideos] = useState<File[]>([]);
+  const [editingVideo, setEditingVideo] = useState<VideoItem | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   // Read active site and load media
   useEffect(() => {
@@ -134,33 +140,43 @@ export default function MediaPage() {
       return;
     }
 
-    setUploading(true);
     setError(null);
 
     // Non-video uploads (images/PDFs) go through Supabase storage as before.
-    try {
-      for (const file of otherFiles) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('siteId', siteId);
-        await uploadMediaFile(formData);
+    if (otherFiles.length > 0) {
+      setUploading(true);
+      try {
+        for (const file of otherFiles) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('siteId', siteId);
+          await uploadMediaFile(formData);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Upload failed');
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      await loadMedia();
+      setUploading(false);
     }
 
-    // Video uploads go through the YouTube pipeline.
-    for (const file of videoFiles) {
+    // Video uploads: enqueue and let the metadata dialog drive the loop.
+    if (videoFiles.length > 0) {
+      setPendingVideos(prev => [...prev, ...videoFiles]);
+    }
+  }, [siteId, loadMedia]);
+
+  // Actually uploads the currently-queued video using the user-provided
+  // metadata, then advances the queue. Runs in the background so multiple
+  // videos can be queued without blocking the dialog on each one.
+  const uploadPendingVideo = useCallback(
+    async (file: File, title: string, description: string) => {
+      if (!siteId) return;
+      setUploading(true);
       const progressId = crypto.randomUUID();
-      setVideoProgress(prev => [...prev, { id: progressId, filename: file.name, pct: 0 }]);
+      setVideoProgress(prev => [...prev, { id: progressId, filename: title, pct: 0 }]);
       try {
         await uploadVideoToYoutube(
-          {
-            siteId,
-            file,
-            title: file.name.replace(/\.[^.]+$/, ''),
-            privacyStatus: 'unlisted',
-          },
+          { siteId, file, title, description, privacyStatus: 'unlisted' },
           {
             onProgress: (pct) =>
               setVideoProgress(prev => prev.map(p => (p.id === progressId ? { ...p, pct } : p))),
@@ -177,15 +193,30 @@ export default function MediaPage() {
         setVideoProgress(prev => prev.map(p => (p.id === progressId ? { ...p, error: message } : p)));
         setError(message);
       }
-    }
-
-    await loadMedia();
-    setUploading(false);
-  }, [siteId, loadMedia]);
+      await loadMedia();
+      setUploading(false);
+    },
+    [siteId, loadMedia]
+  );
 
   const requestDelete = useCallback((id: string, filename: string, kind: 'media' | 'video' = 'media') => {
     setPendingDelete({ ids: [id], filename, kind });
   }, []);
+
+  const saveVideoEdit = useCallback(async (title: string, description: string) => {
+    const v = editingVideo;
+    if (!v) return;
+    setEditSaving(true);
+    setEditError(null);
+    try {
+      await updateVideoMetadata(v.id, { title, description });
+      setEditingVideo(null);
+      await loadMedia();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : 'Failed to save');
+    }
+    setEditSaving(false);
+  }, [editingVideo, loadMedia]);
 
   const requestBulkDelete = useCallback(() => {
     const ids = Array.from(selected);
@@ -545,6 +576,13 @@ export default function MediaPage() {
                             </>
                           )}
                           <button
+                            onClick={() => { setEditError(null); setEditingVideo(v); }}
+                            className="p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
+                            title="Edit title & description"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
                             onClick={() => requestDelete(v.id, v.title, 'video')}
                             className="p-2 bg-white/90 rounded-button text-red-600 hover:bg-red-50 transition-colors shadow-md"
                             title="Delete"
@@ -762,6 +800,13 @@ export default function MediaPage() {
                             </button>
                           )}
                           <button
+                            onClick={() => { setEditError(null); setEditingVideo(v); }}
+                            className="p-1 text-ink-muted hover:text-accent rounded transition-colors"
+                            title="Edit title & description"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
                             onClick={() => requestDelete(v.id, v.title, 'video')}
                             className="p-1 text-ink-muted hover:text-red-500 rounded transition-colors"
                             title="Delete"
@@ -841,6 +886,32 @@ export default function MediaPage() {
           </div>
         )}
       </div>
+
+      <VideoMetadataDialog
+        open={pendingVideos.length > 0}
+        mode="upload"
+        subheading={pendingVideos[0]?.name}
+        initialTitle={pendingVideos[0] ? filenameToTitle(pendingVideos[0].name) : ''}
+        initialDescription=""
+        onClose={() => setPendingVideos(prev => prev.slice(1))}
+        onSubmit={(title, description) => {
+          const file = pendingVideos[0];
+          if (!file) return;
+          setPendingVideos(prev => prev.slice(1));
+          void uploadPendingVideo(file, title, description);
+        }}
+      />
+
+      <VideoMetadataDialog
+        open={editingVideo !== null}
+        mode="edit"
+        initialTitle={editingVideo?.title ?? ''}
+        initialDescription={editingVideo?.description ?? ''}
+        saving={editSaving}
+        error={editError}
+        onClose={() => { if (!editSaving) { setEditingVideo(null); setEditError(null); } }}
+        onSubmit={(title, description) => void saveVideoEdit(title, description)}
+      />
 
       <DeleteConfirmDialog
         open={pendingDelete !== null}
