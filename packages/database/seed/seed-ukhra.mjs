@@ -350,7 +350,15 @@ const NABADISHA_SECTIONS = {
         icon: "GraduationCap",
         badge: "Education Programme",
         title: "Ukhra Nabadisha",
-        subtitle: "A comprehensive educational project covering 5 primary schools and 1 girls' high school, reaching approximately 900 children in the village.",
+        subtitle: "A comprehensive educational project reaching ~900 children across 5 primary schools and 1 girls' high school",
+      },
+    },
+    {
+      id: "overview",
+      type: "text",
+      data: {
+        heading: "About Ukhra Nabadisha",
+        body: "<p>Ukhra Nabadisha is a comprehensive educational project covering 5 primary schools and 1 girls' high school, reaching approximately 900 children in the village.</p><p>Through innovative teaching methods and close collaboration with existing school structures, we are working to bridge the learning gap that leaves 50% of children struggling with reading and 80% with writing.</p>",
       },
     },
     {
@@ -370,6 +378,21 @@ const NABADISHA_SECTIONS = {
       },
     },
     {
+      id: "videos",
+      type: "video",
+      data: {
+        eyebrow: "Moments from the Classroom",
+        heading: "Learning in Action",
+        subtitle: "Glimpses of students and teachers at Ukhra schools",
+        items: [
+          { youtubeId: "h2R58x9VBnA", title: "Namta Path — Multiplication tables in the classroom", caption: "Students reciting multiplication tables ('namta path') in a classroom" },
+          { youtubeId: "wiw-Gdxlc30", title: "Hatti Matim Tim (Part 2)", caption: "Classroom recitation — Hatti Matim Tim (Part 2)" },
+          { youtubeId: "dtqH_LMtxQA", title: "Headmaster teaching in a school", caption: "A headmaster teaching in a school at Ukhra" },
+          { youtubeId: "ip6A-r5PFww", title: "Headmaster teaching in a school", caption: "Another moment of a headmaster teaching in a school at Ukhra" },
+        ],
+      },
+    },
+    {
       id: "impact",
       type: "stats",
       data: {
@@ -382,7 +405,7 @@ const NABADISHA_SECTIONS = {
         ],
       },
     },
-    otherProgramsSection(["smartClass", "joyBox", "environment"]),
+    otherProgramsSection(["smartClass", "joyBox", "healthWorkshop", "environment"]),
     {
       id: "cta",
       type: "cta",
@@ -405,7 +428,15 @@ const SMART_CLASS_SECTIONS = {
         icon: "Monitor",
         badge: "Digital Education",
         title: "SMART Class Initiative",
-        subtitle: "For the first time, SEVAA introduced digital education during regular school hours. The SMART room in the girls' school was equipped with new technology.",
+        subtitle: "Digital education arrives in Ukhra schools",
+      },
+    },
+    {
+      id: "overview",
+      type: "text",
+      data: {
+        heading: "About SMART Class Initiative",
+        body: "<p>For the first time, SEVAA introduced digital education during regular school hours. The SMART room in the girls' school was equipped with new technology to support interactive, tech-enabled learning for classes 11 and 12.</p>",
       },
     },
     {
@@ -423,6 +454,19 @@ const SMART_CLASS_SECTIONS = {
       },
     },
     {
+      id: "videos",
+      type: "video",
+      data: {
+        eyebrow: "In the SMART Room",
+        heading: "Digital Learning at Ukhra",
+        items: [
+          { youtubeId: "CYHUiLOi0HQ", title: "Students receive a laptop from SEVAA", caption: "A laptop handed over by SEVAA at Ukhra" },
+          { youtubeId: "OgQvIHcXyTw", title: "Student using a laptop", caption: "A student using a laptop at Ukhra" },
+          { youtubeId: "sXFCxJXGOjw", title: "Students learning from a video", caption: "Students learning from a video at Ukhra" },
+        ],
+      },
+    },
+    {
       id: "highlight",
       type: "feature-highlight",
       data: {
@@ -431,7 +475,7 @@ const SMART_CLASS_SECTIONS = {
         description: "The SMART room in the girls' school was equipped with advanced camera systems and two-way communication capabilities, focusing on classes 11 and 12 students. This digital education initiative is fully integrated with the school curriculum.",
       },
     },
-    otherProgramsSection(["nabadisha", "joyBox", "environment"]),
+    otherProgramsSection(["nabadisha", "joyBox", "healthWorkshop", "environment"]),
     {
       id: "cta",
       type: "cta",
@@ -454,7 +498,15 @@ const JOY_BOX_SECTIONS = {
         icon: "Music",
         badge: "Interactive Learning",
         title: "Joy Box Programme",
-        subtitle: "A portable Audio Visual unit designed to make learning engaging and interactive for children across schools.",
+        subtitle: "Portable Audio Visual learning for every classroom",
+      },
+    },
+    {
+      id: "overview",
+      type: "text",
+      data: {
+        heading: "About Joy Box Programme",
+        body: "<p>A portable Audio Visual unit designed to make learning engaging and interactive for children across schools. The Joy Box brings stories, puzzles, and vocabulary activities to students wherever they are.</p>",
       },
     },
     {
@@ -472,6 +524,17 @@ const JOY_BOX_SECTIONS = {
       },
     },
     {
+      id: "videos",
+      type: "video",
+      data: {
+        eyebrow: "Watch the Joy Box in Action",
+        heading: "Students at Play",
+        items: [
+          { youtubeId: "PzcAPmI3rYI", title: "Students solving puzzles", caption: "Students solving puzzles at Ukhra" },
+        ],
+      },
+    },
+    {
       id: "concept",
       type: "feature-highlight",
       data: {
@@ -480,7 +543,7 @@ const JOY_BOX_SECTIONS = {
         description: "The Joy Box is a portable Audio Visual unit that travels between schools, bringing interactive and engaging learning experiences to children across Ukhra. Through stories, visual exercises, mind mapping, and vocabulary activities, children discover the joy of learning.",
       },
     },
-    otherProgramsSection(["nabadisha", "smartClass", "environment"]),
+    otherProgramsSection(["nabadisha", "smartClass", "healthWorkshop", "environment"]),
     {
       id: "cta",
       type: "cta",
@@ -503,7 +566,15 @@ const HEALTH_WORKSHOP_SECTIONS = {
         icon: "Activity",
         badge: "Community Health",
         title: "Health Workshop",
-        subtitle: "Free health workshops organized in Ukhra in partnership with Service Place, bringing preventive care, vision screening, and basic health checkups directly to schoolchildren and the community.",
+        subtitle: "Preventive care and vision screening for schoolchildren",
+      },
+    },
+    {
+      id: "overview",
+      type: "text",
+      data: {
+        heading: "About Health Workshop",
+        body: "<p>Free health workshops organized in Ukhra in partnership with Service Place, bringing preventive care, vision screening, and basic health checkups directly to schoolchildren and the community.</p><p>A recurring initiative — repeated at intervals based on need.</p>",
       },
     },
     {
@@ -518,6 +589,17 @@ const HEALTH_WORKSHOP_SECTIONS = {
           "Student registration and medical records",
           "Health awareness for children and parents",
           "Distribution of basic medical essentials",
+        ],
+      },
+    },
+    {
+      id: "videos",
+      type: "video",
+      data: {
+        eyebrow: "From the Ground",
+        heading: "Watch the Workshop",
+        items: [
+          { youtubeId: "3t2I3WL8GhA", title: "Health Workshop held in Ukhra", caption: "A Health Workshop at Ukhra in partnership with Service Place" },
         ],
       },
     },
@@ -570,7 +652,15 @@ const ENVIRONMENT_SECTIONS = {
         icon: "TreePine",
         badge: "Conservation & Awareness",
         title: "Environmental Initiatives",
-        subtitle: "Addressing environmental challenges through tree plantation and community awareness programs.",
+        subtitle: "Tree plantation and awareness for a greener Ukhra",
+      },
+    },
+    {
+      id: "overview",
+      type: "text",
+      data: {
+        heading: "About Environmental Initiatives",
+        body: "<p>Addressing environmental challenges through tree plantation and community awareness programs. SEVAA's long-term sustainability focus includes restoring green cover around water bodies impacted by coal mining in the area.</p>",
       },
     },
     {
@@ -597,7 +687,7 @@ const ENVIRONMENT_SECTIONS = {
         background: "cream",
       },
     },
-    otherProgramsSection(["nabadisha", "smartClass", "joyBox"]),
+    otherProgramsSection(["nabadisha", "smartClass", "joyBox", "healthWorkshop"]),
     {
       id: "cta",
       type: "cta",
@@ -632,6 +722,7 @@ const DONATE_SECTIONS = {
         bankName: "INDIAN BANK",
         accountNumber: "7103506260",
         ifscCode: "IDIB000K777",
+        note: "Please mention 'Ukhra' in the transfer remarks so we can route your contribution to the Ukhra initiative.",
       },
     },
     {
@@ -690,9 +781,10 @@ const CONTACT_SECTIONS = {
       id: "info",
       type: "contact",
       data: {
+        heading: "SEVAA Headquarters",
         email: "infosevaa@gmail.com",
         phone: "+91 98271 93272",
-        location: "Ukhra, Paschim Bardhaman, West Bengal",
+        address: "131/B Sri Ramkrishna Pally, Sonarpur, Kolkata-700150, West Bengal",
       },
     },
     {
@@ -739,12 +831,22 @@ const GALLERY_SECTIONS = {
     },
     {
       id: "videos",
-      type: "gallery",
+      type: "video",
       data: {
         eyebrow: "Video Stories",
         heading: "Moments on Camera",
         subtitle: "Classroom sessions, health workshops, and digital learning in action",
-        background: "cream",
+        items: [
+          { youtubeId: "3t2I3WL8GhA", title: "Health Workshop held in Ukhra", caption: "A Health Workshop at Ukhra in partnership with Service Place" },
+          { youtubeId: "h2R58x9VBnA", title: "Namta Path — Multiplication tables in the classroom", caption: "Students reciting multiplication tables ('namta path') in a classroom" },
+          { youtubeId: "wiw-Gdxlc30", title: "Hatti Matim Tim (Part 2)", caption: "Classroom recitation — Hatti Matim Tim (Part 2)" },
+          { youtubeId: "dtqH_LMtxQA", title: "Headmaster teaching in a school", caption: "A headmaster teaching in a school at Ukhra" },
+          { youtubeId: "ip6A-r5PFww", title: "Headmaster teaching in a school", caption: "Another moment of a headmaster teaching in a school at Ukhra" },
+          { youtubeId: "CYHUiLOi0HQ", title: "Students receive a laptop from SEVAA", caption: "A laptop handed over by SEVAA at Ukhra" },
+          { youtubeId: "OgQvIHcXyTw", title: "Student using a laptop", caption: "A student using a laptop at Ukhra" },
+          { youtubeId: "sXFCxJXGOjw", title: "Students learning from a video", caption: "Students learning from a video at Ukhra" },
+          { youtubeId: "PzcAPmI3rYI", title: "Students solving puzzles", caption: "Students solving puzzles at Ukhra" },
+        ],
       },
     },
   ],
@@ -786,13 +888,29 @@ const SUPPORT_SECTIONS = {
     {
       id: "header",
       type: "page-header",
-      data: { icon: "Heart", title: "Volunteer & Support" },
+      data: {
+        icon: "Heart",
+        title: "Support Us",
+        subtitle: "Multiple ways to support SEVAA Ukhra",
+      },
     },
     {
-      id: "coming-soon",
+      id: "intro",
       type: "text",
       data: {
-        body: "<p>Information about volunteering opportunities, teacher training programs, and other ways to support education in Ukhra will be available here soon.</p>",
+        heading: "How You Can Help",
+        body: "<p>Whether through financial contributions, volunteering your time, or sharing our work with your network — every form of support helps us reach more children.</p>",
+      },
+    },
+    {
+      id: "donate-cta",
+      type: "cta",
+      data: {
+        heading: "Make a Donation",
+        description: "Your contribution directly funds educational initiatives at Ukhra.",
+        background: "terracotta",
+        primaryCta: { label: "Donate Now", href: "/donate", icon: "Heart" },
+        secondaryCta: { label: "Get in Touch", href: "/contact" },
       },
     },
   ],
@@ -803,13 +921,16 @@ const PRIVACY_SECTIONS = {
     {
       id: "header",
       type: "page-header",
-      data: { title: "Privacy Policy" },
+      data: {
+        title: "Privacy Policy",
+        subtitle: "How we handle your information",
+      },
     },
     {
-      id: "coming-soon",
+      id: "policy",
       type: "text",
       data: {
-        body: "<p>Our privacy policy detailing how we handle your information will be published here soon.</p>",
+        body: "<p>SEVAA Ukhra respects your privacy. We only collect personal information that you voluntarily provide (for example, when contacting us or making a donation), and we use it solely to communicate with you and process your contribution.</p><h3>Information We Collect</h3><p>Name, email address, phone number, and any message you choose to include when using our contact form.</p><h3>How We Use It</h3><p>To respond to your inquiries, send updates about SEVAA Ukhra's work, and acknowledge donations.</p><h3>Sharing</h3><p>We do not sell or share your personal information with third parties.</p><h3>Contact</h3><p>For any privacy-related questions, please email <a href=\"mailto:infosevaa@gmail.com\">infosevaa@gmail.com</a>.</p>",
       },
     },
   ],
@@ -820,13 +941,16 @@ const TERMS_SECTIONS = {
     {
       id: "header",
       type: "page-header",
-      data: { title: "Terms & Conditions" },
+      data: {
+        title: "Terms of Use",
+        subtitle: "Terms governing your use of this website",
+      },
     },
     {
-      id: "coming-soon",
+      id: "terms",
       type: "text",
       data: {
-        body: "<p>Our terms and conditions will be published here soon.</p>",
+        body: "<p>By accessing the SEVAA Ukhra website, you agree to the terms below.</p><h3>Use of Content</h3><p>All text, images, and materials on this site are the property of SEVAA unless otherwise noted. You may share content with attribution; commercial reuse requires permission.</p><h3>Donations</h3><p>Donations are routed to the SEVAA bank account listed on the Donate page. Please ensure you enter correct details when transferring funds.</p><h3>External Links</h3><p>This site may link to third-party websites. SEVAA is not responsible for their content or privacy practices.</p><h3>Changes</h3><p>We may update these terms at any time. Continued use of the website after changes constitutes acceptance.</p>",
       },
     },
   ],
@@ -867,10 +991,10 @@ async function upsertSite() {
       metadata: {
         platform: "ukhra",
         description: "SEVAA Ukhra Nabadisha — education & community development in Ukhra village",
-        preview_url: "http://localhost:3002",
+        preview_url: "https://ukhra.sevaa.net",
         stage_domain: "",
         available_slots: [],
-        revalidation_url: "http://localhost:3002/api/revalidate",
+        revalidation_url: "https://ukhra.sevaa.net/api/revalidate",
         seo: {
           title: "SEVAA Ukhra — Education & Community Development",
           description:

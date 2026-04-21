@@ -7,9 +7,9 @@ VALUES (
   'heartnbeyond.com',
   '{
     "platform": "heartnbeyond",
-    "preview_url": "http://localhost:3000",
+    "preview_url": "https://www.heartnbeyond.com",
     "available_slots": ["specialties", "latest-posts", "doctors", "newsletter"],
-    "revalidation_url": "https://heartnbeyond.com/api/revalidate"
+    "revalidation_url": "https://www.heartnbeyond.com/api/revalidate"
   }'
 ) ON CONFLICT (id) DO NOTHING;
 

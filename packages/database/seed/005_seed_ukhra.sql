@@ -12,10 +12,10 @@ VALUES (
   '{
     "platform": "ukhra",
     "description": "SEVAA Ukhra Nabadisha — education & community development in Ukhra village",
-    "preview_url": "http://localhost:3002",
+    "preview_url": "https://ukhra.sevaa.net",
     "stage_domain": "",
     "available_slots": [],
-    "revalidation_url": "http://localhost:3002/api/revalidate",
+    "revalidation_url": "https://ukhra.sevaa.net/api/revalidate",
     "seo": {
       "title": "SEVAA Ukhra — Education & Community Development",
       "description": "SEVAA Ukhra Nabadisha is a comprehensive educational initiative reaching 900 children across schools in Ukhra, Paschim Bardhaman.",
