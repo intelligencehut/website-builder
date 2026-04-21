@@ -51,7 +51,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }
 
-  const accessToken = await getValidAccessToken(video.site_id);
+  let accessToken: string | null;
+  try {
+    accessToken = await getValidAccessToken(video.site_id);
+  } catch {
+    return NextResponse.json(
+      {
+        error: 'youtube_refresh_failed',
+        message: 'Your YouTube connection expired or was revoked. Reconnect the channel in Settings → YouTube.',
+      },
+      { status: 412 }
+    );
+  }
   if (!accessToken) {
     return NextResponse.json({ error: 'youtube_not_connected' }, { status: 412 });
   }

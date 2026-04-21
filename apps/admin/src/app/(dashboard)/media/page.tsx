@@ -170,7 +170,7 @@ export default function MediaPage() {
       } catch (err) {
         const message =
           err instanceof YoutubeNotConnectedError
-            ? 'Connect a YouTube channel in Settings to upload videos.'
+            ? err.message || 'Connect a YouTube channel in Settings to upload videos.'
             : err instanceof Error
             ? err.message
             : 'Video upload failed';

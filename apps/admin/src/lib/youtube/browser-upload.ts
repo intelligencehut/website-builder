@@ -34,8 +34,8 @@ export interface UploadResult {
 }
 
 export class YoutubeNotConnectedError extends Error {
-  constructor() {
-    super('YouTube channel not connected');
+  constructor(message?: string) {
+    super(message ?? 'YouTube channel not connected');
     this.name = 'YoutubeNotConnectedError';
   }
 }
@@ -59,7 +59,10 @@ export async function uploadVideoToYoutube(
     }),
   });
 
-  if (initRes.status === 412) throw new YoutubeNotConnectedError();
+  if (initRes.status === 412) {
+    const body = (await initRes.json().catch(() => null)) as { message?: string } | null;
+    throw new YoutubeNotConnectedError(body?.message);
+  }
   if (!initRes.ok) {
     const text = await initRes.text().catch(() => '');
     throw new Error(`init failed: ${text || initRes.status}`);
@@ -90,6 +93,11 @@ export async function uploadVideoToYoutube(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ videoId }),
   });
+  if (completeRes.status === 412) {
+    const body = (await completeRes.json().catch(() => null)) as { message?: string } | null;
+    await reportFail(videoId, body?.message ?? 'youtube not connected');
+    throw new YoutubeNotConnectedError(body?.message);
+  }
   if (!completeRes.ok) {
     const text = await completeRes.text().catch(() => '');
     await reportFail(videoId, `youtube push: ${text || completeRes.status}`);

@@ -88,7 +88,7 @@ export function VideoPickerModal({ open, onClose, onSelect }: Props) {
     } catch (err) {
       setError(
         err instanceof YoutubeNotConnectedError
-          ? 'Connect a YouTube channel in Settings to upload videos.'
+          ? err.message || 'Connect a YouTube channel in Settings to upload videos.'
           : err instanceof Error
           ? err.message
           : 'Upload failed'

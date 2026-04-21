@@ -39,7 +39,21 @@ export async function POST(request: Request) {
   }
 
   // Verify YouTube is connected before we let them upload 100s of MB.
-  const accessToken = await getValidAccessToken(siteId);
+  // Wrap in try/catch because getValidAccessToken throws on refresh-token
+  // failure (revoked / expired / test-app 7-day expiry) — without this,
+  // a revoked token surfaces as a bare 500 with no body.
+  let accessToken: string | null;
+  try {
+    accessToken = await getValidAccessToken(siteId);
+  } catch {
+    return NextResponse.json(
+      {
+        error: 'youtube_refresh_failed',
+        message: 'Your YouTube connection expired or was revoked. Reconnect the channel in Settings → YouTube.',
+      },
+      { status: 412 }
+    );
+  }
   if (!accessToken) {
     return NextResponse.json(
       { error: 'youtube_not_connected', message: 'Connect a YouTube channel in Settings first.' },
