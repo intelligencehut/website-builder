@@ -74,10 +74,10 @@ export function PagesClient({ pages }: PagesClientProps) {
         }
       />
 
-      <div className="p-8 space-y-6 animate-fade-in">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-5 animate-fade-in">
         {/* Search and filters */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+          <div className="relative md:flex-1 md:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
             <input
               type="text"
@@ -88,14 +88,14 @@ export function PagesClient({ pages }: PagesClientProps) {
             />
           </div>
 
-          <div className="flex items-center gap-1.5 bg-surface-card border border-surface-border rounded-button p-1">
-            <Filter className="w-3.5 h-3.5 text-ink-muted ml-2" />
+          <div className="flex items-center gap-1.5 bg-surface-card border border-surface-border rounded-button p-1 overflow-x-auto no-scrollbar -mx-1 px-1 md:mx-0 md:px-1">
+            <Filter className="w-3.5 h-3.5 text-ink-muted ml-2 flex-shrink-0" />
             {typeFilters.map((tf) => (
               <button
                 key={tf.key}
                 onClick={() => setFilter(tf.key)}
                 className={cn(
-                  'px-2.5 py-1 rounded-[4px] text-[12px] font-medium transition-all',
+                  'px-2.5 py-1 rounded-[4px] text-[12px] font-medium transition-all whitespace-nowrap flex-shrink-0',
                   filter === tf.key
                     ? 'bg-sidebar text-ink-inverse shadow-sm'
                     : 'text-ink-secondary hover:text-ink hover:bg-surface-hover'
@@ -107,8 +107,64 @@ export function PagesClient({ pages }: PagesClientProps) {
           </div>
         </div>
 
-        {/* Pages table */}
-        <div className="glass-card rounded-card overflow-hidden">
+        {/* Mobile list view */}
+        <div className="md:hidden space-y-2">
+          {filteredPages.map((page) => {
+            const config = pageTypeConfig[page.page_type];
+            const status = (page.latest_status || 'draft') as 'draft' | 'staged' | 'published';
+            return (
+              <div
+                key={page.id}
+                className="glass-card rounded-card p-3 flex flex-col gap-2.5"
+              >
+                <div className="flex items-start gap-2 min-w-0">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-medium text-ink truncate">{page.title}</p>
+                    <p className="text-[11px] text-ink-muted font-mono truncate">{page.slug}</p>
+                  </div>
+                  <StatusBadge status={status} />
+                </div>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  {config && (
+                    <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-badge text-[11px] font-medium', config.bg, config.color)}>
+                      <config.icon className="w-3 h-3" />
+                      {config.label}
+                    </span>
+                  )}
+                  <span className="text-[11px] text-ink-muted">
+                    {new Date(page.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <Link
+                    href={`/pages/${page.id}/visual`}
+                    className="flex-1 text-center px-3 py-2 rounded-button text-[12px] font-medium text-accent bg-accent/10 hover:bg-accent/20 transition-all"
+                  >
+                    Visual
+                  </Link>
+                  <Link
+                    href={`/pages/${page.id}/edit`}
+                    className="flex-1 text-center px-3 py-2 rounded-button text-[12px] font-medium text-ink-secondary bg-surface-raised hover:bg-surface-hover border border-surface-border transition-all"
+                  >
+                    Form
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
+          {filteredPages.length === 0 && (
+            <div className="glass-card rounded-card py-12 text-center">
+              <FileText className="w-7 h-7 text-ink-muted mx-auto mb-3" />
+              <p className="text-heading text-ink">No pages found</p>
+              <p className="text-body text-ink-secondary mt-1">
+                {search ? 'Try adjusting your search or filter' : 'No pages in the database yet'}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop pages table */}
+        <div className="hidden md:block glass-card rounded-card overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="border-b border-surface-border">

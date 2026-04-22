@@ -25,7 +25,7 @@ export function HeroTextEditor({ data, onChange }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Heading (Line 1)" description="Main title text">
           <TextInput
             value={data.heading}
@@ -56,7 +56,7 @@ export function HeroTextEditor({ data, onChange }: Props) {
           placeholder="Inspired by the ideals of..."
         />
       </Field>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Primary Button Label">
           <TextInput
             value={data.primaryCtaLabel}
@@ -73,7 +73,7 @@ export function HeroTextEditor({ data, onChange }: Props) {
           />
         </Field>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Secondary Button Label">
           <TextInput
             value={data.secondaryCtaLabel}

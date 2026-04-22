@@ -79,7 +79,7 @@ export function PublishDialog({ open, onClose, action, onConfirm, pageName, site
     <Dialog.Root open={open} onOpenChange={(o) => !o && handleClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 animate-fade-in" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[440px] bg-surface-card rounded-panel shadow-panel border border-surface-border overflow-hidden animate-scale-in">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100vw-1.5rem)] sm:w-[440px] max-w-full bg-surface-card rounded-panel shadow-panel border border-surface-border overflow-hidden animate-scale-in">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-surface-border">
             <div className="flex items-center gap-3">

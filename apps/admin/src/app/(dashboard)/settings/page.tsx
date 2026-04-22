@@ -172,29 +172,29 @@ export default function SettingsPage() {
         }
       />
 
-      <div className="p-8 animate-fade-in">
-        <div className="flex gap-8 max-w-5xl">
-          {/* Sidebar tabs */}
-          <nav className="w-[200px] flex-shrink-0 space-y-1">
+      <div className="p-4 sm:p-6 lg:p-8 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:gap-8 max-w-5xl">
+          {/* Sidebar tabs — horizontal scrollable rail on mobile, vertical on md+ */}
+          <nav className="md:w-[200px] md:flex-shrink-0 md:space-y-1 flex md:flex-col gap-1 overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 pb-3 md:pb-0 md:mb-0 mb-4 border-b md:border-b-0 border-surface-border">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  'w-full flex items-center gap-2.5 px-3 py-2 rounded-button text-[13px] font-medium transition-all text-left',
+                  'flex items-center gap-2 md:gap-2.5 px-3 py-2 rounded-button text-[13px] font-medium transition-all text-left whitespace-nowrap flex-shrink-0 md:w-full',
                   activeTab === tab.id
                     ? 'bg-accent/10 text-accent'
                     : 'text-ink-secondary hover:text-ink hover:bg-surface-hover'
                 )}
               >
-                <tab.icon className="w-4 h-4" />
+                <tab.icon className="w-4 h-4 flex-shrink-0" />
                 {tab.label}
               </button>
             ))}
           </nav>
 
           {/* Content */}
-          <div className="flex-1 space-y-6">
+          <div className="flex-1 min-w-0 space-y-6">
             {error && (
               <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 rounded-button">
                 <p className="text-[12px] text-red-700 flex-1">{error}</p>
@@ -203,12 +203,12 @@ export default function SettingsPage() {
             )}
             {activeTab === 'general' && (
               <div className="glass-card rounded-card overflow-hidden">
-                <div className="px-6 py-4 border-b border-surface-border">
+                <div className="px-4 sm:px-6 py-4 border-b border-surface-border">
                   <h2 className="text-heading text-ink">Site Information</h2>
                   <p className="text-[12px] text-ink-muted mt-0.5">Basic site configuration</p>
                 </div>
-                <div className="p-6 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 sm:p-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field label="Site Name" required>
                       <TextInput value={config.siteName} onChange={(e) => updateConfig('siteName', e.currentTarget.value)} />
                     </Field>
@@ -216,7 +216,7 @@ export default function SettingsPage() {
                       <TextInput value={config.siteSlug} onChange={(e) => updateConfig('siteSlug', e.currentTarget.value)} mono />
                     </Field>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field label="Production Domain">
                       <TextInput value={config.domain} onChange={(e) => updateConfig('domain', e.currentTarget.value)} mono />
                     </Field>
@@ -233,11 +233,11 @@ export default function SettingsPage() {
 
             {activeTab === 'seo' && (
               <div className="glass-card rounded-card overflow-hidden">
-                <div className="px-6 py-4 border-b border-surface-border">
+                <div className="px-4 sm:px-6 py-4 border-b border-surface-border">
                   <h2 className="text-heading text-ink">SEO Defaults</h2>
                   <p className="text-[12px] text-ink-muted mt-0.5">Default meta tags for pages without custom SEO settings</p>
                 </div>
-                <div className="p-6 space-y-4">
+                <div className="p-4 sm:p-6 space-y-4">
                   <Field label="Default Title Tag" description="Shown in browser tabs and search results">
                     <TextInput value={config.seoTitle} onChange={(e) => updateConfig('seoTitle', e.currentTarget.value)} />
                   </Field>
@@ -256,12 +256,12 @@ export default function SettingsPage() {
 
             {activeTab === 'contact' && (
               <div className="glass-card rounded-card overflow-hidden">
-                <div className="px-6 py-4 border-b border-surface-border">
+                <div className="px-4 sm:px-6 py-4 border-b border-surface-border">
                   <h2 className="text-heading text-ink">Contact Information</h2>
                   <p className="text-[12px] text-ink-muted mt-0.5">Displayed across the website</p>
                 </div>
-                <div className="p-6 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 sm:p-6 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field label="Primary Email">
                       <TextInput value={config.email} onChange={(e) => updateConfig('email', e.currentTarget.value)} />
                     </Field>
@@ -269,7 +269,7 @@ export default function SettingsPage() {
                       <TextInput value={config.emailSecondary} onChange={(e) => updateConfig('emailSecondary', e.currentTarget.value)} />
                     </Field>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field label="Primary Phone">
                       <TextInput value={config.phone} onChange={(e) => updateConfig('phone', e.currentTarget.value)} />
                     </Field>
@@ -291,11 +291,11 @@ export default function SettingsPage() {
             {activeTab === 'deploy' && (
               <>
                 <div className="glass-card rounded-card overflow-hidden">
-                  <div className="px-6 py-4 border-b border-surface-border">
+                  <div className="px-4 sm:px-6 py-4 border-b border-surface-border">
                     <h2 className="text-heading text-ink">Vercel Deploy Hooks</h2>
                     <p className="text-[12px] text-ink-muted mt-0.5">Webhook URLs that trigger site rebuilds</p>
                   </div>
-                  <div className="p-6 space-y-4">
+                  <div className="p-4 sm:p-6 space-y-4">
                     <Field label="Stage Deploy Hook URL" description="Triggered when content is deployed to staging">
                       <TextInput value={config.stageHookUrl} onChange={(e) => updateConfig('stageHookUrl', e.currentTarget.value)} placeholder="https://api.vercel.com/v1/integrations/deploy/..." mono />
                     </Field>
@@ -306,11 +306,11 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="glass-card rounded-card overflow-hidden">
-                  <div className="px-6 py-4 border-b border-surface-border">
+                  <div className="px-4 sm:px-6 py-4 border-b border-surface-border">
                     <h2 className="text-heading text-ink">Environment Variables</h2>
                     <p className="text-[12px] text-ink-muted mt-0.5">Configured via Vercel dashboard</p>
                   </div>
-                  <div className="p-6">
+                  <div className="p-4 sm:p-6">
                     <div className="space-y-2">
                       {[
                         { key: 'SUPABASE_URL', value: 'Configured', set: true },

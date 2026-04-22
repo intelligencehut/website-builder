@@ -77,7 +77,7 @@ export function YoutubeSettings({ siteId }: Props) {
 
   return (
     <div className="glass-card rounded-card overflow-hidden">
-      <div className="px-6 py-4 border-b border-surface-border">
+      <div className="px-4 sm:px-6 py-4 border-b border-surface-border">
         <div className="flex items-center gap-2">
           <Youtube className="w-4 h-4 text-red-600" />
           <h2 className="text-heading text-ink">YouTube Channel</h2>
@@ -87,7 +87,7 @@ export function YoutubeSettings({ siteId }: Props) {
         </p>
       </div>
 
-      <div className="p-6 space-y-4">
+      <div className="p-4 sm:p-6 space-y-4">
         {connected && (
           <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-button">
             <CheckCircle2 className="w-4 h-4 text-green-600" />

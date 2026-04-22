@@ -11,11 +11,12 @@ import {
   Navigation,
   Settings,
   Layers,
-  ChevronDown,
   LogOut,
+  X,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { SiteSwitcher } from './site-switcher';
+import { useMobileNav } from './admin-shell';
 
 const navItems = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -42,6 +43,7 @@ interface SidebarProps {
 
 export function Sidebar({ user, sites = [], activeSiteId = '', userRole }: SidebarProps) {
   const pathname = usePathname();
+  const { open, setOpen } = useMobileNav();
 
   async function handleSignOut() {
     try {
@@ -54,11 +56,17 @@ export function Sidebar({ user, sites = [], activeSiteId = '', userRole }: Sideb
   }
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-[260px] bg-sidebar flex flex-col sidebar-noise z-50">
+    <aside
+      className={cn(
+        'fixed left-0 top-0 bottom-0 w-[260px] bg-sidebar flex flex-col sidebar-noise z-50 transition-transform duration-200 ease-out',
+        'lg:translate-x-0',
+        open ? 'translate-x-0 shadow-panel' : '-translate-x-full'
+      )}
+    >
       <div className="relative z-10 flex flex-col h-full">
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-sidebar-border">
-          <div className="flex items-center gap-3">
+        <div className="px-5 py-5 border-b border-sidebar-border flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="w-8 h-8 bg-accent/15 rounded-[8px] flex items-center justify-center flex-shrink-0">
               <Layers className="w-4 h-4 text-accent" />
             </div>
@@ -69,6 +77,14 @@ export function Sidebar({ user, sites = [], activeSiteId = '', userRole }: Sideb
               <p className="text-[11px] text-sidebar-muted mt-0.5">Admin Panel</p>
             </div>
           </div>
+          <button
+            type="button"
+            aria-label="Close navigation"
+            onClick={() => setOpen(false)}
+            className="lg:hidden p-1.5 rounded-button text-sidebar-muted hover:text-ink-inverse hover:bg-sidebar-hover transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Site selector */}

@@ -108,7 +108,7 @@ export function VideoPickerModal({ open, onClose, onSelect }: Props) {
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 animate-fade-in" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[760px] max-h-[82vh] bg-surface-card rounded-panel shadow-panel border border-surface-border overflow-hidden animate-scale-in flex flex-col">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100vw-1.5rem)] sm:w-[760px] max-w-full max-h-[85vh] bg-surface-card rounded-panel shadow-panel border border-surface-border overflow-hidden animate-scale-in flex flex-col">
           <div className="flex items-center justify-between px-6 py-4 border-b border-surface-border flex-shrink-0">
             <div>
               <Dialog.Title className="text-heading text-ink">Select Video</Dialog.Title>
@@ -186,7 +186,7 @@ export function VideoPickerModal({ open, onClose, onSelect }: Props) {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {filtered.map((v) => {
                   const isSelected = selected === v.id;
                   const thumb = v.thumbnail_url ?? (v.youtube_video_id ? `https://i.ytimg.com/vi/${v.youtube_video_id}/mqdefault.jpg` : null);

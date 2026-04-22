@@ -56,11 +56,11 @@ export function HeroEditor({ data, onChange }: EditorProps<HeroData>) {
       ) : (
         <Field label="Image"><ImagePicker value={data.image ?? ''} onChange={v => u({ image: v })} /></Field>
       )}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Primary Button Label"><TextInput value={data.primaryCta?.label ?? ''} onChange={e => u({ primaryCta: { ...data.primaryCta, label: e.currentTarget.value, href: data.primaryCta?.href ?? '#' } })} /></Field>
         <Field label="Primary Button Link"><TextInput value={data.primaryCta?.href ?? ''} onChange={e => u({ primaryCta: { ...data.primaryCta, href: e.currentTarget.value, label: data.primaryCta?.label ?? '' } })} mono /></Field>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Secondary Button Label"><TextInput value={data.secondaryCta?.label ?? ''} onChange={e => u({ secondaryCta: { ...data.secondaryCta, label: e.currentTarget.value, href: data.secondaryCta?.href ?? '#' } })} /></Field>
         <Field label="Secondary Button Link"><TextInput value={data.secondaryCta?.href ?? ''} onChange={e => u({ secondaryCta: { ...data.secondaryCta, href: e.currentTarget.value, label: data.secondaryCta?.label ?? '' } })} mono /></Field>
       </div>
@@ -151,7 +151,7 @@ export function CardGridEditor({ data, onChange }: EditorProps<CardGridData>) {
             <Field label="Title"><TextInput value={item.title ?? ''} onChange={e => upd({ title: e.currentTarget.value })} /></Field>
             <Field label="Description"><TextArea value={item.description ?? ''} onChange={e => upd({ description: e.currentTarget.value })} rows={2} /></Field>
             <Field label="Image"><ImagePicker value={item.image ?? ''} onChange={v => upd({ image: v })} /></Field>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Field label="Badge"><TextInput value={item.badge ?? ''} onChange={e => upd({ badge: e.currentTarget.value })} placeholder="Optional" /></Field>
               <Field label="Link"><TextInput value={item.link ?? ''} onChange={e => upd({ link: e.currentTarget.value })} placeholder="/path" mono /></Field>
             </div>
@@ -209,7 +209,7 @@ export function TestimonialsEditor({ data, onChange }: EditorProps<TestimonialsD
         renderItem={(item, _, upd) => (
           <div className="space-y-2">
             <Field label="Quote"><TextArea value={item.quote} onChange={e => upd({ quote: e.currentTarget.value })} rows={3} /></Field>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Field label="Name"><TextInput value={item.name ?? ''} onChange={e => upd({ name: e.currentTarget.value })} /></Field>
               <Field label="Title / Role"><TextInput value={item.title ?? ''} onChange={e => upd({ title: e.currentTarget.value })} /></Field>
             </div>
@@ -238,7 +238,7 @@ export function StatsEditor({ data, onChange }: EditorProps<StatsData>) {
         addLabel="Add Stat"
         collapsible={false}
         renderItem={(item, _, upd) => (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <Field label="Value"><TextInput value={item.value} onChange={e => upd({ value: e.currentTarget.value })} /></Field>
             <Field label="Label"><TextInput value={item.label} onChange={e => upd({ label: e.currentTarget.value })} /></Field>
             <Field label="Suffix"><TextInput value={item.suffix ?? ''} onChange={e => upd({ suffix: e.currentTarget.value })} placeholder="+ % etc" /></Field>
@@ -265,7 +265,7 @@ export function CtaEditor({ data, onChange }: EditorProps<CtaData>) {
       <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => u({ heading: e.currentTarget.value })} /></Field>
       <Field label="Description"><TextArea value={data.description ?? ''} onChange={e => u({ description: e.currentTarget.value })} rows={2} /></Field>
       <Field label="Background"><SelectInput value={data.background ?? 'dark'} onChange={e => u({ background: e.currentTarget.value })} options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'},{value:'accent',label:'Accent Color'}]} /></Field>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Primary Button"><TextInput value={data.primaryCta?.label ?? ''} onChange={e => u({ primaryCta: { label: e.currentTarget.value, href: data.primaryCta?.href ?? '#' } })} /></Field>
         <Field label="Primary Link"><TextInput value={data.primaryCta?.href ?? ''} onChange={e => u({ primaryCta: { label: data.primaryCta?.label ?? '', href: e.currentTarget.value } })} mono /></Field>
       </div>
@@ -325,7 +325,7 @@ export function CardsGridEditor({ data, onChange }: EditorProps<CardsGridData>) 
         renderItem={(item, _, upd) => (
           <div className="space-y-2">
             <Field label="Title"><TextInput value={item.title ?? ''} onChange={e => upd({ title: e.currentTarget.value })} /></Field>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Field label="Icon" description="Lucide icon name"><TextInput value={item.icon ?? ''} onChange={e => upd({ icon: e.currentTarget.value })} placeholder="BookOpen" /></Field>
               <Field label="Icon Color"><SelectInput value={item.iconColor ?? 'primary'} onChange={e => upd({ iconColor: e.currentTarget.value })} options={[{value:'primary',label:'Primary'},{value:'secondary',label:'Secondary'},{value:'red',label:'Red'},{value:'blue',label:'Blue'},{value:'gold',label:'Gold'},{value:'copper',label:'Copper'}]} /></Field>
             </div>
@@ -362,7 +362,7 @@ export function ProgramsGridEditor({ data, onChange }: EditorProps<ProgramsGridD
             <Field label="Title"><TextInput value={item.title ?? ''} onChange={e => upd({ title: e.currentTarget.value })} /></Field>
             <Field label="Description"><TextArea value={item.description ?? ''} onChange={e => upd({ description: e.currentTarget.value })} rows={2} /></Field>
             <Field label="Image"><ImagePicker value={item.image ?? ''} onChange={v => upd({ image: v })} /></Field>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <Field label="Link"><TextInput value={item.href ?? ''} onChange={e => upd({ href: e.currentTarget.value })} mono /></Field>
               <Field label="Icon"><TextInput value={item.icon ?? ''} onChange={e => upd({ icon: e.currentTarget.value })} placeholder="BookOpen" /></Field>
               <Field label="Icon Color"><SelectInput value={item.iconColor ?? 'primary'} onChange={e => upd({ iconColor: e.currentTarget.value })} options={[{value:'primary',label:'Primary'},{value:'secondary',label:'Secondary'},{value:'red',label:'Red'},{value:'gold',label:'Gold'},{value:'copper',label:'Copper'}]} /></Field>

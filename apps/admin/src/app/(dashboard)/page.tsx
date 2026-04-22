@@ -79,7 +79,7 @@ export default async function DashboardPage() {
         description="Overview of your website content and deployments"
       />
 
-      <div className="p-8 space-y-8 animate-fade-in">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 animate-fade-in">
         {/* Pending access requests (visible to admins/owners) */}
         {pendingRequests.length > 0 && (
           <PendingRequestsWidget requests={pendingRequests as any} />

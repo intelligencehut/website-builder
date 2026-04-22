@@ -128,8 +128,8 @@ export function TeamManager({ siteId, currentUserId }: TeamManagerProps) {
 
   return (
     <div className="glass-card rounded-card overflow-hidden">
-      <div className="px-6 py-4 border-b border-surface-border flex items-center justify-between">
-        <div>
+      <div className="px-4 sm:px-6 py-4 border-b border-surface-border flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
           <h2 className="text-heading text-ink">Team Members</h2>
           <p className="text-[12px] text-ink-muted mt-0.5">
             People who can access this site in the admin panel
@@ -138,7 +138,7 @@ export function TeamManager({ siteId, currentUserId }: TeamManagerProps) {
         <button
           onClick={() => { setShowInvite(!showInvite); setError(null); }}
           className={cn(
-            'flex items-center gap-2 px-3 py-1.5 rounded-button text-[13px] font-medium transition-colors',
+            'flex items-center gap-2 px-3 py-1.5 rounded-button text-[13px] font-medium transition-colors flex-shrink-0',
             showInvite
               ? 'bg-accent/10 text-accent border border-accent/30'
               : 'border border-surface-border text-ink hover:bg-surface-hover'
@@ -170,9 +170,9 @@ export function TeamManager({ siteId, currentUserId }: TeamManagerProps) {
 
       {/* Invite form */}
       {showInvite && (
-        <div className="px-6 py-4 bg-surface-raised border-b border-surface-border animate-scale-in">
-          <div className="flex items-end gap-3">
-            <div className="flex-1">
+        <div className="px-4 sm:px-6 py-4 bg-surface-raised border-b border-surface-border animate-scale-in">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+            <div className="flex-1 min-w-0">
               <label className="text-[11px] font-medium text-ink-secondary block mb-1.5">
                 Email Address
               </label>
@@ -188,7 +188,7 @@ export function TeamManager({ siteId, currentUserId }: TeamManagerProps) {
                 />
               </div>
             </div>
-            <div className="w-[130px]">
+            <div className="sm:w-[130px]">
               <label className="text-[11px] font-medium text-ink-secondary block mb-1.5">Role</label>
               <select
                 value={inviteRole}
@@ -203,7 +203,7 @@ export function TeamManager({ siteId, currentUserId }: TeamManagerProps) {
             <button
               onClick={handleInvite}
               disabled={inviting || !inviteEmail.trim()}
-              className="flex items-center gap-2 px-4 py-2 bg-sidebar text-ink-inverse rounded-button text-[13px] font-medium hover:bg-sidebar-hover transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-sidebar text-ink-inverse rounded-button text-[13px] font-medium hover:bg-sidebar-hover transition-colors disabled:opacity-50"
             >
               {inviting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
               Add
@@ -237,7 +237,7 @@ export function TeamManager({ siteId, currentUserId }: TeamManagerProps) {
             return (
               <div
                 key={member.id}
-                className="px-6 py-4 flex items-center gap-4 hover:bg-surface-hover/50 transition-colors"
+                className="px-4 sm:px-6 py-4 flex items-center gap-3 sm:gap-4 hover:bg-surface-hover/50 transition-colors"
               >
                 {/* Avatar */}
                 {user.avatar_url ? (

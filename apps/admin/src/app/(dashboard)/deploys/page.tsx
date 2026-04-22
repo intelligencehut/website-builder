@@ -88,23 +88,23 @@ export default function DeploysPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setDeployAction('stage')}
-              className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-button text-[13px] font-medium hover:bg-amber-600 transition-colors"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-amber-500 text-white rounded-button text-[13px] font-medium hover:bg-amber-600 transition-colors"
             >
               <Rocket className="w-3.5 h-3.5" />
-              Deploy Stage
+              <span className="hidden sm:inline">Deploy </span>Stage
             </button>
             <button
               onClick={() => setDeployAction('publish')}
-              className="flex items-center gap-2 px-4 py-2 bg-sidebar text-ink-inverse rounded-button text-[13px] font-medium hover:bg-sidebar-hover transition-colors"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-sidebar text-ink-inverse rounded-button text-[13px] font-medium hover:bg-sidebar-hover transition-colors"
             >
               <Globe className="w-3.5 h-3.5" />
-              Publish Production
+              <span className="hidden sm:inline">Publish </span>Production
             </button>
           </div>
         }
       />
 
-      <div className="p-8 space-y-6 animate-fade-in">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 animate-fade-in">
         {/* Environment cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="glass-card rounded-card p-5">
@@ -154,11 +154,11 @@ export default function DeploysPage() {
             {deploys.map((deploy) => {
               const cfg = statusConfig[deploy.status];
               return (
-                <div key={deploy.id} className="px-6 py-4 flex items-center gap-4 hover:bg-surface-hover transition-colors">
+                <div key={deploy.id} className="px-4 sm:px-6 py-4 flex items-center gap-3 sm:gap-4 hover:bg-surface-hover transition-colors">
                   <cfg.icon className={cn('w-4 h-4 flex-shrink-0', cfg.color, deploy.status === 'building' && 'animate-pulse-soft')} />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-medium text-ink">{deploy.version}</span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[13px] font-medium text-ink truncate">{deploy.version}</span>
                       <span className={cn(
                         'px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider',
                         deploy.environment === 'production'
@@ -168,7 +168,7 @@ export default function DeploysPage() {
                         {deploy.environment}
                       </span>
                     </div>
-                    <p className="text-[12px] text-ink-muted">
+                    <p className="text-[12px] text-ink-muted truncate">
                       by {deploy.triggeredBy} ·{' '}
                       {new Date(deploy.triggeredAt).toLocaleString('en-US', {
                         month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
@@ -176,7 +176,7 @@ export default function DeploysPage() {
                     </p>
                   </div>
                   <span className={cn(
-                    'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-badge text-[11px] font-medium border',
+                    'hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-badge text-[11px] font-medium border flex-shrink-0',
                     cfg.bg, cfg.color, cfg.border
                   )}>
                     {cfg.label}
@@ -186,7 +186,7 @@ export default function DeploysPage() {
                       href={deploy.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 text-ink-muted hover:text-accent hover:bg-accent/10 rounded-[4px] transition-colors"
+                      className="p-1.5 text-ink-muted hover:text-accent hover:bg-accent/10 rounded-[4px] transition-colors flex-shrink-0"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>

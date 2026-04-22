@@ -36,7 +36,7 @@ export function AddSectionDialog({ open, onClose, onAdd }: AddSectionDialogProps
     <Dialog.Root open={open} onOpenChange={o => !o && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 animate-fade-in" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[560px] max-h-[80vh] bg-surface-card rounded-panel shadow-panel border border-surface-border overflow-hidden animate-scale-in flex flex-col">
+        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100vw-1.5rem)] sm:w-[560px] max-w-full max-h-[85vh] bg-surface-card rounded-panel shadow-panel border border-surface-border overflow-hidden animate-scale-in flex flex-col">
           <div className="flex items-center justify-between px-6 py-4 border-b border-surface-border flex-shrink-0">
             <div>
               <Dialog.Title className="text-heading text-ink">Add Section</Dialog.Title>
@@ -48,7 +48,7 @@ export function AddSectionDialog({ open, onClose, onAdd }: AddSectionDialogProps
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {SECTION_TYPES.map(st => (
                 <button
                   key={st.type}

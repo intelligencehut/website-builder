@@ -116,7 +116,7 @@ export function FooterEditor({ value, onChange }: FooterEditorProps) {
             }
           />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Email">
             <TextInput
               value={value.contact?.email ?? ''}
@@ -134,7 +134,7 @@ export function FooterEditor({ value, onChange }: FooterEditorProps) {
             />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Phone">
             <TextInput
               value={value.contact?.phone ?? ''}
@@ -206,7 +206,7 @@ export function FooterEditor({ value, onChange }: FooterEditorProps) {
             </>
           )}
         />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Newsletter heading">
             <TextInput
               value={value.newsletter?.heading ?? ''}
@@ -298,7 +298,7 @@ export function FooterEditor({ value, onChange }: FooterEditorProps) {
       </Card>
 
       <Card title="Donation Banner" subtitle="Shown between columns and bottom bar">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Banner title">
             <TextInput
               value={value.donationBanner?.title ?? ''}
@@ -348,7 +348,7 @@ export function FooterEditor({ value, onChange }: FooterEditorProps) {
       </Card>
 
       <Card title="Bottom Bar" subtitle="Copyright, tax ID, initiative attribution">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Copyright name" description="Shown as '© YEAR <name>. All rights reserved.'">
             <TextInput
               value={value.bottom?.copyrightName ?? ''}
@@ -374,7 +374,7 @@ export function FooterEditor({ value, onChange }: FooterEditorProps) {
             }
           />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Initiative note" description="e.g. 'A joint initiative of'">
             <TextInput
               value={value.bottom?.initiativeNote ?? ''}
@@ -417,11 +417,11 @@ function Card({
 }) {
   return (
     <div className="glass-card rounded-card overflow-hidden">
-      <div className="px-6 py-4 border-b border-surface-border">
+      <div className="px-4 sm:px-6 py-4 border-b border-surface-border">
         <h2 className="text-heading text-ink">{title}</h2>
         {subtitle && <p className="text-[12px] text-ink-muted mt-0.5">{subtitle}</p>}
       </div>
-      <div className="p-6 space-y-4">{children}</div>
+      <div className="p-4 sm:p-6 space-y-4">{children}</div>
     </div>
   );
 }

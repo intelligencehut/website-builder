@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { Sidebar } from '@/components/sidebar';
+import { AdminShell } from '@/components/admin-shell';
 import { getUserSites, getActiveSiteId, getUserRoleForSite, syncCurrentUser } from '@/lib/site-context';
 import { AccessRequestScreen } from '@/components/access-request-screen';
 import { ResetSiteCookie } from '@/components/reset-site-cookie';
@@ -21,10 +21,9 @@ export default async function DashboardLayout({
     const sites = await getUserSites();
     const activeSiteId = await getActiveSiteId();
     return (
-      <div className="flex min-h-screen">
-        <Sidebar user={displayUser} sites={sites} activeSiteId={activeSiteId} userRole={null} />
-        <main className="flex-1 ml-[260px] bg-surface min-h-screen">{children}</main>
-      </div>
+      <AdminShell user={displayUser} sites={sites} activeSiteId={activeSiteId} userRole={null}>
+        {children}
+      </AdminShell>
     );
   }
 
@@ -76,11 +75,8 @@ export default async function DashboardLayout({
   const userRole = await getUserRoleForSite(activeSiteId);
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar user={displayUser} sites={sites} activeSiteId={activeSiteId} userRole={userRole} />
-      <main className="flex-1 ml-[260px] bg-surface min-h-screen">
-        {children}
-      </main>
-    </div>
+    <AdminShell user={displayUser} sites={sites} activeSiteId={activeSiteId} userRole={userRole}>
+      {children}
+    </AdminShell>
   );
 }

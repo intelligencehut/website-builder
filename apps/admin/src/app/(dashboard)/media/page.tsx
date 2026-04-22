@@ -320,7 +320,7 @@ export default function MediaPage() {
       />
 
       <div
-        className="p-8 space-y-5 animate-fade-in"
+        className="p-4 sm:p-6 lg:p-8 space-y-5 animate-fade-in"
         onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
         onDragLeave={() => setIsDragOver(false)}
         onDrop={(e) => {
@@ -351,9 +351,9 @@ export default function MediaPage() {
         )}
 
         {/* Toolbar */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
           {/* Search */}
-          <div className="relative flex-1 max-w-md">
+          <div className="relative md:flex-1 md:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted" />
             <input
               type="text"
@@ -364,45 +364,47 @@ export default function MediaPage() {
             />
           </div>
 
-          {/* Type filter */}
-          <div className="flex items-center gap-1 bg-surface-card border border-surface-border rounded-button p-1">
-            {typeFilters.map(tf => (
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Type filter */}
+            <div className="flex items-center gap-1 bg-surface-card border border-surface-border rounded-button p-1 overflow-x-auto no-scrollbar flex-1 md:flex-initial">
+              {typeFilters.map(tf => (
+                <button
+                  key={tf.key}
+                  onClick={() => setTypeFilter(tf.key)}
+                  className={cn(
+                    'flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-[12px] font-medium transition-all whitespace-nowrap flex-shrink-0',
+                    typeFilter === tf.key
+                      ? 'bg-sidebar text-ink-inverse shadow-sm'
+                      : 'text-ink-secondary hover:text-ink hover:bg-surface-hover'
+                  )}
+                >
+                  <tf.icon className="w-3 h-3" />
+                  {tf.label}
+                </button>
+              ))}
+            </div>
+
+            {/* View toggle */}
+            <div className="flex items-center gap-0.5 bg-surface-card border border-surface-border rounded-button p-1 flex-shrink-0">
               <button
-                key={tf.key}
-                onClick={() => setTypeFilter(tf.key)}
+                onClick={() => setViewMode('grid')}
                 className={cn(
-                  'flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-[12px] font-medium transition-all',
-                  typeFilter === tf.key
-                    ? 'bg-sidebar text-ink-inverse shadow-sm'
-                    : 'text-ink-secondary hover:text-ink hover:bg-surface-hover'
+                  'p-1.5 rounded-[4px] transition-all',
+                  viewMode === 'grid' ? 'bg-sidebar text-ink-inverse' : 'text-ink-muted hover:text-ink'
                 )}
               >
-                <tf.icon className="w-3 h-3" />
-                {tf.label}
+                <Grid3X3 className="w-3.5 h-3.5" />
               </button>
-            ))}
-          </div>
-
-          {/* View toggle */}
-          <div className="flex items-center gap-0.5 bg-surface-card border border-surface-border rounded-button p-1">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={cn(
-                'p-1.5 rounded-[4px] transition-all',
-                viewMode === 'grid' ? 'bg-sidebar text-ink-inverse' : 'text-ink-muted hover:text-ink'
-              )}
-            >
-              <Grid3X3 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={cn(
-                'p-1.5 rounded-[4px] transition-all',
-                viewMode === 'list' ? 'bg-sidebar text-ink-inverse' : 'text-ink-muted hover:text-ink'
-              )}
-            >
-              <List className="w-3.5 h-3.5" />
-            </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={cn(
+                  'p-1.5 rounded-[4px] transition-all',
+                  viewMode === 'list' ? 'bg-sidebar text-ink-inverse' : 'text-ink-muted hover:text-ink'
+                )}
+              >
+                <List className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -554,12 +556,12 @@ export default function MediaPage() {
                           </div>
                         )}
 
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                        <div className="absolute inset-0 bg-black/30 sm:bg-black/0 sm:group-hover:bg-black/40 transition-all duration-200 flex items-end sm:items-center justify-center gap-2 p-1.5 sm:p-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex-wrap">
                           {youtubeUrl && (
                             <>
                               <button
                                 onClick={() => copyUrl(v.id, youtubeUrl)}
-                                className="p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
+                                className="p-1.5 sm:p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
                                 title="Copy YouTube URL"
                               >
                                 {isCopied ? <Check className="w-3.5 h-3.5 text-status-published" /> : <Link2 className="w-3.5 h-3.5" />}
@@ -568,7 +570,7 @@ export default function MediaPage() {
                                 href={youtubeUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
+                                className="p-1.5 sm:p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
                                 title="Open on YouTube"
                               >
                                 <Eye className="w-3.5 h-3.5" />
@@ -577,14 +579,14 @@ export default function MediaPage() {
                           )}
                           <button
                             onClick={() => { setEditError(null); setEditingVideo(v); }}
-                            className="p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
+                            className="p-1.5 sm:p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
                             title="Edit title & description"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => requestDelete(v.id, v.title, 'video')}
-                            className="p-2 bg-white/90 rounded-button text-red-600 hover:bg-red-50 transition-colors shadow-md"
+                            className="p-1.5 sm:p-2 bg-white/90 rounded-button text-red-600 hover:bg-red-50 transition-colors shadow-md"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -597,7 +599,7 @@ export default function MediaPage() {
                             'absolute top-2 left-2 w-5 h-5 rounded-[4px] border-2 flex items-center justify-center transition-all',
                             isSelected
                               ? 'bg-accent border-accent'
-                              : 'bg-white/80 border-white/60 opacity-0 group-hover:opacity-100 hover:border-accent'
+                              : 'bg-white/80 border-white/60 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:border-accent'
                           )}
                         >
                           {isSelected && <Check className="w-3 h-3 text-white" />}
@@ -655,11 +657,11 @@ export default function MediaPage() {
                       </div>
                     )}
 
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                    {/* Hover overlay — always visible on touch */}
+                    <div className="absolute inset-0 bg-black/30 sm:bg-black/0 sm:group-hover:bg-black/40 transition-all duration-200 flex items-end sm:items-center justify-center gap-2 p-1.5 sm:p-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
                       <button
                         onClick={(e) => { e.stopPropagation(); copyUrl(item.id, item.public_url); }}
-                        className="p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
+                        className="p-1.5 sm:p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
                         title="Copy URL"
                       >
                         {isCopied ? <Check className="w-3.5 h-3.5 text-status-published" /> : <Link2 className="w-3.5 h-3.5" />}
@@ -669,14 +671,14 @@ export default function MediaPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
+                        className="p-1.5 sm:p-2 bg-white/90 rounded-button text-ink hover:bg-white transition-colors shadow-md"
                         title="Preview"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </a>
                       <button
                         onClick={(e) => { e.stopPropagation(); requestDelete(item.id, item.original_filename); }}
-                        className="p-2 bg-white/90 rounded-button text-red-600 hover:bg-red-50 transition-colors shadow-md"
+                        className="p-1.5 sm:p-2 bg-white/90 rounded-button text-red-600 hover:bg-red-50 transition-colors shadow-md"
                         title="Delete"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -690,14 +692,14 @@ export default function MediaPage() {
                         'absolute top-2 left-2 w-5 h-5 rounded-[4px] border-2 flex items-center justify-center transition-all',
                         isSelected
                           ? 'bg-accent border-accent'
-                          : 'bg-white/80 border-white/60 opacity-0 group-hover:opacity-100 hover:border-accent'
+                          : 'bg-white/80 border-white/60 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:border-accent'
                       )}
                     >
                       {isSelected && <Check className="w-3 h-3 text-white" />}
                     </button>
 
-                    {/* Size badge */}
-                    <span className="absolute bottom-2 right-2 text-[10px] font-mono bg-black/60 text-white px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Size badge — desktop only */}
+                    <span className="absolute bottom-2 right-2 text-[10px] font-mono bg-black/60 text-white px-1.5 py-0.5 rounded opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       {formatSize(item.size_bytes)}
                     </span>
                   </div>
@@ -716,8 +718,8 @@ export default function MediaPage() {
           </>
         ) : (
           /* List view */
-          <div className="glass-card rounded-card overflow-hidden">
-            <table className="w-full">
+          <div className="glass-card rounded-card overflow-x-auto">
+            <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b border-surface-border">
                   <th className="w-10 px-4 py-3">

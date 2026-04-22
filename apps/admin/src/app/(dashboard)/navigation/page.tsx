@@ -118,15 +118,15 @@ export default function NavigationPage() {
         }
       />
 
-      <div className="p-8 space-y-6 animate-fade-in">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 animate-fade-in">
         {/* Tabs */}
-        <div className="flex items-center gap-1 bg-surface-card border border-surface-border rounded-button p-1 w-fit">
+        <div className="flex items-center gap-1 bg-surface-card border border-surface-border rounded-button p-1 w-full sm:w-fit overflow-x-auto no-scrollbar">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-[13px] font-medium transition-all',
+                'flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-[13px] font-medium transition-all whitespace-nowrap flex-shrink-0',
                 activeTab === tab.id
                   ? 'bg-sidebar text-ink-inverse shadow-sm'
                   : 'text-ink-secondary hover:text-ink hover:bg-surface-hover'
@@ -141,13 +141,13 @@ export default function NavigationPage() {
         {/* Header Navigation */}
         {activeTab === 'header' && (
           <div className="glass-card rounded-card overflow-hidden">
-            <div className="px-6 py-4 border-b border-surface-border">
+            <div className="px-4 sm:px-6 py-4 border-b border-surface-border">
               <h2 className="text-heading text-ink">Header Menu</h2>
               <p className="text-[12px] text-ink-muted mt-0.5">
                 {headerNav.length} top-level items · Supports up to 3 levels of nesting
               </p>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <NavigationEditor items={headerNav} onChange={setHeaderNav} maxDepth={3} />
             </div>
           </div>
@@ -156,13 +156,13 @@ export default function NavigationPage() {
         {/* Footer Links */}
         {activeTab === 'footer' && (
           <div className="glass-card rounded-card overflow-hidden">
-            <div className="px-6 py-4 border-b border-surface-border">
+            <div className="px-4 sm:px-6 py-4 border-b border-surface-border">
               <h2 className="text-heading text-ink">Footer Quick Links</h2>
               <p className="text-[12px] text-ink-muted mt-0.5">
                 Links displayed in the website footer
               </p>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <SortableItemList
                 items={footerLinks}
                 onChange={setFooterLinks}
@@ -171,7 +171,7 @@ export default function NavigationPage() {
                 addLabel="Add Footer Link"
                 collapsible={false}
                 renderItem={(item, _index, update) => (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Field label="Label">
                       <TextInput value={item.label} onChange={(e) => update({ label: e.currentTarget.value })} placeholder="Link text" />
                     </Field>
@@ -188,13 +188,13 @@ export default function NavigationPage() {
         {/* Social Links */}
         {activeTab === 'social' && (
           <div className="glass-card rounded-card overflow-hidden">
-            <div className="px-6 py-4 border-b border-surface-border">
+            <div className="px-4 sm:px-6 py-4 border-b border-surface-border">
               <h2 className="text-heading text-ink">Social Media Links</h2>
               <p className="text-[12px] text-ink-muted mt-0.5">
                 Displayed in the header and footer of the website
               </p>
             </div>
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <SortableItemList
                 items={socialLinks}
                 onChange={setSocialLinks}
@@ -202,7 +202,7 @@ export default function NavigationPage() {
                 getItemLabel={(item) => item.label || 'Untitled'}
                 addLabel="Add Social Link"
                 renderItem={(item, _index, update) => (
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <Field label="Platform">
                       <TextInput value={item.label} onChange={(e) => update({ label: e.currentTarget.value })} placeholder="Facebook" />
                     </Field>

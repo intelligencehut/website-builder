@@ -206,36 +206,36 @@ export function PageEditorClient({
     <div className="min-h-screen bg-surface">
       {/* Top bar */}
       <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-xl border-b border-surface-border">
-        <div className="flex items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-4">
-            <Link href="/pages" className="p-1.5 rounded-button text-ink-muted hover:text-ink hover:bg-surface-hover transition-colors">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3 px-4 md:px-6 py-3">
+          <div className="flex items-center gap-3 md:gap-4 min-w-0">
+            <Link href="/pages" className="p-1.5 rounded-button text-ink-muted hover:text-ink hover:bg-surface-hover transition-colors flex-shrink-0">
               <ArrowLeft className="w-4 h-4" />
             </Link>
-            <div className="h-5 w-px bg-surface-border" />
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-heading text-ink">{title}</h1>
+            <div className="h-5 w-px bg-surface-border hidden md:block" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-heading text-ink truncate max-w-[60vw] md:max-w-none">{title}</h1>
                 <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-badge text-[11px] font-medium border', statusBadge.bg)}>
                   <span className={cn('w-1.5 h-1.5 rounded-full', statusBadge.dot)} />{statusBadge.label}
                 </span>
                 {dirty && <span className="inline-flex items-center px-2 py-0.5 rounded-badge text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">Unsaved</span>}
               </div>
-              <p className="text-[12px] text-ink-muted font-mono mt-0.5">{slug}</p>
+              <p className="text-[12px] text-ink-muted font-mono mt-0.5 truncate">{slug}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
             <Link href={`/pages/${pageId}/visual`} className="flex items-center gap-2 px-3 py-1.5 text-ink-secondary hover:text-ink border border-surface-border rounded-button text-[13px] font-medium hover:bg-surface-hover transition-all">
-              <Eye className="w-3.5 h-3.5" /> Visual
+              <Eye className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Visual</span>
             </Link>
-            <button onClick={handleSave} disabled={saving || !dirty} className="flex items-center gap-2 px-4 py-1.5 bg-surface-card border border-surface-border text-ink rounded-button text-[13px] font-medium hover:bg-surface-hover transition-all disabled:opacity-50">
+            <button onClick={handleSave} disabled={saving || !dirty} className="flex items-center gap-2 px-3 md:px-4 py-1.5 bg-surface-card border border-surface-border text-ink rounded-button text-[13px] font-medium hover:bg-surface-hover transition-all disabled:opacity-50">
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : saved ? <Check className="w-3.5 h-3.5 text-status-published" /> : <Save className="w-3.5 h-3.5" />}
-              {saved ? 'Saved' : 'Save Draft'}
+              <span className="hidden sm:inline">{saved ? 'Saved' : 'Save Draft'}</span>
             </button>
-            <button onClick={() => setPublishAction('stage')} className="flex items-center gap-2 px-4 py-1.5 bg-amber-500 text-white rounded-button text-[13px] font-medium hover:bg-amber-600 transition-colors">
-              <Rocket className="w-3.5 h-3.5" /> Stage
+            <button onClick={() => setPublishAction('stage')} className="flex items-center gap-2 px-3 md:px-4 py-1.5 bg-amber-500 text-white rounded-button text-[13px] font-medium hover:bg-amber-600 transition-colors">
+              <Rocket className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Stage</span>
             </button>
-            <button onClick={() => setPublishAction('publish')} className="flex items-center gap-2 px-4 py-1.5 bg-sidebar text-ink-inverse rounded-button text-[13px] font-medium hover:bg-sidebar-hover transition-colors">
-              <Globe className="w-3.5 h-3.5" /> Publish
+            <button onClick={() => setPublishAction('publish')} className="flex items-center gap-2 px-3 md:px-4 py-1.5 bg-sidebar text-ink-inverse rounded-button text-[13px] font-medium hover:bg-sidebar-hover transition-colors">
+              <Globe className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Publish</span>
             </button>
             <button onClick={() => setShowHistory(!showHistory)} className={cn('p-1.5 rounded-button transition-colors', showHistory ? 'text-accent bg-accent/10' : 'text-ink-muted hover:text-ink hover:bg-surface-hover')}>
               <History className="w-4 h-4" />
@@ -245,10 +245,10 @@ export function PageEditorClient({
       </header>
 
       <div className="flex">
-        <div className={cn('flex-1 max-w-4xl mx-auto p-8 animate-fade-in transition-all', showHistory && 'mr-[320px]')}>
+        <div className={cn('flex-1 max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 animate-fade-in transition-all min-w-0', showHistory && 'lg:mr-[320px]')}>
           {/* Page meta */}
-          <div className="glass-card rounded-card p-6 mb-6">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="glass-card rounded-card p-4 sm:p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field label="Page Title" required><TextInput value={title} onChange={e => { setTitle(e.currentTarget.value); setDirty(true); }} /></Field>
               <Field label="Slug"><TextInput value={slug} onChange={e => { setSlug(e.currentTarget.value); setDirty(true); }} mono /></Field>
               <Field label="Meta Title (SEO)"><TextInput value={metaTitle} onChange={e => { setMetaTitle(e.currentTarget.value); setDirty(true); }} /></Field>
@@ -320,13 +320,21 @@ export function PageEditorClient({
 
         {/* Version history */}
         {showHistory && (
-          <aside className="fixed right-0 top-0 bottom-0 w-[320px] bg-surface-card border-l border-surface-border shadow-panel z-30 animate-slide-in-left overflow-y-auto custom-scrollbar">
-            <div className="sticky top-0 bg-surface-card border-b border-surface-border px-5 py-4 flex items-center justify-between z-10">
-              <div className="flex items-center gap-2"><History className="w-4 h-4 text-ink-muted" /><h3 className="text-heading text-ink">Version History</h3></div>
-              <button onClick={() => setShowHistory(false)} className="p-1 text-ink-muted hover:text-ink rounded transition-colors"><PanelRightClose className="w-4 h-4" /></button>
-            </div>
-            <div className="p-4"><VersionHistory pageId={pageId} onRestore={() => setShowHistory(false)} /></div>
-          </aside>
+          <>
+            <button
+              type="button"
+              aria-label="Close version history"
+              onClick={() => setShowHistory(false)}
+              className="lg:hidden fixed inset-0 z-40 bg-black/40"
+            />
+            <aside className="fixed right-0 top-0 bottom-0 w-full sm:w-[360px] lg:w-[320px] bg-surface-card border-l border-surface-border shadow-panel z-50 animate-slide-in-left overflow-y-auto custom-scrollbar">
+              <div className="sticky top-0 bg-surface-card border-b border-surface-border px-5 py-4 flex items-center justify-between z-10">
+                <div className="flex items-center gap-2"><History className="w-4 h-4 text-ink-muted" /><h3 className="text-heading text-ink">Version History</h3></div>
+                <button onClick={() => setShowHistory(false)} className="p-1 text-ink-muted hover:text-ink rounded transition-colors"><PanelRightClose className="w-4 h-4" /></button>
+              </div>
+              <div className="p-4"><VersionHistory pageId={pageId} onRestore={() => setShowHistory(false)} /></div>
+            </aside>
+          </>
         )}
       </div>
 
