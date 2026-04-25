@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, AlertCircle } from 'lucide-react';
 import { Field, TextInput, TextArea } from '@/components/ui/field';
 
 interface Props {
@@ -14,6 +14,8 @@ interface Props {
   subheading?: string;
   saving?: boolean;
   error?: string | null;
+  /** Persistent notice shown above the form, e.g. an upload-failure reason. */
+  notice?: { tone: 'error' | 'info'; title: string; message: string } | null;
   onClose: () => void;
   onSubmit: (title: string, description: string) => void;
 }
@@ -31,6 +33,7 @@ export function VideoMetadataDialog({
   subheading,
   saving = false,
   error,
+  notice,
   onClose,
   onSubmit,
 }: Props) {
@@ -87,6 +90,22 @@ export function VideoMetadataDialog({
             onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
             className="p-6 space-y-4"
           >
+            {notice && (
+              <div
+                className={`flex gap-2 px-3 py-2.5 rounded-button border ${
+                  notice.tone === 'error'
+                    ? 'bg-red-50 border-red-200 text-red-800'
+                    : 'bg-amber-50 border-amber-200 text-amber-800'
+                }`}
+              >
+                <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[12px] font-medium">{notice.title}</p>
+                  <p className="text-[12px] mt-0.5 break-words">{notice.message}</p>
+                </div>
+              </div>
+            )}
+
             <Field label="Title" required>
               <TextInput
                 value={title}

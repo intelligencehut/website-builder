@@ -551,7 +551,13 @@ export default function MediaPage() {
                         </div>
 
                         {v.status !== 'ready' && (
-                          <div className="absolute top-2 right-2 text-[10px] font-medium bg-black/70 text-white px-1.5 py-0.5 rounded uppercase tracking-wide">
+                          <div
+                            className={cn(
+                              'absolute top-2 right-2 text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide',
+                              v.status === 'failed' ? 'bg-red-600 text-white' : 'bg-black/70 text-white'
+                            )}
+                            title={v.status === 'failed' && v.error_message ? v.error_message : undefined}
+                          >
                             {v.status}
                           </div>
                         )}
@@ -608,9 +614,18 @@ export default function MediaPage() {
 
                       <div className="px-2.5 py-2 bg-surface-card">
                         <p className="text-[12px] font-medium text-ink truncate">{v.title}</p>
-                        <p className="text-[11px] text-ink-muted mt-0.5">
-                          video{v.duration_seconds ? ` · ${formatDuration(v.duration_seconds)}` : ''}
-                        </p>
+                        {v.status === 'failed' && v.error_message ? (
+                          <p
+                            className="text-[11px] text-red-600 mt-0.5 line-clamp-2 break-words"
+                            title={v.error_message}
+                          >
+                            {v.error_message}
+                          </p>
+                        ) : (
+                          <p className="text-[11px] text-ink-muted mt-0.5">
+                            video{v.duration_seconds ? ` · ${formatDuration(v.duration_seconds)}` : ''}
+                          </p>
+                        )}
                       </div>
                     </div>
                   );
@@ -771,12 +786,32 @@ export default function MediaPage() {
                               <Play className="w-4 h-4 text-ink-muted m-auto" />
                             )}
                           </div>
-                          <span className="text-[13px] font-medium text-ink truncate">{v.title}</span>
-                          {v.status !== 'ready' && (
-                            <span className="text-[10px] font-medium bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded uppercase tracking-wide">
-                              {v.status}
-                            </span>
-                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[13px] font-medium text-ink truncate">{v.title}</span>
+                              {v.status !== 'ready' && (
+                                <span
+                                  className={cn(
+                                    'text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide flex-shrink-0',
+                                    v.status === 'failed'
+                                      ? 'bg-red-100 text-red-800'
+                                      : 'bg-amber-100 text-amber-800'
+                                  )}
+                                  title={v.status === 'failed' && v.error_message ? v.error_message : undefined}
+                                >
+                                  {v.status}
+                                </span>
+                              )}
+                            </div>
+                            {v.status === 'failed' && v.error_message && (
+                              <p
+                                className="text-[11px] text-red-600 mt-0.5 truncate"
+                                title={v.error_message}
+                              >
+                                {v.error_message}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="px-4 py-2.5">
@@ -911,6 +946,17 @@ export default function MediaPage() {
         initialDescription={editingVideo?.description ?? ''}
         saving={editSaving}
         error={editError}
+        notice={
+          editingVideo?.status === 'failed'
+            ? {
+                tone: 'error',
+                title: 'Upload to YouTube failed',
+                message:
+                  editingVideo.error_message ??
+                  'No error details were recorded. Try re-uploading the file.',
+              }
+            : null
+        }
         onClose={() => { if (!editSaving) { setEditingVideo(null); setEditError(null); } }}
         onSubmit={(title, description) => void saveVideoEdit(title, description)}
       />
