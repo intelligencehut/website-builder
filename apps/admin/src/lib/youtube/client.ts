@@ -153,8 +153,14 @@ export interface ResumableSession {
 
 /**
  * Initiate a resumable upload. Returns an opaque Google-hosted URL that the
- * browser will PUT the video bytes to. The access token is baked into the URL,
- * so the browser never sees the refresh token.
+ * browser will PUT the video bytes to. The session URL has its own auth
+ * baked in, so the browser never sees the OAuth access token.
+ *
+ * `browserOrigin` is critical when the browser will be the one PUTting bytes:
+ * Google's UploadServer pins the session's Access-Control-Allow-Origin to
+ * whatever Origin came in on the *init* request. Pass the browser's Origin
+ * here so the subsequent cross-origin PUT passes CORS preflight. Omit it for
+ * server-to-server uploads (no preflight, ACAO doesn't matter).
  *
  * Docs: https://developers.google.com/youtube/v3/guides/using_resumable_upload_protocol
  */
@@ -165,6 +171,7 @@ export async function initResumableUpload(params: {
   privacyStatus: 'private' | 'unlisted' | 'public';
   fileSize: number;
   mimeType: string;
+  browserOrigin?: string;
 }): Promise<ResumableSession> {
   const metadata = {
     snippet: {
@@ -178,16 +185,19 @@ export async function initResumableUpload(params: {
     },
   };
 
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${params.accessToken}`,
+    'Content-Type': 'application/json; charset=UTF-8',
+    'X-Upload-Content-Length': String(params.fileSize),
+    'X-Upload-Content-Type': params.mimeType,
+  };
+  if (params.browserOrigin) headers.Origin = params.browserOrigin;
+
   const res = await fetch(
     'https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status',
     {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${params.accessToken}`,
-        'Content-Type': 'application/json; charset=UTF-8',
-        'X-Upload-Content-Length': String(params.fileSize),
-        'X-Upload-Content-Type': params.mimeType,
-      },
+      headers,
       body: JSON.stringify(metadata),
     }
   );

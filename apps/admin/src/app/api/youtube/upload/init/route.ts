@@ -1,16 +1,21 @@
 import { NextResponse } from 'next/server';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentUserId, getUserRoleForSite } from '@/lib/site-context';
-import { getValidAccessToken } from '@/lib/youtube/client';
+import { getValidAccessToken, initResumableUpload } from '@/lib/youtube/client';
 
 /**
  * Step 1 of the upload flow: insert a `videos` row (status=uploading) and
- * return a signed Supabase Storage upload URL. The browser PUTs the file
- * bytes directly to Storage, bypassing Vercel's 4.5 MB request body cap.
+ * mint a YouTube resumable upload session URL. The browser PUTs bytes
+ * directly to that URL — no Vercel request body, no Supabase Storage
+ * staging — so the only effective size limit is YouTube's (256 GB).
  *
- * Step 2 happens in `/api/youtube/upload/from-storage` — the server pulls
- * the file out of Storage and pushes it to YouTube.
+ * The session URL pins its Access-Control-Allow-Origin to whatever Origin
+ * came in on this init request, so we forward the browser's Origin header
+ * to Google. Without that, the browser PUT fails CORS preflight.
+ *
+ * Step 2 happens in `/api/youtube/upload/complete` — the browser tells us
+ * the YouTube video id once the PUT succeeds, and we enrich the row with
+ * thumbnail/duration and flip status to `ready`.
  */
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -38,10 +43,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'forbidden' }, { status: 403 });
   }
 
-  // Verify YouTube is connected before we let them upload 100s of MB.
+  // Verify YouTube is connected before we let them start a multi-GB upload.
   // Wrap in try/catch because getValidAccessToken throws on refresh-token
-  // failure (revoked / expired / test-app 7-day expiry) — without this,
-  // a revoked token surfaces as a bare 500 with no body.
+  // failure (revoked / expired / test-app 7-day expiry).
   let accessToken: string | null;
   try {
     accessToken = await getValidAccessToken(siteId);
@@ -66,7 +70,6 @@ export async function POST(request: Request) {
 
   const finalPrivacy = privacyStatus ?? 'unlisted';
 
-  // Insert videos row first so we can key the storage path by its UUID.
   const { data: row, error: insertErr } = await db
     .from('videos')
     .insert({
@@ -89,34 +92,31 @@ export async function POST(request: Request) {
     );
   }
 
-  // Mint a signed upload URL for the media bucket. Storage SDK needs a
-  // vanilla client (not the website-schema-scoped admin).
-  const storageUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const storageKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!storageUrl || !storageKey) {
-    return NextResponse.json({ error: 'storage not configured' }, { status: 500 });
-  }
-  const storage = createSupabaseClient(storageUrl, storageKey, {
-    auth: { persistSession: false },
-  });
+  // Forward the browser's Origin so YouTube's UploadServer pins the session's
+  // ACAO to it. Without this, the cross-origin PUT will be blocked.
+  const browserOrigin = request.headers.get('origin') ?? undefined;
 
-  const ext = originalFilename?.includes('.') ? `.${originalFilename.split('.').pop()}` : '';
-  const storagePath = `video-staging/${siteId}/${row.id}${ext}`;
-
-  const { data: signed, error: signErr } = await storage.storage
-    .from('media')
-    .createSignedUploadUrl(storagePath);
-
-  if (signErr || !signed) {
-    // Roll back the DB insert so the library isn't polluted with orphans.
+  let session;
+  try {
+    session = await initResumableUpload({
+      accessToken,
+      title,
+      description: description ?? '',
+      privacyStatus: finalPrivacy,
+      fileSize,
+      mimeType,
+      browserOrigin,
+    });
+  } catch (e) {
+    // Roll back so we don't leave an orphan 'uploading' row that the user
+    // can't tell apart from one that's actually in flight.
     await db.from('videos').delete().eq('id', row.id);
-    return NextResponse.json({ error: `signed URL failed: ${signErr?.message ?? 'unknown'}` }, { status: 500 });
+    const message = e instanceof Error ? e.message : 'youtube init failed';
+    return NextResponse.json({ error: 'youtube_init_failed', message }, { status: 502 });
   }
 
   return NextResponse.json({
     videoId: row.id,
-    storagePath,
-    storageSignedUrl: signed.signedUrl,
-    storageToken: signed.token,
+    youtubeUploadUrl: session.uploadUrl,
   });
 }

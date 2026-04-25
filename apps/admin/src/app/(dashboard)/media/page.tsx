@@ -19,13 +19,12 @@ import {
   AlertCircle,
   Play,
   Pencil,
-  RotateCcw,
 } from 'lucide-react';
 import type { MediaItem } from '@/lib/actions/media';
 import { listMediaForSite, uploadMediaFile, deleteMediaFile } from '@/lib/actions/media';
 import { listVideosForSite, deleteVideo, isYoutubeConnected, updateVideoMetadata, type VideoItem } from '@/lib/actions/videos';
 import { findAssetReferences } from '@/lib/actions/asset-references';
-import { uploadVideoToYoutube, retryYoutubeUpload, YoutubeNotConnectedError } from '@/lib/youtube/browser-upload';
+import { uploadVideoToYoutube, YoutubeNotConnectedError } from '@/lib/youtube/browser-upload';
 import { DeleteConfirmDialog } from '@/components/media/delete-confirm-dialog';
 import { VideoMetadataDialog, filenameToTitle } from '@/components/media/video-metadata-dialog';
 
@@ -99,7 +98,6 @@ export default function MediaPage() {
   const [editingVideo, setEditingVideo] = useState<VideoItem | null>(null);
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
-  const [retryingIds, setRetryingIds] = useState<Set<string>>(new Set());
 
   // Read active site and load media
   useEffect(() => {
@@ -204,28 +202,6 @@ export default function MediaPage() {
   const requestDelete = useCallback((id: string, filename: string, kind: 'media' | 'video' = 'media') => {
     setPendingDelete({ ids: [id], filename, kind });
   }, []);
-
-  const retryVideo = useCallback(async (videoId: string) => {
-    setError(null);
-    setRetryingIds(prev => new Set(prev).add(videoId));
-    try {
-      await retryYoutubeUpload(videoId);
-    } catch (err) {
-      const message =
-        err instanceof YoutubeNotConnectedError
-          ? err.message || 'Connect a YouTube channel in Settings to upload videos.'
-          : err instanceof Error
-          ? err.message
-          : 'Retry failed';
-      setError(message);
-    }
-    setRetryingIds(prev => {
-      const next = new Set(prev);
-      next.delete(videoId);
-      return next;
-    });
-    await loadMedia();
-  }, [loadMedia]);
 
   const saveVideoEdit = useCallback(async (title: string, description: string) => {
     const v = editingVideo;
@@ -544,7 +520,6 @@ export default function MediaPage() {
                 {filteredVideos.map((v) => {
                   const isSelected = selected.has(v.id);
                   const isCopied = copiedId === v.id;
-                  const isRetrying = retryingIds.has(v.id);
                   const youtubeUrl = v.youtube_video_id ? `https://www.youtube.com/watch?v=${v.youtube_video_id}` : '';
                   return (
                     <div
@@ -575,20 +550,15 @@ export default function MediaPage() {
                           </div>
                         </div>
 
-                        {(v.status !== 'ready' || isRetrying) && (
+                        {v.status !== 'ready' && (
                           <div
                             className={cn(
-                              'absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide',
-                              isRetrying
-                                ? 'bg-accent text-white'
-                                : v.status === 'failed'
-                                ? 'bg-red-600 text-white'
-                                : 'bg-black/70 text-white'
+                              'absolute top-2 right-2 text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide',
+                              v.status === 'failed' ? 'bg-red-600 text-white' : 'bg-black/70 text-white'
                             )}
-                            title={!isRetrying && v.status === 'failed' && v.error_message ? v.error_message : undefined}
+                            title={v.status === 'failed' && v.error_message ? v.error_message : undefined}
                           >
-                            {isRetrying && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
-                            {isRetrying ? 'retrying' : v.status}
+                            {v.status}
                           </div>
                         )}
 
@@ -612,18 +582,6 @@ export default function MediaPage() {
                                 <Eye className="w-3.5 h-3.5" />
                               </a>
                             </>
-                          )}
-                          {v.status === 'failed' && (
-                            <button
-                              onClick={() => void retryVideo(v.id)}
-                              disabled={isRetrying}
-                              className="p-1.5 sm:p-2 bg-white/90 rounded-button text-accent hover:bg-white transition-colors shadow-md disabled:opacity-50"
-                              title="Retry upload to YouTube"
-                            >
-                              {isRetrying
-                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                : <RotateCcw className="w-3.5 h-3.5" />}
-                            </button>
                           )}
                           <button
                             onClick={() => { setEditError(null); setEditingVideo(v); }}
@@ -804,7 +762,6 @@ export default function MediaPage() {
               <tbody className="divide-y divide-surface-border">
                 {showVideos && filteredVideos.map((v) => {
                   const isSelected = selected.has(v.id);
-                  const isRetrying = retryingIds.has(v.id);
                   const youtubeUrl = v.youtube_video_id ? `https://www.youtube.com/watch?v=${v.youtube_video_id}` : '';
                   return (
                     <tr key={v.id} className="hover:bg-surface-hover transition-colors group">
@@ -832,20 +789,17 @@ export default function MediaPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <span className="text-[13px] font-medium text-ink truncate">{v.title}</span>
-                              {(v.status !== 'ready' || isRetrying) && (
+                              {v.status !== 'ready' && (
                                 <span
                                   className={cn(
-                                    'inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide flex-shrink-0',
-                                    isRetrying
-                                      ? 'bg-accent/10 text-accent'
-                                      : v.status === 'failed'
+                                    'text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide flex-shrink-0',
+                                    v.status === 'failed'
                                       ? 'bg-red-100 text-red-800'
                                       : 'bg-amber-100 text-amber-800'
                                   )}
-                                  title={!isRetrying && v.status === 'failed' && v.error_message ? v.error_message : undefined}
+                                  title={v.status === 'failed' && v.error_message ? v.error_message : undefined}
                                 >
-                                  {isRetrying && <Loader2 className="w-2.5 h-2.5 animate-spin" />}
-                                  {isRetrying ? 'retrying' : v.status}
+                                  {v.status}
                                 </span>
                               )}
                             </div>
@@ -880,18 +834,6 @@ export default function MediaPage() {
                               title="Copy YouTube URL"
                             >
                               {copiedId === v.id ? <Check className="w-3.5 h-3.5 text-status-published" /> : <Link2 className="w-3.5 h-3.5" />}
-                            </button>
-                          )}
-                          {v.status === 'failed' && (
-                            <button
-                              onClick={() => void retryVideo(v.id)}
-                              disabled={isRetrying}
-                              className="p-1 text-ink-muted hover:text-accent rounded transition-colors disabled:opacity-50"
-                              title="Retry upload to YouTube"
-                            >
-                              {isRetrying
-                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                : <RotateCcw className="w-3.5 h-3.5" />}
                             </button>
                           )}
                           <button

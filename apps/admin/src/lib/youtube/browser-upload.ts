@@ -1,18 +1,21 @@
 /**
  * Client-side YouTube upload driver.
  *
- * Flow (works around Vercel's 4.5 MB request body cap):
+ * Flow:
  *   1. POST /api/youtube/upload/init
  *        → inserts `videos` row (status=uploading)
- *        → returns a Supabase Storage signed upload URL
- *   2. PUT <storageSignedUrl> with the file bytes
- *        → browser uploads directly to Storage, no server in the path
- *   3. POST /api/youtube/upload/from-storage { videoId }
- *        → server fetches from Storage, streams to YouTube resumable upload
- *        → updates DB row with youtube_video_id, deletes the staging file
+ *        → mints a YouTube resumable upload session URL (Origin pinned to
+ *          the browser's, so cross-origin PUT passes preflight)
+ *        → returns { videoId, youtubeUploadUrl }
+ *   2. PUT <youtubeUploadUrl> with the file bytes (browser → YouTube,
+ *      direct, no Vercel or Supabase Storage in the path).
+ *      YouTube responds with a JSON body containing the video resource;
+ *      we read its `id`.
+ *   3. POST /api/youtube/upload/complete { videoId, youtubeVideoId }
+ *        → server enriches with thumbnail/duration, marks ready
  *
- * On any failure, POST /api/youtube/upload/fail so the DB row doesn't sit
- * in 'uploading' forever.
+ * On any failure, POST /api/youtube/upload/fail so the DB row doesn't
+ * sit in 'uploading' forever.
  */
 
 export interface UploadCallbacks {
@@ -44,7 +47,7 @@ export async function uploadVideoToYoutube(
   params: UploadParams,
   callbacks: UploadCallbacks = {}
 ): Promise<UploadResult> {
-  // 1. Init — get storage signed URL.
+  // 1. Init — create the videos row and get a YouTube resumable session URL.
   const initRes = await fetch('/api/youtube/upload/init', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -67,79 +70,44 @@ export async function uploadVideoToYoutube(
     const text = await initRes.text().catch(() => '');
     throw new Error(`init failed: ${text || initRes.status}`);
   }
-  const { videoId, storageSignedUrl } = (await initRes.json()) as {
+  const { videoId, youtubeUploadUrl } = (await initRes.json()) as {
     videoId: string;
-    storageSignedUrl: string;
+    youtubeUploadUrl: string;
   };
 
-  // 2. PUT to Supabase Storage with progress (most of the time is here —
-  //    up to 90% of total as reported to callbacks.onProgress).
+  // 2. PUT bytes directly to YouTube. Almost all wall-clock time is here
+  //    — we report 0–98% of progress to the caller so the final 2% covers
+  //    the /complete call.
+  let youtubeVideoId: string;
   try {
-    await putWithProgress(storageSignedUrl, params.file, (pct) => {
-      callbacks.onProgress?.(Math.round(pct * 0.9));
-    });
+    youtubeVideoId = await putToYoutube(
+      youtubeUploadUrl,
+      params.file,
+      params.file.type || 'video/*',
+      (pct) => callbacks.onProgress?.(Math.round(pct * 0.98))
+    );
   } catch (e) {
-    await reportFail(videoId, `storage upload: ${(e as Error).message}`);
+    await reportFail(videoId, `youtube put: ${(e as Error).message}`);
     throw e;
   }
 
-  // 3. Tell the server to push Storage → YouTube. This is a small HTTP
-  //    call but the server-side work takes a while (streams the whole
-  //    file up to YouTube). We optimistically surface progress in the
-  //    90–100% band.
-  callbacks.onProgress?.(92);
-  const completeRes = await fetch('/api/youtube/upload/from-storage', {
+  // 3. Tell the server to enrich the row.
+  callbacks.onProgress?.(99);
+  const completeRes = await fetch('/api/youtube/upload/complete', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ videoId }),
+    body: JSON.stringify({ videoId, youtubeVideoId }),
   });
-  if (completeRes.status === 412) {
-    const body = (await completeRes.json().catch(() => null)) as { message?: string } | null;
-    await reportFail(videoId, body?.message ?? 'youtube not connected');
-    throw new YoutubeNotConnectedError(body?.message);
-  }
   if (!completeRes.ok) {
     const text = await completeRes.text().catch(() => '');
-    await reportFail(videoId, `youtube push: ${text || completeRes.status}`);
-    throw new Error(`YouTube push failed: ${text || completeRes.status}`);
+    await reportFail(videoId, `complete: ${text || completeRes.status}`);
+    throw new Error(`Finalize failed: ${text || completeRes.status}`);
   }
   const done = (await completeRes.json()) as {
     youtubeVideoId: string;
     thumbnailUrl: string | null;
   };
   callbacks.onProgress?.(100);
-  return { videoId, youtubeVideoId: done.youtubeVideoId, thumbnailUrl: done.thumbnailUrl };
-}
-
-/**
- * Re-run step 3 of the upload pipeline for a previously failed video. Works
- * when the staging file is still in Storage — i.e. the original failure was
- * after the browser-side storage upload succeeded (YouTube init / PUT /
- * response errors). If the staging file is gone (e.g. browser upload itself
- * failed and never reached Storage), the from-storage endpoint will write a
- * fresh "storage download URL failed" error.
- */
-export async function retryYoutubeUpload(videoId: string): Promise<UploadResult> {
-  const res = await fetch('/api/youtube/upload/from-storage', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ videoId }),
-  });
-  if (res.status === 412) {
-    const body = (await res.json().catch(() => null)) as { message?: string } | null;
-    await reportFail(videoId, body?.message ?? 'youtube not connected');
-    throw new YoutubeNotConnectedError(body?.message);
-  }
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    // The from-storage endpoint has already persisted a specific error_message
-    // for server-side failures — surface it to the caller without overwriting.
-    throw new Error(text || `Retry failed: ${res.status}`);
-  }
-  const done = (await res.json()) as {
-    youtubeVideoId: string;
-    thumbnailUrl: string | null;
-  };
   return { videoId, youtubeVideoId: done.youtubeVideoId, thumbnailUrl: done.thumbnailUrl };
 }
 
@@ -152,24 +120,27 @@ function reportFail(videoId: string, errorMessage: string): Promise<unknown> {
   }).catch(() => {});
 }
 
-function putWithProgress(
-  url: string,
+/**
+ * PUT the whole file in a single shot to YouTube's resumable session URL.
+ *
+ * We don't bother with chunked resume on partial failures: if the upload
+ * dies mid-way, the user can just re-upload (the file is in their browser,
+ * not on a server). Single-shot keeps the code simple and matches what
+ * Supabase's own resumable client does for sub-100GB files.
+ *
+ * On success YouTube returns 200/201 with a JSON body containing the
+ * video resource — we parse it to pluck out `id` (the YouTube video id).
+ */
+function putToYoutube(
+  uploadUrl: string,
   file: File,
+  contentType: string,
   onProgress?: (pct: number) => void
-): Promise<void> {
+): Promise<string> {
   return new Promise((resolve, reject) => {
-    // Supabase Storage's /object/upload/sign endpoint expects the file wrapped
-    // in multipart/form-data — raw PUT bodies get a 400. Matches what
-    // supabase-js's uploadToSignedUrl sends internally.
-    const form = new FormData();
-    form.append('cacheControl', '3600');
-    form.append('', file);
-
     const xhr = new XMLHttpRequest();
-    xhr.open('PUT', url);
-    // Do NOT set Content-Type — the browser fills in the multipart
-    // boundary automatically. Also do NOT set x-upsert — the signed URL's
-    // JWT pins the upsert flag.
+    xhr.open('PUT', uploadUrl);
+    xhr.setRequestHeader('Content-Type', contentType);
 
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && onProgress) {
@@ -178,20 +149,27 @@ function putWithProgress(
     };
 
     xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const json = JSON.parse(xhr.responseText);
+          if (typeof json?.id === 'string') resolve(json.id);
+          else reject(new Error('YouTube response missing id'));
+        } catch {
+          reject(new Error('YouTube response not JSON'));
+        }
+      } else {
         // eslint-disable-next-line no-console
-        console.error('[storage upload] PUT failed', xhr.status, xhr.responseText);
-        reject(new Error(`Storage PUT ${xhr.status}: ${xhr.responseText.slice(0, 500)}`));
+        console.error('[youtube upload] PUT failed', xhr.status, xhr.responseText);
+        reject(new Error(`YouTube PUT ${xhr.status}: ${xhr.responseText.slice(0, 500)}`));
       }
     };
     xhr.onerror = () => {
       // eslint-disable-next-line no-console
-      console.error('[storage upload] network error', xhr.status, xhr.responseText);
-      reject(new Error('Network error uploading to Storage'));
+      console.error('[youtube upload] network error');
+      reject(new Error('Network error uploading to YouTube'));
     };
     xhr.onabort = () => reject(new Error('Upload aborted'));
 
-    xhr.send(form);
+    xhr.send(file);
   });
 }
