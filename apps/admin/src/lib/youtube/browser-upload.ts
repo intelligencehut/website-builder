@@ -111,6 +111,38 @@ export async function uploadVideoToYoutube(
   return { videoId, youtubeVideoId: done.youtubeVideoId, thumbnailUrl: done.thumbnailUrl };
 }
 
+/**
+ * Re-run step 3 of the upload pipeline for a previously failed video. Works
+ * when the staging file is still in Storage — i.e. the original failure was
+ * after the browser-side storage upload succeeded (YouTube init / PUT /
+ * response errors). If the staging file is gone (e.g. browser upload itself
+ * failed and never reached Storage), the from-storage endpoint will write a
+ * fresh "storage download URL failed" error.
+ */
+export async function retryYoutubeUpload(videoId: string): Promise<UploadResult> {
+  const res = await fetch('/api/youtube/upload/from-storage', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ videoId }),
+  });
+  if (res.status === 412) {
+    const body = (await res.json().catch(() => null)) as { message?: string } | null;
+    await reportFail(videoId, body?.message ?? 'youtube not connected');
+    throw new YoutubeNotConnectedError(body?.message);
+  }
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    // The from-storage endpoint has already persisted a specific error_message
+    // for server-side failures — surface it to the caller without overwriting.
+    throw new Error(text || `Retry failed: ${res.status}`);
+  }
+  const done = (await res.json()) as {
+    youtubeVideoId: string;
+    thumbnailUrl: string | null;
+  };
+  return { videoId, youtubeVideoId: done.youtubeVideoId, thumbnailUrl: done.thumbnailUrl };
+}
+
 function reportFail(videoId: string, errorMessage: string): Promise<unknown> {
   return fetch('/api/youtube/upload/fail', {
     method: 'POST',
