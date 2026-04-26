@@ -1,6 +1,8 @@
 import { getPages } from '@/lib/actions/pages';
 import { getActiveSiteId, getUserSites } from '@/lib/site-context';
 import { listPendingRequests } from '@/lib/actions/access-requests';
+import { getDeployCount, getLatestDeploy } from '@/lib/actions/deploy';
+import { getMediaCount } from '@/lib/actions/media';
 import { Header } from '@/components/header';
 import { PendingRequestsWidget } from '@/components/pending-requests-widget';
 import {
@@ -15,11 +17,11 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-function makeStats(pageCount: number) {
+function makeStats(pageCount: number, mediaCount: number, deployCount: number, deployChange: string) {
   return [
     { label: 'Total Pages', value: String(pageCount), change: 'From database', icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Media Files', value: '12', change: 'In /public', icon: Image, color: 'text-violet-600', bg: 'bg-violet-50' },
-    { label: 'Deploys', value: '0', change: 'No deploys yet', icon: Rocket, color: 'text-accent', bg: 'bg-amber-50' },
+    { label: 'Media Files', value: String(mediaCount), change: mediaCount === 0 ? 'No uploads yet' : 'In media library', icon: Image, color: 'text-violet-600', bg: 'bg-violet-50' },
+    { label: 'Deploys', value: String(deployCount), change: deployChange, icon: Rocket, color: 'text-accent', bg: 'bg-amber-50' },
     { label: 'Uptime', value: '99.9%', change: 'All systems go', icon: Zap, color: 'text-emerald-600', bg: 'bg-emerald-50' },
   ];
 }
@@ -45,12 +47,20 @@ const quickActions = [
 
 export default async function DashboardPage() {
   const siteId = await getActiveSiteId();
-  const [pages, pendingRequests, sites] = await Promise.all([
+  const [pages, pendingRequests, sites, mediaCount, deployCount, latestProdDeploy] = await Promise.all([
     getPages(siteId),
     listPendingRequests(),
     getUserSites(),
+    getMediaCount(siteId),
+    getDeployCount(siteId),
+    getLatestDeploy(siteId, 'production'),
   ]);
-  const stats = makeStats(pages.length);
+  const deployChange = deployCount === 0
+    ? 'No deploys yet'
+    : latestProdDeploy
+      ? `Last: ${formatRelative(new Date(latestProdDeploy.triggered_at))}`
+      : 'No production deploys';
+  const stats = makeStats(pages.length, mediaCount, deployCount, deployChange);
 
   const activeSite = sites.find((s: any) => s.id === siteId) as
     | { id: string; name: string; domain: string; metadata: Record<string, any> | null }
@@ -127,8 +137,9 @@ export default async function DashboardPage() {
               {pages.slice(0, 5).map((page) => {
                 const status = (page.latest_status || 'draft') as 'draft' | 'staged' | 'published';
                 return (
-                  <div
+                  <Link
                     key={page.id}
+                    href={`/pages/${page.id}/edit`}
                     className="px-6 py-3.5 flex items-center gap-4 hover:bg-surface-hover transition-colors"
                   >
                     <div className="flex-1 min-w-0">
@@ -143,7 +154,7 @@ export default async function DashboardPage() {
                     <span className="text-[12px] text-ink-muted whitespace-nowrap">
                       {new Date(page.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

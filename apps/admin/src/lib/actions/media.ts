@@ -65,6 +65,19 @@ export async function listMediaForSite(siteId: string): Promise<MediaItem[]> {
 }
 
 /**
+ * Total number of media items for a site.
+ */
+export async function getMediaCount(siteId: string): Promise<number> {
+  const supabase = createAdminClient();
+  if (!supabase) return 0;
+  const { count } = await supabase
+    .from('media')
+    .select('id', { count: 'exact', head: true })
+    .eq('site_id', siteId);
+  return count ?? 0;
+}
+
+/**
  * Upload a media file to storage and create the DB row.
  * Accepts FormData so the server action can receive the file.
  */

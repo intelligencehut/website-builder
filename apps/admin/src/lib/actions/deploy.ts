@@ -202,6 +202,19 @@ export async function getDeployHistory(siteId: string, limit = 50): Promise<Depl
 }
 
 /**
+ * Total number of deploys recorded for a site.
+ */
+export async function getDeployCount(siteId: string): Promise<number> {
+  const supabase = createAdminClient();
+  if (!supabase) return 0;
+  const { count } = await supabase
+    .from('deploys')
+    .select('id', { count: 'exact', head: true })
+    .eq('site_id', siteId);
+  return count ?? 0;
+}
+
+/**
  * Most recent deploy for a site/environment, or null if none.
  */
 export async function getLatestDeploy(
