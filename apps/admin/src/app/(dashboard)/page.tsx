@@ -40,7 +40,7 @@ function formatRelative(date: Date): string {
 }
 
 const quickActions = [
-  { label: 'Edit Home Page', href: '/pages/b0000000-0000-0000-0000-000000000001/edit', icon: FileText },
+  { label: 'Edit Home Page', href: '/pages/b0000000-0000-0000-0000-000000000001/visual', icon: FileText },
   { label: 'Upload Media', href: '/media', icon: Image },
   { label: 'View Deploys', href: '/deploys', icon: Rocket },
 ];
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
                 return (
                   <Link
                     key={page.id}
-                    href={`/pages/${page.id}/edit`}
+                    href={`/pages/${page.id}/visual`}
                     className="px-6 py-3.5 flex items-center gap-4 hover:bg-surface-hover transition-colors"
                   >
                     <div className="flex-1 min-w-0">
