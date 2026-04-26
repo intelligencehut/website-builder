@@ -1,6 +1,9 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import type { DeployEnvironment, DeployStatus } from '@website-builder/content-schema';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getCurrentUserId } from '@/lib/site-context';
 import { getSiteMetadata } from './pages';
 
 export interface DeployRecord {
@@ -8,17 +11,19 @@ export interface DeployRecord {
   site_id: string;
   environment: DeployEnvironment;
   status: DeployStatus;
-  version?: string;
+  content_version_id?: string;
   deploy_url?: string;
   triggered_by?: string;
+  triggered_by_name?: string;
   triggered_at: string;
   completed_at?: string;
 }
 
 /**
  * Trigger a deploy to stage or production.
- * Calls the site's Vercel deploy hook (from site metadata) and logs the deploy.
- * Falls back to the global env vars only if the site has no hook configured.
+ * Records a row in website.deploys, fires the site's Vercel deploy hook
+ * (from site metadata, falling back to env vars), and triggers ISR
+ * revalidation if the site has a revalidation URL.
  */
 export async function triggerDeploy(
   siteId: string,
@@ -26,34 +31,80 @@ export async function triggerDeploy(
   contentVersionId?: string,
   triggeredBy?: string
 ): Promise<DeployRecord> {
+  const supabase = createAdminClient();
+  const userId = triggeredBy || (await getCurrentUserId()) || undefined;
+
   const site = await getSiteMetadata(siteId);
   const metadata = site?.metadata as Record<string, unknown> | undefined;
   const deployMeta = metadata?.deploy as Record<string, unknown> | undefined;
 
-  const siteHookUrl = environment === 'stage'
-    ? (deployMeta?.stage_hook_url as string | undefined)
-    : (deployMeta?.prod_hook_url as string | undefined);
+  const siteHookUrl =
+    environment === 'stage'
+      ? (deployMeta?.stage_hook_url as string | undefined)
+      : (deployMeta?.prod_hook_url as string | undefined);
 
-  const fallbackHookUrl = environment === 'stage'
-    ? process.env.STAGE_DEPLOY_HOOK_URL
-    : process.env.PRODUCTION_DEPLOY_HOOK_URL;
+  const fallbackHookUrl =
+    environment === 'stage'
+      ? process.env.STAGE_DEPLOY_HOOK_URL
+      : process.env.PRODUCTION_DEPLOY_HOOK_URL;
 
   const hookUrl = siteHookUrl || fallbackHookUrl;
 
+  const stageDomain = metadata?.stage_domain as string | undefined;
+  const prodDomain = site?.domain || undefined;
+  const deployUrl =
+    environment === 'stage'
+      ? stageDomain
+        ? `https://${stageDomain}`
+        : undefined
+      : prodDomain
+        ? `https://${prodDomain}`
+        : undefined;
+
+  const triggeredAt = new Date().toISOString();
+  let insertedId: string | undefined;
+
+  if (supabase) {
+    const { data, error } = await supabase
+      .from('deploys')
+      .insert({
+        site_id: siteId,
+        environment,
+        content_version_id: contentVersionId || null,
+        status: hookUrl ? 'building' : 'failed',
+        deploy_url: deployUrl || null,
+        triggered_by: userId || null,
+        triggered_at: triggeredAt,
+        completed_at: hookUrl ? null : triggeredAt,
+      })
+      .select('id')
+      .single();
+    if (error) console.error('Failed to record deploy:', error);
+    insertedId = data?.id;
+  }
+
+  let fetchOk = false;
   if (hookUrl) {
     try {
-      await fetch(hookUrl, { method: 'POST' });
+      const res = await fetch(hookUrl, { method: 'POST' });
+      fetchOk = res.ok;
     } catch (err) {
       console.error(`Failed to trigger ${environment} deploy hook:`, err);
+    }
+    if (!fetchOk && supabase && insertedId) {
+      await supabase
+        .from('deploys')
+        .update({ status: 'failed', completed_at: new Date().toISOString() })
+        .eq('id', insertedId);
     }
   } else {
     console.warn(
       `No deploy hook configured for site ${siteId} (${environment}). ` +
-      `Set metadata.deploy.${environment === 'stage' ? 'stage' : 'prod'}_hook_url in the site settings.`
+        `Set metadata.deploy.${environment === 'stage' ? 'stage' : 'prod'}_hook_url in the site settings.`
     );
   }
 
-  // Trigger on-demand revalidation if the site has a revalidation URL
+  // ISR revalidation (no-op for SSG sites)
   try {
     const revalidationUrl = metadata?.revalidation_url as string | undefined;
     const revalidationSecret = metadata?.revalidation_secret as string | undefined;
@@ -65,76 +116,122 @@ export async function triggerDeploy(
           ...(revalidationSecret ? { 'x-revalidation-secret': revalidationSecret } : {}),
         },
         body: JSON.stringify({ path: '/' }),
-      }).catch(err => console.error('Revalidation failed:', err));
+      }).catch((err) => console.error('Revalidation failed:', err));
     }
   } catch (err) {
     console.error('Failed to trigger revalidation:', err);
   }
 
-  // Derive a human-readable deploy URL from the site itself.
-  const stageDomain = metadata?.stage_domain as string | undefined;
-  const prodDomain = site?.domain || undefined;
-  const deployUrl = environment === 'stage'
-    ? (stageDomain ? `https://${stageDomain}` : undefined)
-    : (prodDomain ? `https://${prodDomain}` : undefined);
+  revalidatePath('/deploys');
+  revalidatePath('/');
 
-  // Log the deploy (TODO: save to Supabase deploys table)
-  const deploy: DeployRecord = {
-    id: crypto.randomUUID(),
+  const finalStatus: DeployStatus = hookUrl ? (fetchOk ? 'building' : 'failed') : 'failed';
+  return {
+    id: insertedId || crypto.randomUUID(),
     site_id: siteId,
     environment,
-    status: 'building',
-    version: contentVersionId ? `v${Date.now() % 1000}` : undefined,
+    status: finalStatus,
+    content_version_id: contentVersionId,
     deploy_url: deployUrl,
-    triggered_by: triggeredBy,
-    triggered_at: new Date().toISOString(),
+    triggered_by: userId,
+    triggered_at: triggeredAt,
+    completed_at: finalStatus === 'building' ? undefined : new Date().toISOString(),
   };
-
-  return deploy;
 }
 
-/**
- * Deploy to stage: update content status to "staged" + trigger stage build.
- */
 export async function deployToStage(
   siteId: string,
   contentVersionId: string,
   triggeredBy?: string
 ): Promise<DeployRecord> {
-  // Update content status
-  await new Promise((r) => setTimeout(r, 300));
-
-  // Trigger deploy
-  const deploy = await triggerDeploy(siteId, 'stage', contentVersionId, triggeredBy);
-  return deploy;
+  return triggerDeploy(siteId, 'stage', contentVersionId, triggeredBy);
 }
 
-/**
- * Publish to production: update content status to "published" + trigger production build.
- */
 export async function publishToProduction(
   siteId: string,
   contentVersionId: string,
   triggeredBy?: string
 ): Promise<DeployRecord> {
-  // Update content status
-  await new Promise((r) => setTimeout(r, 300));
-
-  // Trigger deploy
-  const deploy = await triggerDeploy(siteId, 'production', contentVersionId, triggeredBy);
-  return deploy;
+  return triggerDeploy(siteId, 'production', contentVersionId, triggeredBy);
 }
 
 /**
- * Get deploy history for a site.
+ * Get deploy history for a site, newest first.
  */
-export async function getDeployHistory(siteId: string): Promise<DeployRecord[]> {
-  // Demo data
-  return [
-    { id: '1', site_id: siteId, environment: 'production', status: 'success', version: 'v1.4.2', triggered_by: 'Amit Das', triggered_at: '2025-03-26T10:30:00Z', completed_at: '2025-03-26T10:31:45Z', deploy_url: 'https://sevaa.org' },
-    { id: '2', site_id: siteId, environment: 'stage', status: 'success', version: 'v1.5.0-rc1', triggered_by: 'Amit Das', triggered_at: '2025-03-27T08:15:00Z', completed_at: '2025-03-27T08:16:30Z', deploy_url: 'https://stage-sevaa.vercel.app' },
-    { id: '3', site_id: siteId, environment: 'stage', status: 'success', version: 'v1.4.3-rc2', triggered_by: 'Amit Das', triggered_at: '2025-03-25T16:00:00Z', completed_at: '2025-03-25T16:01:30Z', deploy_url: 'https://stage-sevaa.vercel.app' },
-    { id: '4', site_id: siteId, environment: 'production', status: 'success', version: 'v1.4.1', triggered_by: 'Amit Das', triggered_at: '2025-03-24T11:00:00Z', completed_at: '2025-03-24T11:01:50Z', deploy_url: 'https://sevaa.org' },
-    { id: '5', site_id: siteId, environment: 'stage', status: 'failed', version: 'v1.4.3-rc1', triggered_by: 'Amit Das', triggered_at: '2025-03-23T14:00:00Z', completed_at: '2025-03-23T14:00:45Z' },
-  ];
+export async function getDeployHistory(siteId: string, limit = 50): Promise<DeployRecord[]> {
+  const supabase = createAdminClient();
+  if (!supabase) return [];
+
+  const { data: rows, error } = await supabase
+    .from('deploys')
+    .select(
+      'id, site_id, environment, content_version_id, status, deploy_url, triggered_by, triggered_at, completed_at'
+    )
+    .eq('site_id', siteId)
+    .order('triggered_at', { ascending: false })
+    .limit(limit);
+
+  if (error || !rows) return [];
+
+  const userIds = Array.from(
+    new Set(rows.map((r) => r.triggered_by).filter(Boolean))
+  ) as string[];
+  let userMap: Record<string, string> = {};
+  if (userIds.length > 0) {
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, name, email')
+      .in('id', userIds);
+    if (users) {
+      userMap = Object.fromEntries(users.map((u) => [u.id, u.name || u.email || '']));
+    }
+  }
+
+  return rows.map((r) => ({
+    id: r.id,
+    site_id: r.site_id,
+    environment: r.environment as DeployEnvironment,
+    status: r.status as DeployStatus,
+    content_version_id: r.content_version_id || undefined,
+    deploy_url: r.deploy_url || undefined,
+    triggered_by: r.triggered_by || undefined,
+    triggered_by_name: r.triggered_by ? userMap[r.triggered_by] : undefined,
+    triggered_at: r.triggered_at,
+    completed_at: r.completed_at || undefined,
+  }));
+}
+
+/**
+ * Most recent deploy for a site/environment, or null if none.
+ */
+export async function getLatestDeploy(
+  siteId: string,
+  environment: DeployEnvironment
+): Promise<DeployRecord | null> {
+  const supabase = createAdminClient();
+  if (!supabase) return null;
+
+  const { data } = await supabase
+    .from('deploys')
+    .select(
+      'id, site_id, environment, content_version_id, status, deploy_url, triggered_by, triggered_at, completed_at'
+    )
+    .eq('site_id', siteId)
+    .eq('environment', environment)
+    .order('triggered_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) return null;
+  return {
+    id: data.id,
+    site_id: data.site_id,
+    environment: data.environment as DeployEnvironment,
+    status: data.status as DeployStatus,
+    content_version_id: data.content_version_id || undefined,
+    deploy_url: data.deploy_url || undefined,
+    triggered_by: data.triggered_by || undefined,
+    triggered_at: data.triggered_at,
+    completed_at: data.completed_at || undefined,
+  };
 }
