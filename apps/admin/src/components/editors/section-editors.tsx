@@ -99,17 +99,18 @@ export function TextEditor({ data, onChange }: EditorProps<TextData>) {
 interface TextWithImageData {
   heading?: string; subtitle?: string; body?: string;
   items?: string[]; itemsHeading?: string;
-  image?: string; imageAlt?: string; reversed?: boolean;
+  image?: string | { src?: string; alt?: string }; imageAlt?: string; reversed?: boolean;
 }
 
 export function TextWithImageEditor({ data, onChange }: EditorProps<TextWithImageData>) {
   const u = (patch: Partial<TextWithImageData>) => upd(data, onChange, patch);
+  const imageSrc = typeof data.image === 'string' ? data.image : (data.image?.src ?? '');
   return (
     <div className="space-y-3">
       <Field label="Heading"><TextInput value={data.heading ?? ''} onChange={e => u({ heading: e.currentTarget.value })} /></Field>
       <Field label="Subtitle"><TextInput value={data.subtitle ?? ''} onChange={e => u({ subtitle: e.currentTarget.value })} /></Field>
       <Field label="Body"><RichTextEditor value={data.body ?? ''} onChange={body => u({ body })} minHeight="200px" /></Field>
-      <Field label="Image"><ImagePicker value={data.image ?? ''} onChange={v => u({ image: v })} /></Field>
+      <Field label="Image"><ImagePicker value={imageSrc} onChange={v => u({ image: typeof data.image === 'object' && data.image ? { ...data.image, src: v } : v })} /></Field>
       <Field label="List Heading"><TextInput value={data.itemsHeading ?? ''} onChange={e => u({ itemsHeading: e.currentTarget.value })} placeholder="e.g. We are committed to:" /></Field>
       <div>
         <p className="text-[11px] font-medium text-ink-secondary mb-2">List Items</p>

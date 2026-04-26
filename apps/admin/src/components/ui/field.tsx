@@ -157,12 +157,14 @@ export function ImagePicker({ value, onChange, label }: ImagePickerProps) {
   const [showPicker, setShowPicker] = useState(false);
   const previewUrl = useContext(PreviewUrlContext);
 
-  // Resolve relative paths using the site's preview URL for thumbnail display
-  const thumbnailSrc = value
-    ? value.startsWith('http')
-      ? value
-      : previewUrl && value.startsWith('/')
-        ? `${previewUrl}${value}`
+  // Resolve relative paths using the site's preview URL for thumbnail display.
+  // Coerce defensively — some legacy section data uses object shapes for image fields.
+  const safeValue = typeof value === 'string' ? value : '';
+  const thumbnailSrc = safeValue
+    ? safeValue.startsWith('http')
+      ? safeValue
+      : previewUrl && safeValue.startsWith('/')
+        ? `${previewUrl}${safeValue}`
         : null
     : null;
 
