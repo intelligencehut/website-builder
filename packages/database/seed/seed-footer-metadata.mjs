@@ -29,8 +29,8 @@ const SEVAA_ORG_NAME =
   "Society for Envisioning Vivekananda in Awareness and Action (SEVAA), Kolkata";
 
 const SITES = {
-  // sevaa.net (site 005)
-  "a0000000-0000-0000-0000-000000000005": {
+  // sevaa.net (site 001)
+  "a0000000-0000-0000-0000-000000000001": {
     description:
       "Society for Envisioning Vivekananda in Awareness and Action - Transforming communities through evidence-based programs inspired by Swami Vivekananda's vision of service to humanity.",
     tagline: "\u201C\u09B6\u09BF\u09AC \u099C\u09CD\u099E\u09BE\u09A8\u09C7 \u099C\u09C0\u09AC \u09B8\u09C7\u09AC\u09BE\u201D",
